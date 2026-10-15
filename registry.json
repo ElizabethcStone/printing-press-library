@@ -19548,6 +19548,41 @@
       }
     },
     {
+      "name": "ofa-health-clearances",
+      "category": "health",
+      "api": "OFA Health Clearances",
+      "description": "Look up dogs' OFA health clearances (hips, elbows, eyes, cardiac, DNA) and CHIC status by breed, age, and report year, and roll them up by kennel.",
+      "search_terms": [
+        "ofa-health-clearances",
+        "OFA Health Clearances",
+        "ofa-health-clearances-pp-cli",
+        "Look up dogs' OFA health clearances (hips, elbows, eyes, cardiac, DNA) and CHIC status by breed, age, and report year, and roll them up by kennel.",
+        "Kennel rollup",
+        "kennels",
+        "See which kennels in a breed are actively health-testing young dogs, ranked by tested dogs, CHIC dogs, and latest test date."
+      ],
+      "path": "library/health/ofa-health-clearances",
+      "printer": "H179922",
+      "printer_name": "H179922",
+      "creator": {
+        "handle": "H179922",
+        "name": "H179922"
+      },
+      "mcp": {
+        "binary": "ofa-health-clearances-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "offerup",
       "category": "commerce",
       "api": "OfferUp",
@@ -29667,9 +29702,9 @@
       "path": "library/food-and-dining/texas-roadhouse",
       "release": {
         "cli_name": "texas-roadhouse-pp-cli",
-        "version": "2026.9.2",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-14T15:38:53Z",
+        "source_commit": "159e064040fdfae7760208d17eaf42197992cc69"
       },
       "printer": "DashLabsDev",
       "printer_name": "Thomas McCormick",
