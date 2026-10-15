@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.5 - 2026-10-15
+
+- fix(costco-sameday): debounce login close, order start auto-fill, GraphQL failures exit non-zero (#2319).
+
 ## 2026.10.4 - 2026-10-14
 
 - chore(costco-sameday): credit @DashLabsDev in creator and author fields (#2285).

@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "costco-sameday",
   "cli_name": "costco-sameday-pp-cli",
-  "version": "2026.10.4",
-  "released_at": "2026-10-14T15:37:19Z",
-  "source_commit": "54ca21d4325956ae4739f6e30911622997cef1da",
+  "version": "2026.10.5",
+  "released_at": "2026-10-15T08:59:28Z",
+  "source_commit": "f9c94355e471f43d64e7168d932abb28039578ec",
   "printing_press_version": "4.31.7",
   "run_id": "20261007-135457",
   "changes": [
     {
-      "title": "chore(costco-sameday): credit @DashLabsDev in creator and author fields",
-      "pr": 2285,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2285",
-      "commit": "54ca21d4325956ae4739f6e30911622997cef1da"
+      "title": "fix(costco-sameday): debounce login close, order start auto-fill, GraphQL failures exit non-zero",
+      "pr": 2319,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2319",
+      "commit": "f9c94355e471f43d64e7168d932abb28039578ec"
     }
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "cookidoo",
+  "cli_name": "cookidoo-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-15T08:59:28Z",
+  "source_commit": "12ea868c051d594de728c95c064cb607874aa415",
+  "printing_press_version": "4.33.5",
+  "run_id": "20261014-192048",
+  "changes": [
+    {
+      "title": "feat(cookidoo): add Cookidoo CLI",
+      "pr": 2321,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2321",
+      "commit": "12ea868c051d594de728c95c064cb607874aa415"
+    }
+  ]
+}
