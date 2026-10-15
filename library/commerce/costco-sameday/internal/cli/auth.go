@@ -270,12 +270,18 @@ profile by name when the installed backend supports it.`,
 					return authErr(err)
 				}
 				cookies = imported.Header
+				sessionExpiry = importedSessionExpiry(imported.Cookies)
 				fromCookiesFile = true
 				source := cookiesFile
 				if source == "-" {
 					source = "stdin"
 				}
 				fmt.Fprintf(w, "Loaded cookies from %s for %s (input format: %s).\n", source, domain, imported.Format)
+				if !sessionExpiry.IsZero() {
+					fmt.Fprintf(w, "Session cookie expires %s.\n", sessionExpiry.Local().Format(time.RFC3339))
+				} else {
+					fmt.Fprintln(w, "Session expiry unknown: the paste carried none. Append '; Expires=<date>' from the browser's cookie table so 'auth status' and 'doctor' can show it.")
+				}
 			}
 			if !fromCookiesFile {
 				if pressAuthPath, err := exec.LookPath("press-auth"); err == nil {
@@ -1303,7 +1309,17 @@ func parseCookiesData(data []byte, domain string) (importedCookieFile, error) {
 	if err != nil {
 		return importedCookieFile{}, err
 	}
-	return importedCookieFile{Header: header, Cookies: parseCookieHeaderCookies(header), Format: format}, nil
+	// A pasted line may carry Set-Cookie attributes (Expires=..., Max-Age=...)
+	// copied from the browser's cookie table; they set the session expiry
+	// (cookie_expiry.go) and are not sent as cookies.
+	header, expires := stripCookieAttributes(header, time.Now())
+	cookies := parseCookieHeaderCookies(header)
+	for _, c := range cookies {
+		if c.Name == sessionCookieName {
+			c.Expires = expires
+		}
+	}
+	return importedCookieFile{Header: header, Cookies: cookies, Format: format}, nil
 }
 
 func trimCookieHeaderPrefix(s string) string {

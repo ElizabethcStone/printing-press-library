@@ -27,7 +27,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"time"
 
@@ -44,9 +43,9 @@ const (
 // actionable messages.
 var (
 	errSigninRateLimited = errors.New("Costco is rate-limiting sign-in (HTTP 429 from signin.costco.com). Wait about 15-30 minutes before trying again; retrying sooner extends the block")
-	errBrowserNotFound   = errors.New("no Chrome or Chromium found; install Google Chrome, pass --browser-path, or set " + browserLoginEnvBinary + ". Fallbacks: 'auth login --chrome' or 'pbpaste | auth login --cookies-file -'")
+	errBrowserNotFound   = errors.New("no Chromium-based browser found (looked for Chrome, Chromium, Brave, Edge, Vivaldi and Arc); install one, pass --browser-path, or set " + browserLoginEnvBinary + ". Fallbacks: 'auth login --chrome' or 'pbpaste | auth login --cookies-file -'")
 	errBrowserClosed     = errors.New("the login window was closed before sign-in finished; run 'auth login' again")
-	errProfileInUse      = errors.New("the CLI login profile is already open in another Chrome window (a previous 'auth login' may still be running); close that window and retry")
+	errProfileInUse      = errors.New("the CLI login profile is already open in another browser window (a previous 'auth login' may still be running); close that window and retry")
 )
 
 // browserLoginTimeoutError reports a sign-in that did not finish in time.
@@ -98,7 +97,7 @@ func defaultBrowserProfileDir() (string, error) {
 	return filepath.Join(dir, browserLoginProfile), nil
 }
 
-// findBrowserBinary picks an installed Chrome/Chromium.
+// findBrowserBinary picks an installed Chromium-based browser (browser_detect.go).
 func findBrowserBinary(explicit string) (string, error) {
 	for _, p := range []string{explicit, os.Getenv(browserLoginEnvBinary)} {
 		if p = strings.TrimSpace(p); p != "" {
@@ -111,30 +110,8 @@ func findBrowserBinary(explicit string) (string, error) {
 			return "", fmt.Errorf("browser %q not found", p)
 		}
 	}
-	var candidates []string
-	switch runtime.GOOS {
-	case "darwin":
-		candidates = []string{
-			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-			"/Applications/Chromium.app/Contents/MacOS/Chromium",
-			"/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta",
-		}
-	case "windows":
-		for _, env := range []string{"ProgramFiles", "ProgramFiles(x86)", "LocalAppData"} {
-			if base := os.Getenv(env); base != "" {
-				candidates = append(candidates, filepath.Join(base, "Google", "Chrome", "Application", "chrome.exe"))
-			}
-		}
-	}
-	for _, c := range candidates {
-		if _, err := os.Stat(c); err == nil {
-			return c, nil
-		}
-	}
-	for _, name := range []string{"google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome"} {
-		if p, err := exec.LookPath(name); err == nil {
-			return p, nil
-		}
+	if found, ok := detectInstalledBrowser(); ok {
+		return found.Path, nil
 	}
 	return "", errBrowserNotFound
 }
@@ -342,7 +319,7 @@ func runBrowserLogin(ctx context.Context, opts browserLoginOptions) (browserLogi
 		}
 	}
 
-	fmt.Fprintln(opts.Out, "A Chrome window opened with a separate profile for this CLI.")
+	fmt.Fprintf(opts.Out, "A %s window opened with a separate profile for this CLI.\n", browserNameForPath(bin))
 	fmt.Fprintln(opts.Out, "Sign in with 'Sign in via Costco.com' as you normally would. This window closes by itself once you're signed in.")
 
 	var (

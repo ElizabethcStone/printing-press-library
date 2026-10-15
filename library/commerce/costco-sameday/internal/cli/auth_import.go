@@ -201,7 +201,7 @@ func cookieFromCurlWords(args []string, format string) (string, string, error) {
 		}
 	}
 	if len(parts) == 0 {
-		return "", format, &cookieImportError{Stage: stageExtract, Format: format, Msg: "cURL command has no cookie (no -b/--cookie and no -H 'cookie: ...'); copy a sameday.costco.com graphql request that returned 200 with Copy as cURL (bash)"}
+		return "", format, &cookieImportError{Stage: stageExtract, Format: format, Msg: "cURL command has no cookie (no -b/--cookie and no -H 'cookie: ...'); copy a sameday.costco.com graphql request that returned 200 with Copy as cURL (bash). " + safariCookieHint}
 	}
 	header := strings.Join(parts, "; ")
 	if !strings.Contains(header, "=") {

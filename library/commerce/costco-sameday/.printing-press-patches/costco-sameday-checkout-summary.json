@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-14",
+  "base_run_id": "20261007-135457",
+  "base_printing_press_version": "4.31.7",
+  "id": "costco-sameday-checkout-summary",
+  "summary": "order preview and order place (dry-run included) print a summary first: items, subtotal, discounts, tax, tip, total, card hold (from totalLinesTrackingEvent total_lines, cents as strings), card brand/last 4 and store when present, and the window booked by slots pick (kept per hashed checkout session id in the state dir for 7 days). not_in_response lists missing fields. order place fetches the invoice read-only only on --dry-run or with both consent flags, so a refusal stays offline. slots pick prints booked_window.",
+  "reason": "order place --dry-run printed no totals and order preview buried the numbers in the raw invoice; the booked window was not shown after slots pick.",
+  "files": [
+    "internal/cli/checkout_summary.go",
+    "internal/cli/order_narrative.go",
+    "internal/cli/slots_window_picker.go",
+    "internal/cli/polish_test.go",
+    "README.md"
+  ],
+  "markers": [
+    "buildCheckoutSummary",
+    "fetchCheckoutSummary",
+    "printSummaryFirst",
+    "findCardLabel",
+    "saveBookedWindow",
+    "loadBookedWindow",
+    "bookedWindowLabel",
+    "booked_window",
+    "pruneBookedWindows",
+    "bookedWindowTTL"
+  ],
+  "validated_outcome": "Stub tests: the summary values come from a fake invoice; summary is the first key of order preview and order place --dry-run output; dry-run sends only the invoice GET and never FinalizeCheckout; a refused place sends nothing; a slots pick booked window shows in the same session's preview but not in another session's; the state file holds no raw session id. Not run live (needs an open checkout).",
+  "review_fixes": "PR #2320 review: booked windows are stored one file per hashed session id, written via temp file + rename (no shared read-modify-write); a --token pick without a label clears the earlier entry; entries older than 7 days are ignored on load as well as pruned on save."
+}

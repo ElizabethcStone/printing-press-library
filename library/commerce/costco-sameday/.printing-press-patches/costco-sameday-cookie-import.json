@@ -12,7 +12,9 @@
     "internal/cli/auth_import_test.go",
     "internal/cli/auth_cookies_test.go",
     "README.md",
-    "SKILL.md"
+    "SKILL.md",
+    "internal/cli/cookie_expiry.go",
+    "internal/cli/polish_test.go"
   ],
   "markers": [
     "sessionCookieName",
@@ -20,7 +22,10 @@
     "selectSessionCookies",
     "extractCookieHeader",
     "diagnoseCookieInput",
-    "readCookieInput"
+    "readCookieInput",
+    "safariCookieHint",
+    "stripCookieAttributes",
+    "importedSessionExpiry"
   ],
-  "validated_outcome": "go test ./internal/cli/... green (stdin import, missing-session-cookie failure, session-cookie-only login); live read-only smoke at cd7b39e9 by the author: auth login --diagnose, auth status, session context, cart activecartid/carttotals, slots availableservices, live search all PASS with no cart or order actions."
+  "validated_outcome": "go test ./internal/cli/... green (stdin import, missing-session-cookie failure, session-cookie-only login); live read-only smoke at cd7b39e9 by the author: auth login --diagnose, auth status, session context, cart activecartid/carttotals, slots availableservices, live search all PASS with no cart or order actions. User report follow-up (2026-10-14): a cURL with no cookie points to Safari Web Inspector > Storage > Cookies and the echo ... | auth login --cookies-file - form; Expires=/Max-Age= attributes in a pasted cookie line set the session expiry (and are not sent as cookies); storage-state expiries are now saved for --cookies-file imports, so auth status and doctor show them."
 }

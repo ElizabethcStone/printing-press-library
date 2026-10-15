@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-14",
+  "base_run_id": "20261007-135457",
+  "base_printing_press_version": "4.31.7",
+  "id": "costco-sameday-search-routes",
+  "summary": "products autosuggestions and products searchresultsplacements are re-routed (registerNovelCommand hook, RunE replaced) through the persisted-query POST the live search uses: SearchResultsPlacements via liveProductSearch with Items hydration, Autosuggestions as a POST body with shopId from the session context and a generated autosuggestionSessionId. --query is required.",
+  "reason": "Both generated commands sent a GET with query text and failed with PersistedQueryNotSupported.",
+  "files": [
+    "internal/cli/search_routes.go",
+    "internal/cli/polish_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "markers": [
+    "routeSearchResultsPlacements",
+    "routeAutosuggestions",
+    "findChild"
+  ],
+  "validated_outcome": "Stub tests: both commands POST with body-only variables, the shop is auto-filled, results are printed, and a missing --query is a usage error. Read-only live check (temp HOME, session copy): autosuggestions returned retailerAutosuggestionsV2 and searchresultsplacements returned priced items where the generated GET had failed with PersistedQueryNotSupported."
+}

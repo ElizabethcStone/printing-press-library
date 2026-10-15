@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-14",
+  "base_run_id": "20261007-135457",
+  "base_printing_press_version": "4.31.7",
+  "id": "costco-sameday-which-index",
+  "summary": "which gets a curated capability index (which_index.go init fills whichIndex when the generated one is empty) covering auth, session, search, cart, slots and order commands.",
+  "reason": "SKILL.md advertises which, but the generated index was empty so which always exited 2.",
+  "files": [
+    "internal/cli/which_index.go",
+    "internal/cli/which_index_test.go",
+    "SKILL.md"
+  ],
+  "markers": [
+    "costcoWhichIndex"
+  ],
+  "validated_outcome": "Every entry resolves to a real command; which \"cart price\" finds cart show."
+}

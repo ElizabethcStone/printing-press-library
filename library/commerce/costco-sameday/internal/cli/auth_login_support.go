@@ -36,7 +36,7 @@ type browserLoginFlags struct {
 }
 
 func (b *browserLoginFlags) register(cmd *cobra.Command) {
-	cmd.Flags().StringVar(&b.browserPath, "browser-path", "", "Chrome/Chromium binary for the login window (default: auto-detect, or $"+browserLoginEnvBinary+")")
+	cmd.Flags().StringVar(&b.browserPath, "browser-path", "", "Chromium-based browser (Chrome, Chromium, Brave, Edge, Vivaldi, Arc) for the login window (default: auto-detect, or $"+browserLoginEnvBinary+")")
 	cmd.Flags().StringVar(&b.loginURL, "login-url", sameDayOrigin, "Page the login window opens")
 	cmd.Flags().DurationVar(&b.timeout, "timeout", 10*time.Minute, "How long to wait for you to finish signing in")
 	cmd.Flags().BoolVar(&b.resetProfile, "reset-profile", false, "Delete the CLI's login-window profile first (fresh browser, signs you out of it; only a profile auth login created)")

@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-14",
+  "base_run_id": "20261007-135457",
+  "base_printing_press_version": "4.31.7",
+  "id": "costco-sameday-cart-show",
+  "summary": "cart show (alias cart list) reads UserCart for the active cart and prices items with Items hydration: quantity, unit price, line total, estimated subtotal; per-lb items are marked estimate; unpriced items are counted in a note. Read-only.",
+  "reason": "There was no way to see cart contents with prices; UserCart carries names and quantities only.",
+  "files": [
+    "internal/cli/cart_show.go",
+    "internal/cli/polish_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "markers": [
+    "newCartShowCmd",
+    "loadCartView",
+    "parsePriceCents",
+    "formatCents"
+  ],
+  "validated_outcome": "Stub test: three items (each, weight, unpriced) give $3.49 x2 = $6.98, $10.00/lb x1.5 = $15.00 estimate, subtotal $21.98 and a note for the unpriced item; the list alias works. Read-only live check against an empty cart: 0 items, $0.00.",
+  "review_fixes": "PR #2320 review: multi-buy labels (\"2 for $5\") give the per-unit price and are marked estimate instead of treating the deal price as the unit price."
+}

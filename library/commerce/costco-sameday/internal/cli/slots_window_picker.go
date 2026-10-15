@@ -328,8 +328,22 @@ token is fresh) or --token from 'slots windows --show-tokens'.`),
 				return classifyAPIError(cmd.OutOrStdout(), err, flags)
 			}
 			out, failure := pickResult(data, status, preview)
+			booked := ""
+			if failure == "" {
+				// Remembered for order preview / order place (checkout_summary.go).
+				// --token picks carry no label: the earlier entry is cleared
+				// rather than left looking like the booked window.
+				booked = bookedWindowLabel(preview)
+				if booked != "" {
+					out["booked_window"] = booked
+				}
+				saveBookedWindow(sid, booked)
+			}
 			if perr := printNarrativeJSON(cmd, flags, out); perr != nil {
 				return perr
+			}
+			if booked != "" {
+				fmt.Fprintf(cmd.ErrOrStderr(), "Booked window: %s\n", booked)
 			}
 			if failure != "" {
 				return apiErr(fmt.Errorf("%s did not change the delivery window: %s", updateCheckoutOp, failure))

@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "id": "costco-sameday-browser-detect",
+  "applied_at": "2026-10-14",
+  "base_run_id": "20261007-135457",
+  "base_printing_press_version": "4.31.7",
+  "summary": "auth login finds Chromium-based browsers beyond Chrome: Chrome, Chromium, Chrome Beta, Brave, Microsoft Edge, Vivaldi and Arc, in /Applications and ~/Applications on macOS, the usual Program Files/LocalAppData paths on Windows, and PATH names on Linux. findBrowserBinary delegates to detectInstalledBrowser; the login message and errors name the browser found (or list the ones looked for).",
+  "reason": "A user report: auth login said no Chrome was found on a Mac with only Brave/Edge/Arc or a per-user ~/Applications install, and messages always said Chrome.",
+  "files": [
+    "internal/cli/browser_detect.go",
+    "internal/cli/auth_browser_login.go",
+    "internal/cli/auth_login_support.go",
+    "internal/cli/polish_test.go"
+  ],
+  "markers": [
+    "detectInstalledBrowser",
+    "browserCandidates",
+    "browserNameForPath",
+    "macBrowserApps",
+    "looked for Chrome, Chromium, Brave, Edge, Vivaldi and Arc"
+  ],
+  "validated_outcome": "Unit tests: darwin candidates include Brave/Edge/Arc/Vivaldi in /Applications and ~/Applications with Chrome first; Windows candidates include Edge and Brave; browserNameForPath names each family; on Linux a PATH holding only brave-browser is found and named Brave, and an empty PATH gives the not-found error listing the browsers. Existing headless-Chrome login tests still pass."
+}

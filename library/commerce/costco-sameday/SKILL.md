@@ -52,6 +52,7 @@ This CLI uses standard HTTP transport with HTTP/2 disabled for browser-facing en
 
 **cart** — Costco Same-Day cart GraphQL operations
 
+- `costco-sameday-pp-cli cart show` (alias `cart list`) — cart items with quantity, unit price and line total plus an estimated subtotal (read-only; per-lb items marked estimate)
 - `costco-sameday-pp-cli cart activecartid` — GraphQL query ActiveCartId (persistedQuery)
 - `costco-sameday-pp-cli cart cartbottombannerquery` — GraphQL query CartBottomBannerQuery (persistedQuery)
 - `costco-sameday-pp-cli cart cartcheckoutvalidation` — GraphQL query CartCheckoutValidation (persistedQuery)
@@ -100,7 +101,7 @@ This CLI uses standard HTTP transport with HTTP/2 disabled for browser-facing en
 
 **products** — Costco Same-Day products GraphQL operations
 
-- `costco-sameday-pp-cli products autosuggestions` — GraphQL query Autosuggestions (persistedQuery)
+- `costco-sameday-pp-cli products autosuggestions --query <text>` — search-box suggestions (persisted-query POST; shop from the session context)
 - `costco-sameday-pp-cli products itemcardsizesearchvariant` — GraphQL query ItemCardSizeSearchVariant (persistedQuery)
 - `costco-sameday-pp-cli products itemdetaildata` — GraphQL query ItemDetailData (persistedQuery)
 - `costco-sameday-pp-cli products itemdetailfeaturedproductlist` — GraphQL query ItemDetailFeaturedProductList (persistedQuery)
@@ -114,7 +115,7 @@ This CLI uses standard HTTP transport with HTTP/2 disabled for browser-facing en
 - `costco-sameday-pp-cli products klarnaosmitemdetails` — GraphQL query KlarnaOSMItemDetails (persistedQuery)
 - `costco-sameday-pp-cli products postaddtocartsearchlayoutquery` — GraphQL query PostAddToCartSearchLayoutQuery (persistedQuery)
 - `costco-sameday-pp-cli products searchfacets` — GraphQL query SearchFacets (persistedQuery)
-- `costco-sameday-pp-cli products searchresultsplacements` — GraphQL query SearchResultsPlacements (persistedQuery)
+- `costco-sameday-pp-cli products searchresultsplacements --query <text>` — product search with prices (same persisted-query POST as `search`; only --query and --limit are used)
 - `costco-sameday-pp-cli products viewlayoutsearchresults` — GraphQL query ViewLayoutSearchResults (persistedQuery)
 
 **retailer** — Costco Same-Day retailer GraphQL operations
@@ -145,7 +146,7 @@ When you know what you want to do but not which command does it, ask the CLI dir
 costco-sameday-pp-cli which "<capability in your own words>"
 ```
 
-`which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query. `--json` (and other machine formats) keep that exit-2 contract and write `{"matches":[]}` on stdout so agents can inspect the envelope without treating a miss as success.
+`which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. The index covers sign-in, session, search, cart, slots and order commands. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query. `--json` (and other machine formats) keep that exit-2 contract and write `{"matches":[]}` on stdout so agents can inspect the envelope without treating a miss as success.
 
 ## Auth Setup
 

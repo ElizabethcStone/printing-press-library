@@ -47,6 +47,18 @@ This installs the CLI only — no skill.
 
 Download a pre-built binary for your platform from the [latest release](https://github.com/mvanhorn/printing-press-library/releases/tag/costco-sameday-current). On macOS, clear the Gatekeeper quarantine: `xattr -d com.apple.quarantine <binary>`. On Unix, mark it executable: `chmod +x <binary>`.
 
+On a Mac with Apple Silicon, take the `darwin-arm64` binary and put it on your PATH, for example:
+
+```bash
+mkdir -p ~/.local/bin
+mv ~/Downloads/costco-sameday-pp-cli-darwin-arm64 ~/.local/bin/costco-sameday-pp-cli   # use the downloaded file name
+chmod +x ~/.local/bin/costco-sameday-pp-cli
+xattr -d com.apple.quarantine ~/.local/bin/costco-sameday-pp-cli
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc   # once, if ~/.local/bin is not on PATH yet
+```
+
+Release binaries are built by the repository's release workflow from `main`, not per pull request.
+
 <!-- pp-hermes-install-anchor -->
 ## Install for Hermes
 
@@ -317,7 +329,7 @@ Costco Same-Day orders GraphQL operations
 
 Costco Same-Day products GraphQL operations
 
-- **`costco-sameday-pp-cli products autosuggestions`** - GraphQL query Autosuggestions (persistedQuery)
+- **`costco-sameday-pp-cli products autosuggestions`** - Search-box suggestions for `--query` (persisted-query POST; the shop comes from the session context)
 - **`costco-sameday-pp-cli products itemcardsizesearchvariant`** - GraphQL query ItemCardSizeSearchVariant (persistedQuery)
 - **`costco-sameday-pp-cli products itemdetaildata`** - GraphQL query ItemDetailData (persistedQuery)
 - **`costco-sameday-pp-cli products itemdetailfeaturedproductlist`** - GraphQL query ItemDetailFeaturedProductList (persistedQuery)
@@ -331,7 +343,7 @@ Costco Same-Day products GraphQL operations
 - **`costco-sameday-pp-cli products klarnaosmitemdetails`** - GraphQL query KlarnaOSMItemDetails (persistedQuery)
 - **`costco-sameday-pp-cli products postaddtocartsearchlayoutquery`** - GraphQL query PostAddToCartSearchLayoutQuery (persistedQuery)
 - **`costco-sameday-pp-cli products searchfacets`** - GraphQL query SearchFacets (persistedQuery)
-- **`costco-sameday-pp-cli products searchresultsplacements`** - GraphQL query SearchResultsPlacements (persistedQuery)
+- **`costco-sameday-pp-cli products searchresultsplacements`** - Product search for `--query` with prices (same persisted-query POST as `search`; only `--query` and `--limit` are used)
 - **`costco-sameday-pp-cli products viewlayoutsearchresults`** - GraphQL query ViewLayoutSearchResults (persistedQuery)
 
 ### retailer
@@ -443,6 +455,23 @@ Static request headers can be configured under `headers`; per-command header ove
 - `auth login --chrome` reads your main Chrome profile, which needs the "Chrome Safe Storage" keychain entry. If the keychain prompt was denied or does not accept your password, the error says keychain access was denied.
 - Use the browser login instead, which needs no keychain: `costco-sameday-pp-cli auth login`.
 - Or import from DevTools: on a sameday.costco.com graphql request choose Copy > Copy as cURL (bash), then `pbpaste | costco-sameday-pp-cli auth login --cookies-file -` (add `--diagnose` to check the paste without saving).
+
+**Which browser does `auth login` use?**
+- It looks for Google Chrome, Chromium, Chrome Beta, Brave, Microsoft Edge, Vivaldi and Arc, in that order. On macOS it checks both `/Applications` and `~/Applications`. Messages name the browser it found. Pass `--browser-path` to choose one.
+
+**Safari: Copy as cURL has no cookies**
+- Safari's Copy as cURL leaves the cookies out, so the import reports "cURL command has no cookie".
+- In Safari open Web Inspector > Storage > Cookies, select sameday.costco.com and copy the `__Host-instacart_sid` value. Then run:
+  `echo '__Host-instacart_sid=<value>' | costco-sameday-pp-cli auth login --cookies-file -`
+- Add the cookie's Expires date to record when the session runs out: `echo '__Host-instacart_sid=<value>; Expires=<date from the Expires column>' | costco-sameday-pp-cli auth login --cookies-file -`. `auth status` and `doctor` then show the expiry. Storage-state JSON imports carry the expiry automatically.
+
+**Cart contents and checkout totals**
+- `costco-sameday-pp-cli cart show` (or `cart list`) lists each item with its quantity, unit price and line total, plus an estimated subtotal from shelf prices. Per-lb items are marked as estimates.
+- `order preview` and `order place --dry-run` start with a short `summary`: items, subtotal, discounts, tax, tip, total, card hold, and the window booked with `slots pick`. Card brand, last 4 digits and store are included when the checkout response carries them; `not_in_response` lists any field that was missing. `order place --dry-run` makes one read-only invoice request for the totals and never sends FinalizeCheckout.
+- `slots pick` prints the booked window. `order preview` and `order place` repeat it for the same checkout session.
+
+**`products autosuggestions` / `products searchresultsplacements` failed with PersistedQueryNotSupported**
+- Fixed in this version: both now send the persisted-query POST that `search` uses.
 
 **`cart updatecartitemsmutation` / `checkout initializecheckout` fail with HTTP 400 "Blank Query"**
 - Fixed in this version: GraphQL POSTs now send operationName, variables and extensions in the JSON body only. Older builds also put them in the URL, which Costco rejects. `order place` used the same path.
