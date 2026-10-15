@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.6 - 2026-10-15
+
+- feat(costco-sameday): more browsers, Safari cookie import, cart show, checkout totals summary, which index (#2320).
+
 ## 2026.10.5 - 2026-10-15
 
 - fix(costco-sameday): debounce login close, order start auto-fill, GraphQL failures exit non-zero (#2319).
