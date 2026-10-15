@@ -100,6 +100,8 @@ This CLI uses standard HTTP transport with HTTP/2 disabled for browser-facing en
 
 - `costco-sameday-pp-cli orders customercancelselections` — GraphQL query CustomerCancelSelections — cancel-reason options UI.
 - `costco-sameday-pp-cli orders orderuptimer` — GraphQL query OrderUpTimer (persistedQuery)
+- `costco-sameday-pp-cli order start` — open a checkout session (InitializeCheckout; never charges). Cart, shop and ZIP come from the session context; `--service-type delivery|pickup` (any case). `--shop-id` is the shop id, not the store's retailer location id (a location id is refused with the right shop id named). `--dry-run` sends nothing. Prints `checkout_session_id` for `slots windows`, `order preview` and `order place`
+- GraphQL failures count as failures: a top-level `errors` array or a `*Error` / `*ErrorResponse` result type gives `success: false` and a non-zero exit, for generated commands and `order tip` alike
 
 **products** — Costco Same-Day products GraphQL operations
 
