@@ -5804,6 +5804,40 @@
       }
     },
     {
+      "name": "cookidoo",
+      "category": "food-and-dining",
+      "api": "Cookidoo",
+      "description": "Read-only Cookidoo CLI for public recipe details and local recipe analysis.",
+      "search_terms": [
+        "cookidoo",
+        "cookidoo-pp-cli",
+        "Read-only Cookidoo CLI for public recipe details and local recipe analysis.",
+        "Multi-Recipe Ingredient Plan",
+        "recipes plan",
+        "Combine ingredients from multiple public Cookidoo recipes into one structured plan for review and shopping handoff."
+      ],
+      "path": "library/food-and-dining/cookidoo",
+      "printer": "educrvz",
+      "printer_name": "educrvz",
+      "creator": {
+        "handle": "educrvz",
+        "name": "educrvz"
+      },
+      "mcp": {
+        "binary": "cookidoo-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 1,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "cookunity",
       "category": "food-and-dining",
       "api": "CookUnity",
@@ -19562,6 +19596,12 @@
         "See which kennels in a breed are actively health-testing young dogs, ranked by tested dogs, CHIC dogs, and latest test date."
       ],
       "path": "library/health/ofa-health-clearances",
+      "release": {
+        "cli_name": "ofa-health-clearances-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-15T08:56:58Z",
+        "source_commit": "2a29164d17188b95e44d05ac1202f2d7493c7cfc"
+      },
       "printer": "H179922",
       "printer_name": "H179922",
       "creator": {
