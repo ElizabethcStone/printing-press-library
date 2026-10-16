@@ -2,6 +2,14 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.3 - 2026-10-16
+
+- fix(scientific-consensus): PICOTokens skips subordinate-clause and empty-side verb matches (#2324).
+
+## 2026.10.2 - 2026-10-16
+
+- scientific-consensus: pin heuristic stance misreads on refuting abstracts (#2325).
+
 ## 2026.10.1 - 2026-10-10
 
 - fix(scientific-consensus): exclude same-title, same-year twins of retracted works from the score (#2297).

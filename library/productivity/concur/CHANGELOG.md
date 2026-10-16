@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.1 - 2026-10-16
+
+- fix(concur): read regional press-auth captures; infer policyId before the browser fallback (#2322).
+
 ## 2026.9.6 - 2026-09-29
 
 - fix+feat(concur): resolve custom-named Chrome profile resolution, add expenses list command (#2078).

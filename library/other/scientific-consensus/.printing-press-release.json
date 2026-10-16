@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "scientific-consensus",
   "cli_name": "scientific-consensus-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-10T08:56:54Z",
-  "source_commit": "46115d15264665ec71f4e86c55ce41b8c6f1eb09",
+  "version": "2026.10.3",
+  "released_at": "2026-10-16T08:55:32Z",
+  "source_commit": "84895223e002bb6ab111aa9bd8cbdd5ad9a67b67",
   "printing_press_version": "4.24.0",
   "run_id": "20260620-165352-e55cec69",
   "changes": [
     {
-      "title": "fix(scientific-consensus): exclude same-title, same-year twins of retracted works from the score",
-      "pr": 2297,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2297",
-      "commit": "46115d15264665ec71f4e86c55ce41b8c6f1eb09"
+      "title": "fix(scientific-consensus): PICOTokens skips subordinate-clause and empty-side verb matches",
+      "pr": 2324,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2324",
+      "commit": "84895223e002bb6ab111aa9bd8cbdd5ad9a67b67"
     }
   ]
 }
