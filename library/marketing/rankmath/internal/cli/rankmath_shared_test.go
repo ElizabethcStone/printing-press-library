@@ -46,3 +46,17 @@ func TestLoadPublishedInventoryFiltersConfiguredSite(t *testing.T) {
 		t.Fatalf("inventory=%+v", items)
 	}
 }
+
+func TestStripWWWMatchesSiteAliases(t *testing.T) {
+	for _, tc := range []struct{ a, b string }{
+		{"https://www.example.com/post/", "example.com"},
+		{"https://example.com/post/", "www.example.com"},
+	} {
+		if stripWWW(normalizeSiteHost(tc.a)) != stripWWW(normalizeSiteHost(tc.b)) {
+			t.Fatalf("%q and %q should be the same site", tc.a, tc.b)
+		}
+	}
+	if stripWWW(normalizeSiteHost("https://other.example.com/")) == stripWWW(normalizeSiteHost("example.com")) {
+		t.Fatal("different subdomain must not match")
+	}
+}

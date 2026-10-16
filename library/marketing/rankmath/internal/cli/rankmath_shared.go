@@ -116,7 +116,7 @@ func loadPublishedInventory(db *store.Store) ([]publishedInventoryItem, error) {
 			}
 			if row.Link != "" && (row.Status == "" || row.Status == "publish") {
 				if siteHost != "" {
-					if normalizeSiteHost(row.Link) != siteHost {
+					if stripWWW(normalizeSiteHost(row.Link)) != stripWWW(siteHost) {
 						return true
 					}
 				}
@@ -139,4 +139,10 @@ func scanCap(n, dogfoodMax int) int {
 		return dogfoodMax
 	}
 	return n
+}
+
+// stripWWW treats www.example.com and example.com as the same site, matching
+// WordPress sites whose canonical links differ from RANKMATH_SITE only by www.
+func stripWWW(host string) string {
+	return strings.TrimPrefix(host, "www.")
 }

@@ -136,8 +136,13 @@ func newNovelCoverageCmd(flags *rootFlags) *cobra.Command {
 			result := emptyCoverageResult()
 			emit := func() error {
 				if wantsHumanTable(cmd.OutOrStdout(), flags) {
-					if len(result.Gaps) == 0 {
+					if !result.ScanComplete {
+						fmt.Fprintf(cmd.OutOrStdout(), "Partial scan: %d URL(s) unknown. %s\n", result.Summary["unknown"], result.Note)
+					}
+					if len(result.Gaps) == 0 && result.ScanComplete {
 						fmt.Fprintln(cmd.OutOrStdout(), "No coverage gaps found.")
+					} else if len(result.Gaps) == 0 {
+						fmt.Fprintln(cmd.OutOrStdout(), "No coverage gaps found among inspected URLs.")
 					}
 					for _, g := range result.Gaps {
 						fmt.Fprintf(cmd.OutOrStdout(), "%s\t%s\n", g.Status, g.URL)
