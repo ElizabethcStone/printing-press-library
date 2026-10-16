@@ -1,3 +1,5 @@
+// Copyright 2026 ElizabethcStone and contributors. Licensed under Apache-2.0. See LICENSE.
+
 package seohead
 
 import (
@@ -36,6 +38,11 @@ func TestParseSEO(t *testing.T) {
 		}},
 		{"body ignored", `<html><head><title>Head</title></head><body><title>Body wins?</title><meta name="description" content="body"></body></html>`, func(t *testing.T, h Head) {
 			if h.Title != "Head" || h.Description != "" {
+				t.Fatalf("%+v", h)
+			}
+		}},
+		{"body JSON-LD collected", `<html><head><title>Head</title></head><body><script type="application/ld+json">{"@type":"Article"}</script></body></html>`, func(t *testing.T, h Head) {
+			if strings.Join(h.SchemaTypes, ",") != "Article" {
 				t.Fatalf("%+v", h)
 			}
 		}},

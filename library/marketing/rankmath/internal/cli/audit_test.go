@@ -92,6 +92,23 @@ func TestAnalyzeSEO(t *testing.T) {
 	}
 }
 
+func TestRenderAuditHumanReportsUncheckedURLs(t *testing.T) {
+	var out bytes.Buffer
+	err := renderAuditHuman(&out, auditResult{SiteItems: 312, ScannedURLs: 200, Fetched: 200, UncheckedURLs: 112, Issues: []auditIssue{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := out.String()
+	for _, want := range []string{"Checked 200 of 312 URLs", "112 unchecked", "raise --max-fetch", "No on-page SEO issues found among checked URLs"} {
+		if !strings.Contains(got, want) {
+			t.Errorf("output missing %q:\n%s", want, got)
+		}
+	}
+	if strings.Contains(got, "No on-page SEO issues found.") {
+		t.Fatalf("output contains unqualified no-issues claim:\n%s", got)
+	}
+}
+
 func TestAuditFetchFailuresExcludeNon404Responses(t *testing.T) {
 	var listener net.Listener
 	func() {

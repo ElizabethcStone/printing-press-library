@@ -1,3 +1,5 @@
+// Copyright 2026 ElizabethcStone and contributors. Licensed under Apache-2.0. See LICENSE.
+
 // pp:data-source live
 package cli
 

@@ -6,6 +6,7 @@ package cli
 import (
 	"context"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
@@ -178,20 +179,7 @@ func newNovelAuditCmd(flags *rootFlags) *cobra.Command {
 			}
 			result.Issues = filtered
 			if wantsHumanTable(cmd.OutOrStdout(), flags) {
-				if len(result.Issues) == 0 {
-					_, err = fmt.Fprintln(cmd.OutOrStdout(), "No on-page SEO issues found.")
-					return err
-				}
-				_, err = fmt.Fprintln(cmd.OutOrStdout(), "URL\tPost ID\tIssue\tDetail")
-				if err != nil {
-					return err
-				}
-				for _, v := range result.Issues {
-					if _, err = fmt.Fprintf(cmd.OutOrStdout(), "%s\t%s\t%s\t%s\n", v.URL, v.PostID, v.Issue, v.Detail); err != nil {
-						return err
-					}
-				}
-				return nil
+				return renderAuditHuman(cmd.OutOrStdout(), result)
 			}
 			return printJSONFiltered(cmd.OutOrStdout(), result, flags)
 		},
@@ -205,6 +193,37 @@ func newNovelAuditCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().BoolVar(&noFetch, "no-fetch", false, "Use only the latest stored SEO snapshots")
 	cmd.Flags().IntVar(&limit, "limit", 0, "Maximum issues to return; 0 returns all")
 	return cmd
+}
+
+func renderAuditHuman(out io.Writer, result auditResult) error {
+	if _, err := fmt.Fprintf(out, "Checked %d of %d URLs (%d fetched; %d unchecked", result.ScannedURLs, result.SiteItems, result.Fetched, result.UncheckedURLs); err != nil {
+		return err
+	}
+	if result.UncheckedURLs > 0 {
+		if _, err := fmt.Fprint(out, "; raise --max-fetch"); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintln(out, ")"); err != nil {
+		return err
+	}
+	if len(result.Issues) == 0 {
+		message := "No on-page SEO issues found."
+		if result.UncheckedURLs > 0 {
+			message = "No on-page SEO issues found among checked URLs."
+		}
+		_, err := fmt.Fprintln(out, message)
+		return err
+	}
+	if _, err := fmt.Fprintln(out, "URL\tPost ID\tIssue\tDetail"); err != nil {
+		return err
+	}
+	for _, v := range result.Issues {
+		if _, err := fmt.Fprintf(out, "%s\t%s\t%s\t%s\n", v.URL, v.PostID, v.Issue, v.Detail); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func emptyAuditResult() auditResult {

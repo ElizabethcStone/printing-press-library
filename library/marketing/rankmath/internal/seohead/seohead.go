@@ -1,3 +1,5 @@
+// Copyright 2026 ElizabethcStone and contributors. Licensed under Apache-2.0. See LICENSE.
+
 package seohead
 
 import (
@@ -65,13 +67,12 @@ func Parse(pageURL string, source []byte) Head {
 				inBodyTitle = true
 			}
 		}
+		if n.Type == html.ElementNode && n.Data == "script" && attr(n, "type") == "application/ld+json" {
+			inJSON = true
+			jsonLD.Reset()
+		}
 		if (inHead || isHeadTag) && n.Type == html.ElementNode {
 			switch n.Data {
-			case "script":
-				if attr(n, "type") == "application/ld+json" {
-					inJSON = true
-					jsonLD.Reset()
-				}
 			case "meta":
 				name, prop, content := strings.ToLower(attr(n, "name")), strings.ToLower(attr(n, "property")), clean(attr(n, "content"))
 				switch name {

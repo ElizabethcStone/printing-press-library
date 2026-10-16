@@ -6,6 +6,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -108,7 +109,7 @@ func TestCoverageClassification(t *testing.T) {
 			if tc.missing {
 				rows = nil
 			}
-			r := classifyCoverage([]publishedInventoryItem{{URL: "http://example.com/STORY", PostID: 42}}, rows, map[string]bool{"https://example.com/STORY/": tc.noindex})
+			r := classifyCoverage([]publishedInventoryItem{{URL: "http://example.com/STORY", PostID: 42}}, rows, map[string]bool{"https://example.com/STORY/": tc.noindex}, true)
 			if r.Published != 1 || r.Summary[tc.want] != 1 {
 				t.Fatalf("%+v", r)
 			}
@@ -117,8 +118,43 @@ func TestCoverageClassification(t *testing.T) {
 			}
 		})
 	}
-	r := classifyCoverage(nil, nil, nil)
+	r := classifyCoverage(nil, nil, nil, true)
 	if r.Published != 0 || r.Gaps == nil || len(r.Gaps) != 0 {
 		t.Fatal(r)
+	}
+}
+
+func TestCoverageIncompleteScanMarksMissingRowsUnknown(t *testing.T) {
+	inventory := []publishedInventoryItem{{URL: "https://example.com/known"}, {URL: "https://example.com/unseen"}}
+	rows := []inspectionRow{{Page: "https://example.com/known", Verdict: "PASS"}}
+	for _, tc := range []struct {
+		complete bool
+		want     string
+		gaps     int
+	}{
+		{complete: false, want: "unknown", gaps: 0},
+		{complete: true, want: "never_inspected", gaps: 1},
+	} {
+		got := classifyCoverage(inventory, rows, nil, tc.complete)
+		if got.Summary[tc.want] != 1 || len(got.Gaps) != tc.gaps {
+			t.Fatalf("complete=%v: result=%+v", tc.complete, got)
+		}
+	}
+}
+
+func TestCoverageResultJSONIncludesScanStatusAndNote(t *testing.T) {
+	result := emptyCoverageResult()
+	result.ScanComplete = false
+	result.Note = "raise --max-scan-pages"
+	raw, err := json.Marshal(result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded["scan_complete"] != false || decoded["note"] != result.Note {
+		t.Fatalf("JSON=%s", raw)
 	}
 }

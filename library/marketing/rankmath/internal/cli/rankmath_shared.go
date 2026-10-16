@@ -1,3 +1,5 @@
+// Copyright 2026 ElizabethcStone and contributors. Licensed under Apache-2.0. See LICENSE.
+
 package cli
 
 import (
@@ -101,6 +103,7 @@ func openMirrorOrHint(cmd *cobra.Command, flags *rootFlags, dbPath string) (*sto
 
 func loadPublishedInventory(db *store.Store) ([]publishedInventoryItem, error) {
 	items := make([]publishedInventoryItem, 0)
+	siteHost := normalizeSiteHost(os.Getenv("RANKMATH_SITE"))
 	for _, resource := range []string{"posts", "pages"} {
 		var decodeErr error
 		if err := db.ListScan(resource, func(id string, raw json.RawMessage) bool {
@@ -112,6 +115,11 @@ func loadPublishedInventory(db *store.Store) ([]publishedInventoryItem, error) {
 				return false
 			}
 			if row.Link != "" && (row.Status == "" || row.Status == "publish") {
+				if siteHost != "" {
+					if normalizeSiteHost(row.Link) != siteHost {
+						return true
+					}
+				}
 				postID, _ := strconv.Atoi(id)
 				items = append(items, publishedInventoryItem{URL: row.Link, PostID: postID})
 			}

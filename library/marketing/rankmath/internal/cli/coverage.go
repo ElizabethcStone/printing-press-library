@@ -30,6 +30,8 @@ type coverageResult struct {
 	Published    int            `json:"published"`
 	Inspected    int            `json:"inspected"`
 	ScannedPages int            `json:"scanned_pages"`
+	ScanComplete bool           `json:"scan_complete"`
+	Note         string         `json:"note,omitempty"`
 	Gaps         []coverageGap  `json:"gaps"`
 	Summary      map[string]int `json:"summary"`
 }
@@ -45,7 +47,7 @@ func decodeInspectionRows(raw json.RawMessage) ([]inspectionRow, error) {
 	return rows, nil
 }
 
-func classifyCoverage(inv []publishedInventoryItem, rows []inspectionRow, noindex map[string]bool) coverageResult {
+func classifyCoverage(inv []publishedInventoryItem, rows []inspectionRow, noindex map[string]bool, scanComplete bool) coverageResult {
 	result := emptyCoverageResult()
 	byPage := make(map[string]inspectionRow, len(rows))
 	byPath := make(map[string]inspectionRow)
@@ -85,12 +87,14 @@ func classifyCoverage(inv []publishedInventoryItem, rows []inspectionRow, noinde
 			if isIndexed(r.Verdict, r.CoverageState) {
 				status = "indexed"
 			}
+		} else if !scanComplete {
+			status = "unknown"
 		}
 		if noindexPages[key] || noindexPaths[path] {
 			status = "noindex_intentional"
 		}
 		result.Summary[status]++
-		if status != "indexed" {
+		if status != "indexed" && status != "unknown" {
 			result.Gaps = append(result.Gaps, coverageGap{URL: item.URL, PostID: item.PostID, Verdict: r.Verdict, CoverageState: r.CoverageState, Robots: r.Robots, Status: status})
 		}
 	}
@@ -98,7 +102,7 @@ func classifyCoverage(inv []publishedInventoryItem, rows []inspectionRow, noinde
 }
 
 func emptyCoverageResult() coverageResult {
-	return coverageResult{Gaps: make([]coverageGap, 0), Summary: map[string]int{"indexed": 0, "not_indexed": 0, "never_inspected": 0, "noindex_intentional": 0}}
+	return coverageResult{Gaps: make([]coverageGap, 0), Summary: map[string]int{"indexed": 0, "not_indexed": 0, "never_inspected": 0, "noindex_intentional": 0, "unknown": 0}}
 }
 
 func isIndexed(verdict, state string) bool {
@@ -175,6 +179,7 @@ func newNovelCoverageCmd(flags *rootFlags) *cobra.Command {
 			maxPages = scanCap(maxPages, 1)
 			rows := make([]inspectionRow, 0)
 			scanned := 0
+			scanComplete := false
 			for page := 1; page <= maxPages; page++ {
 				raw, err := c.Get(ctx, "/rankmath/v1/an/inspectionResults", map[string]string{"page": strconv.Itoa(page)})
 				if err != nil {
@@ -194,11 +199,16 @@ func newNovelCoverageCmd(flags *rootFlags) *cobra.Command {
 				scanned++
 				rows = append(rows, batch...)
 				if len(batch) < 25 || (response.RowsFound > 0 && len(rows) >= response.RowsFound) {
+					scanComplete = true
 					break
 				}
 			}
-			result = classifyCoverage(inv, rows, noindex)
+			result = classifyCoverage(inv, rows, noindex, scanComplete)
 			result.ScannedPages = scanned
+			result.ScanComplete = scanComplete
+			if !scanComplete {
+				result.Note = "Inspection scan reached --max-scan-pages; raise --max-scan-pages to classify URLs with no matching inspection row."
+			}
 			filtered := make([]coverageGap, 0)
 			for _, g := range result.Gaps {
 				if g.Status == "noindex_intentional" && !includeNoindex {
