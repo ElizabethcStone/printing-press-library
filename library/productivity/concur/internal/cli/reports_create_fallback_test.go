@@ -287,8 +287,11 @@ exit 0
 			t.Fatalf("unexpected error: %v", err)
 		}
 
-		if apiCalls != 2 {
-			t.Errorf("expected 2 API calls (1 POST failing, 1 GET succeeding), got %d", apiCalls)
+		// PATCH(amend-2026-10-15: infer policyId over HTTP before the browser
+		// fallback) -- the extra call is the policy-inference list GET. This
+		// mock 404s it, so inference fails and the browser fallback still runs.
+		if apiCalls != 3 {
+			t.Errorf("expected 3 API calls (1 POST failing, 1 policy-inference GET failing, 1 GET succeeding), got %d", apiCalls)
 		}
 
 		// Ensure mock state file was touched (meaning browser fallback actually click-submitted)

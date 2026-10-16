@@ -33,12 +33,16 @@ func newReportsCreateCmd(flags *rootFlags) *cobra.Command {
 		// command already had the policyId-required browser fallback
 		// before that patch -- only the Long text describing its optional
 		// persistent-session setup was missing.
-		Long: `Create a new expense report header. On a policy-gated tenant where a plain
-API create needs a policyId this CLI cannot resolve, this command falls
-back to driving Concur's real "Create Expense Report" form via
-agent-browser -- which needs its own logged-in browser session. By default
-that's an isolated, freshly-launched Chrome with no saved session, so the
-fallback fails with "not logged in" on every single invocation.
+		Long: `Create a new expense report header. On a policy-gated tenant the API
+rejects a create without a policyId; this command then retries over the same
+authenticated session using the policy of your most recent report, and says
+which policy it used. Pass policyId in a --stdin body to choose another.
+
+Only when no policyId can be inferred (for example, you have no reports yet)
+does this command fall back to driving Concur's real "Create Expense Report"
+form via agent-browser -- which needs its own logged-in browser session. By
+default that's an isolated, freshly-launched Chrome with no saved session, so
+the fallback fails with "not logged in" on every single invocation.
 
 OPTIONAL, to avoid that repeated login entirely: run a dedicated Chrome
 profile with remote debugging enabled and log into Concur there once. Use
@@ -128,6 +132,13 @@ that were tried and disproven before landing on this one.`,
 			// PATCH(amend-2026-09-04: fallback to browser automation on policyId required error)
 			data, statusCode, err := c.PostWithParams(cmd.Context(), path, params, body)
 			if err != nil {
+				// PATCH(amend-2026-10-15: infer policyId over HTTP before the
+				// browser fallback) -- retry with the policy of the user's most
+				// recent report; on failure this returns the original error so
+				// the browser fallback below still runs.
+				if isPolicyIdRequiredError(err) && !flags.dryRun {
+					data, statusCode, err = retryReportCreateWithInferredPolicy(cmd, c, path, params, body, flagUserId, flagContextType, err)
+				}
 				if isPolicyIdRequiredError(err) && !flags.dryRun {
 					nameVal := bodyName
 					purposeVal := bodyBusinessPurpose

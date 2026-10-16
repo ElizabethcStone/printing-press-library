@@ -1,0 +1,79 @@
+{
+  "schema_version": 2,
+  "id": "press-auth-regional-capture-and-policy-inference",
+  "applied_at": "2026-10-15",
+  "base_run_id": "20260812-144651-60addfc5",
+  "base_printing_press_version": "4.30.3",
+  "summary": "fix(concur): read press-auth captures keyed on the regional host so _csrf is found; infer policyId over HTTP before the report-creation browser fallback",
+  "reason": "Dogfooded 2026-10-15. (1) `auth login --chrome` failed with `cookie \"_csrf\" not found` for a signed-in user holding a good press-auth capture: tryPressAuth queried only the apex key, and press-auth keeps a cookie only when its domain attribute matches the capture key (cookieDomainMatches in cli-printing-press internal/pressauth/chrome.go). Concur sets _csrf host-only on the regional web host, so an apex-keyed capture can never hold it, and a regional-keyed capture was never consulted. The printed remedy (`press-auth login concursolutions.com --login-url <login-url>`) recreated the same apex-keyed capture, and a mise shim whose Go toolchain was no longer active surfaced only as an opaque press-auth crash. (2) `reports create` on a policy-gated tenant went straight to the browser fallback on `policyId is required`; that fallback needs its own logged-in automated browser, so a user with a valid HTTP session was forced through a second, separate login. Every report records the policy it was created under (GET .../reports/{id} -> policyId), so the most recent report is enough to retry over the same HTTP session.",
+  "files": [
+    "internal/cli/auth.go",
+    "internal/cli/press_auth_captures.go",
+    "internal/cli/press_auth_captures_test.go",
+    "internal/cli/reports_create.go",
+    "internal/cli/reports_policy.go",
+    "internal/cli/reports_policy_test.go",
+    "internal/cli/reports_create_fallback_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "internal/cli/press_auth_captures.go",
+      "description": "New. loadPressAuthCookies() lists press-auth captures (`press-auth list --json`), keeps the apex and every captured subdomain, queries them newest first, and pickCookieHeader() returns the newest header that carries every required cookie -- never a blend of captures, because _csrf is minted per sign-in and would not pair with another capture's JWT. pressAuthLoginCommand() builds the capture command keyed on the regional host (derived with resolveReportsUIHost, never guessed; a placeholder when it cannot be derived). pressAuthShimHint explains a mise shim with no active version."
+    },
+    {
+      "file": "internal/cli/auth.go",
+      "description": "auth login now calls loadPressAuthCookies instead of a single apex lookup; the missing-cookie error, when the cookies came from press-auth, explains the host-only _csrf scoping and prints the regional-host capture command instead of generic log-in-again advice; the press-auth failure path prints the shim reinstall hint and the regional-host command; --help documents the regional-host capture."
+    },
+    {
+      "file": "internal/cli/reports_policy.go",
+      "description": "New. inferReportPolicy() lists the user's reports, walks the three newest, and returns the first policyId found; retryReportCreateWithInferredPolicy() re-POSTs the create with that policyId. It never replaces a policyId the caller supplied and returns the original error untouched when inference fails, so the browser fallback still runs. The chosen policy name is printed to stderr."
+    },
+    {
+      "file": "internal/cli/reports_create.go",
+      "description": "On `policyId is required`, try the HTTP retry first; the existing browser fallback now runs only if the policy still cannot be resolved. A retry that fails for any other reason is surfaced, not retried through the browser, to avoid a duplicate report after an ambiguous write. Long help updated."
+    },
+    {
+      "file": "internal/cli/reports_create_fallback_test.go",
+      "description": "PolicyIdRequiredError_TriggersFallback now expects 3 API calls: the extra one is the policy-inference list GET, which that mock 404s so the browser fallback still has to run."
+    },
+    {
+      "file": "internal/cli/press_auth_captures_test.go",
+      "description": "New. Capture-key selection (apex/regional ordering, lookalike and unrelated domains excluded, unusable list output), header selection, a mock press-auth end to end (regional capture supplies the host-only cookie; regional-only capture; unusable list output; no capture), and login-command derivation."
+    },
+    {
+      "file": "internal/cli/reports_policy_test.go",
+      "description": "New. Report-ID ordering and policy parsing, an explicit policyId is never overridden, and an httptest-driven `reports create` that proves the HTTP retry carries the inferred policy and the browser fallback is never invoked."
+    },
+    {
+      "file": "README.md",
+      "description": "New \"Capturing the session with press-auth\" subsection; report-creation fallback section and Unique Features entry describe the HTTP policy inference before the browser fallback."
+    },
+    {
+      "file": "SKILL.md",
+      "description": "Same documentation changes as README.md, plus the reports create line in the command reference."
+    }
+  ],
+  "call_sites": [
+    "loadPressAuthCookies(",
+    "retryReportCreateWithInferredPolicy("
+  ],
+  "validated_outcome": "go build, go vet and go test ./... pass. Live 2026-10-15: `auth login --chrome` succeeded from a regional-host press-auth capture with no manual workaround and `account whoami` returned 200; an apex-only capture now prints the regional-host capture command; a broken mise shim prints the reinstall hint; the Chrome custom-named-profile path (upstream 2026.9.6) was confirmed end to end in an isolated --home. The HTTP policy-inference retry was exercised against httptest fixtures built from real response shapes, not against a live create, to avoid leaving a stray report in a real account.",
+  "findings_addressed": [
+    "press-auth lookups were apex-only, so the host-only _csrf cookie was never found",
+    "the printed press-auth remedy recreated the apex-keyed capture; a broken mise shim surfaced as an opaque crash",
+    "policyId-required forced a second, separate browser login instead of retrying over the working HTTP session"
+  ],
+  "deferred_to_upstream": [
+    {
+      "feature": "press-auth keeps only cookies whose domain attribute matches the capture key, so an apex-keyed capture drops host-only subdomain cookies, and a printed CLI cannot declare which key to capture under.",
+      "reason": "Cross-CLI Printing Press behavior (cli-printing-press internal/pressauth). This patch works around it CLI-side by reading regional captures and printing the regional-host capture command. Tracked in https://github.com/mvanhorn/cli-printing-press/issues/5027."
+    },
+    {
+      "feature": "press-auth login decides the sign-in is complete by finding a sign-out link in the first tab's light DOM. Concur renders none there, and email-link sign-in completes in a second tab, so the capture window does not finish on its own.",
+      "reason": "Lives in press-auth, not in any printed CLI; needs a press-auth option such as completing on the presence of a named cookie. Not fixable from this CLI. Tracked in https://github.com/mvanhorn/cli-printing-press/issues/5028."
+    }
+  ],
+  "upstream_issue": "https://github.com/mvanhorn/cli-printing-press/issues/5027"
+}

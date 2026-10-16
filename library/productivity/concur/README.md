@@ -124,6 +124,17 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 Concur's documented OAuth2 partner API is gated behind a Partner Enablement Manager relationship -- there is no self-serve signup, and this CLI does not implement that OAuth2 flow at all. Instead, this CLI authenticates via cookie/browser-session auth: run 'auth login --chrome', log into your company's Concur portal like you normally would (including SSO/MFA), and the CLI captures the resulting session. If a command fails with 401/403 and your company IT has partner OAuth2 credentials, that workflow requires calling the documented v3/v4 REST API directly (developer.concur.com) outside this CLI -- it is not something 'auth login' or any other command here can switch to.
 
+### Capturing the session with press-auth
+
+press-auth opens its own Chrome window for a one-time login, so your daily Chrome needs no debug flags. Key the capture on your **regional web host**, not the apex: Concur scopes the `_csrf` cookie host-only to that host (for example `us2.concursolutions.com`), and press-auth drops host-only subdomain cookies from an apex-keyed capture.
+
+```bash
+press-auth login us2.concursolutions.com --login-url https://www.concursolutions.com
+concur-pp-cli auth login --chrome
+```
+
+Open Expense once in the capture window so `_csrf` exists before the window closes. `auth login` reads the apex and every captured subdomain, newest capture first, and takes `JWT` and `_csrf` from a single capture rather than blending several. If it reports that the `press-auth` mise shim has no version, reinstall press-auth with the Go toolchain you use now: `go install github.com/mvanhorn/cli-printing-press/v4/cmd/press-auth@latest`.
+
 ### `hotels search` has a second, separate login by default
 
 `hotels search` drives its own `agent-browser`-controlled Chrome instance (see HTTP Transport below), which does not share cookies with `auth login --chrome`'s source browser or credential store. Confirmed live that bridging them by copying cookies does not work -- Concur's bot-mitigation appears to bind the session to the browser/device that created it, not just the cookie value, so a copied JWT gets cleared by the server on the next navigation even when every cookie (including the Akamai bot-sensor ones) is copied alongside it. The first time (or whenever that session expires), `hotels search` opens its own Chrome window and asks you to log in there directly -- that login persists across later invocations until it expires again, so this is an occasional cost, not a per-search one.
@@ -139,7 +150,7 @@ Concur's documented OAuth2 partner API is gated behind a Partner Enablement Mana
 
 ### Browser-automation fallback for report creation
 
-On Concur tenants where custom policies are required, creating a report via pure HTTP can fail with `policyId is required` because the CLI has no way to query or supply policy IDs. To handle this, `reports create` has a transparent browser-automation fallback. When the HTTP API returns that specific validation error, the command will automatically spin up `agent-browser` (using the same Remote Debugging CDP attach or isolated login as described for `hotels search` above), drive the report creation modal, and seamlessly fetch the resulting report details to return to you in the standard CLI format. This fallback is completely automatic and conditional; tenants that do not require policy ID selection will continue to use the fast, dependency-free HTTP API path.
+On Concur tenants where custom policies are required, creating a report via pure HTTP can fail with `policyId is required` because the request needs a policy ID. `reports create` first retries over the same authenticated HTTP session using the policy of your most recent report (it prints which policy it used; pass `policyId` in a `--stdin` body to choose another). Only if no policy can be inferred -- for example, you have no reports yet -- does it use a transparent browser-automation fallback: the command will automatically spin up `agent-browser` (using the same Remote Debugging CDP attach or isolated login as described for `hotels search` above), drive the report creation modal, and seamlessly fetch the resulting report details to return to you in the standard CLI format. This fallback is completely automatic and conditional; tenants that do not require policy ID selection will continue to use the fast, dependency-free HTTP API path.
 
 The fallback derives which Concur web UI host to open from your configured API base URL, but only when that URL is actually a `concursolutions.com` host -- it will never silently guess a region. If you're on a supported proxy or custom endpoint where that derivation can't work, set `CONCUR_UI_BASE_URL` to the correct region's UI host explicitly (e.g. `https://us2.concursolutions.com`); without a derivable host or this override, the command fails with a clear error rather than risking the wrong tenant/region. If the click succeeds in Concur but a later step fails, the error will say so explicitly (with the report ID, when known) instead of looking like an ordinary, safely-retryable failure -- re-running `reports create` blindly at that point risks creating a duplicate report, so check `reports get <id>` or `reports list` first.
 
@@ -184,7 +195,7 @@ concur-pp-cli reports create --name "October Travel" --purpose "Client site visi
 These capabilities aren't available in any other tool for this API.
 
 ### Conditional browser fallback for report/expense creation, expense update, and report submission
-- **`reports create`** — Automatically and transparently retries report creation via automated browser when the Concur v4 API rejects pure HTTP requests with a `policyId is required` error. This fallback is completely conditional and only triggers for tenants requiring explicit policy assignment.
+- **`reports create`** — Retries report creation over HTTP with the policy of your most recent report when the Concur v4 API rejects the request with a `policyId is required` error, and falls back to an automated browser only when no policy can be inferred. Both paths are conditional and only trigger for tenants requiring explicit policy assignment.
 - **`expenses create`** — Automatically and transparently retries expense creation via automated browser when the API returns its confirmed-live 404 defect on an otherwise fully-valid request. Success is confirmed by diffing the report's expense list rather than trusting a browser-surfaced ID, since the browser gives none. Any `--date`, not just today, is honored via Concur's calendar picker.
 - **`expenses update`** — Same 404 defect as expense creation, on the sibling PATCH path. Fills `--purpose`/`--amount` and verifies the re-fetched expense's fields actually changed before reporting success.
 - **`reports submit`** — A different-shaped (405, not 404) but same-root-cause defect: no HTTP verb reaches the submit action server-side. Clicks through Concur's confirmation dialog (disambiguating two identically-named "Submit Report" buttons) and confirms `isSubmitted` before reporting success.

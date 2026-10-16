@@ -113,7 +113,13 @@ Requires a cookie extraction tool (pycookiecheat, cookies, or cookie-scoop-cli).
 
 If you have multiple Chrome profiles, pycookiecheat and cookie-scoop-cli can
 auto-detect which profile is logged in. Use --profile to select a specific
-profile by name when the installed backend supports it.`,
+profile by name when the installed backend supports it.
+
+With press-auth, capture under your regional web host rather than the apex
+(for example: press-auth login us2.concursolutions.com --login-url
+https://www.concursolutions.com). Concur sets the _csrf cookie host-only on
+that host, and press-auth drops it from an apex-keyed capture. auth login
+reads the apex and every captured subdomain, newest capture first.`,
 		Example: `  concur-pp-cli auth login --chrome
   concur-pp-cli auth login --browser
   concur-pp-cli auth login --cookies-file storage-state.json
@@ -155,16 +161,21 @@ profile by name when the installed backend supports it.`,
 			}
 			if !fromCookiesFile {
 				if pressAuthPath, err := exec.LookPath("press-auth"); err == nil {
-					paCookies, paErr := tryPressAuth(pressAuthPath, domain)
+					// PATCH(amend-2026-10-15: press-auth lookups were apex-only) --
+					// consult every capture under the domain, not just the apex key.
+					paCookies, paErr := loadPressAuthCookies(pressAuthPath, domain, requiredAuthCookies())
 					if paErr == nil && paCookies != "" {
 						fmt.Fprintf(w, "Loaded cookies via press-auth for %s.\n", domain)
 						cookies = paCookies
 						fromPressAuth = true
 					} else if paErr != nil {
 						fmt.Fprintf(w, "press-auth returned an error: %v\n", paErr)
+						if strings.Contains(paErr.Error(), "No version is set for shim") {
+							fmt.Fprintf(w, "\n%s\n", pressAuthShimHint)
+						}
 						fmt.Fprintln(w, "Falling back to other extraction methods.")
 						fmt.Fprintln(w, "If you haven't logged in yet, run:")
-						fmt.Fprintf(w, "\n  press-auth login %s --login-url <login-url>\n\n", domain)
+						fmt.Fprintf(w, "\n  %s\n\n", pressAuthLoginCommand(domain, configuredBaseURL(flags)))
 					}
 				}
 			}
@@ -247,8 +258,22 @@ profile by name when the installed backend supports it.`,
 					loginURL := "https://" + strings.TrimPrefix(domain, ".")
 					fmt.Fprintf(w, "\n%s Cookie %q not found for %s.\n", red("ERROR"), name, domain)
 					fmt.Fprintln(w, "")
-					fmt.Fprintln(w, "Log in to your account:")
-					fmt.Fprintf(w, "\n  %s\n\n", loginURL)
+					if fromPressAuth {
+						// PATCH(amend-2026-10-15: press-auth lookups were apex-only) --
+						// the generic "log in again" advice is wrong here: the user
+						// is signed in, the capture key just cannot hold this cookie.
+						if name == "_csrf" {
+							fmt.Fprintf(w, "press-auth supplied cookies but not %q. Concur sets it host-only on your regional web host,\n", name)
+							fmt.Fprintf(w, "which a capture keyed on %s cannot hold. Capture under the regional host, and open\n", domain)
+							fmt.Fprintln(w, "Expense once in the capture window so the cookie exists before it closes:")
+						} else {
+							fmt.Fprintf(w, "press-auth supplied cookies but not %q; that capture was not signed in. Capture under the regional host:\n", name)
+						}
+						fmt.Fprintf(w, "\n  %s\n\n", pressAuthLoginCommand(domain, configuredBaseURL(flags)))
+					} else {
+						fmt.Fprintln(w, "Log in to your account:")
+						fmt.Fprintf(w, "\n  %s\n\n", loginURL)
+					}
 					fmt.Fprintln(w, "Then run this command again:")
 					fmt.Fprintf(w, "\n  concur-pp-cli auth login --chrome\n")
 					return authErr(fmt.Errorf("cookie %q not found for %s", name, domain))
