@@ -21,6 +21,8 @@ func newRatesCalendarCmd(flags *rootFlags) *cobra.Command {
 	var bodyBookerIdentifier string
 	var bodyPartnerIdentifier string
 	var bodyMultiRoomOccupancy string
+	var bodyRatePlanCode string
+	var bodyRatePlanType string
 	var stdinBody bool
 
 	cmd := &cobra.Command{
@@ -120,6 +122,20 @@ func newRatesCalendarCmd(flags *rootFlags) *cobra.Command {
 				}
 				if cmd.Flags().Changed("channel") || bodyPartnerIdentifier != "" {
 					bodyMap["partnerIdentifier"] = bodyPartnerIdentifier
+				}
+				// PATCH(amend-2026-10-15: corporate/negotiated rate plans) -- the
+				// generator only ever saw the widget's public-rate traffic, so these
+				// two body fields were missing. Both are omitted unless a code is
+				// given, so a default call stays the public Best-Available-Rate
+				// request. They are only verified live as a pair, hence a code
+				// without a type is sent as "Regular".
+				if bodyRatePlanCode != "" {
+					ratePlanType := bodyRatePlanType
+					if ratePlanType == "" {
+						ratePlanType = "Regular"
+					}
+					bodyMap["ratePlanCode"] = bodyRatePlanCode
+					bodyMap["ratePlanType"] = ratePlanType
 				}
 				if cmd.Flags().Changed("multi-room-occupancy") || bodyMultiRoomOccupancy != "" {
 					var parsedMultiRoomOccupancy any
@@ -292,6 +308,8 @@ func newRatesCalendarCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&bodyBookerIdentifier, "booker-identifier", "", "Optional OTA/travel-agent booker attribution ID.")
 	cmd.Flags().StringVar(&bodyPartnerIdentifier, "channel", "Web4_Desktop", "Booking-engine channel identifier.")
 	cmd.Flags().StringVar(&bodyMultiRoomOccupancy, "multi-room-occupancy", "", "Occupancy per room being scanned. The widget always sends exactly one entry for a single-room calendar scan.")
+	cmd.Flags().StringVar(&bodyRatePlanCode, "rate-plan-code", "", "Corporate/negotiated rate plan ID (the RatePlanId query parameter of the hotel's booking-widget URL). Omit for the public Best-Available-Rate calendar.")
+	cmd.Flags().StringVar(&bodyRatePlanType, "rate-plan-type", "Regular", "Rate plan type paired with --rate-plan-code; \"Regular\" is the only type verified so far. Ignored when --rate-plan-code is unset.")
 	cmd.Flags().BoolVar(&stdinBody, "stdin", false, "Read request body as JSON from stdin")
 
 	return cmd

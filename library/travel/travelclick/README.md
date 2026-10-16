@@ -205,7 +205,23 @@ Narrows the deeply-nested avail response to just room name, rate, and rate code 
 travelclick-pp-cli rates calendar 102306 --from 2026-09-01 --to 2026-09-30 --json
 ```
 
-Returns the lowest rate for every day in the range so you can sort for the minimum.
+Returns the lowest rate for every day in the range so you can sort for the minimum. **Public
+Best-Available-Rate calendar only** unless you add `--rate-plan-code` (see next recipe).
+
+### Find the cheapest night against a corporate/negotiated rate plan
+
+```bash
+travelclick-pp-cli rates calendar 102306 --hotel-code 102306 --from 2026-09-01 --to 2026-09-30 \
+  --rate-plan-code <rate_plan_id> --multi-room-occupancy '[{"adults":2,"infant":0,"children":0}]' \
+  --agent --select "dates.date,dates.rate.minRate,dates.rate.rateExternalCode"
+```
+
+Same endpoint as the public calendar scan above, with the corporate plan's own ID (the
+`RatePlanId` from that hotel's `?RatePlanId=<id>` booking-widget URL) in the request body.
+Returns that plan's per-night `minRate`; `rateExternalCode` confirms which plan priced each
+night (the plan's own code, versus the public plan's code on any night the corporate plan had
+no inventory). Sum the nights you need for a stay total. `rates search`, `rates compare`, and
+`rates cheapest-night` do not accept `--rate-plan-code` yet.
 
 ### Check a corporate code before searching
 
@@ -214,7 +230,8 @@ travelclick-pp-cli codes validate-corporate 102306 ACME2026
 ```
 
 Confirms whether a rate-access code is live for this hotel. **Validating a code does not
-currently let you search rates for it** — see Known Gaps below.
+currently let you search rates for it via `codes` itself** — use the previous recipe
+(`rates calendar --rate-plan-code`) once you have the real plan ID; see Known Gaps below.
 
 ### Compare three boutique hotels for the same weekend
 
@@ -222,7 +239,9 @@ currently let you search rates for it** — see Known Gaps below.
 travelclick-pp-cli rates compare --hotels 102306,<id2>,<id3> --check-in 2026-09-15 --check-out 2026-09-18
 ```
 
-Fans out the search across hotels and ranks them by lowest fee-inclusive total.
+Fans out the search across hotels and ranks them by lowest fee-inclusive total. **Public rates
+only** — `rates compare` does not accept `--rate-plan-code` yet (it uses the same `/avail`
+endpoint as `rates search`; see Known Gaps).
 
 ## Usage
 
@@ -390,6 +409,7 @@ If you use agentcookie to sync secrets across machines, this CLI auto-adopts age
 
 ## Known Gaps
 
+- **Only `rates calendar` can read a corporate/negotiated rate plan (`--rate-plan-code`).** `rates search`, `rates compare`, and `rates cheapest-night` still see public rates only; SKILL.md's Known Limitations explains why.
 - **Auth token is captured manually, not minted automatically.** The booking widget mints its OAuth2 `client_credentials` Bearer token client-side during page load; the exact token-mint endpoint fires before any capture hook can attach and was not isolated during discovery. Until that's found, `TRAVELCLICK_TOKEN` must be re-captured from browser DevTools roughly every hour. See [Authentication](#authentication).
 - **Travel-agency rate codes are not implemented.** Only `corporate` and `group` code types were confirmed live (`codes validate-corporate`, `codes validate-group`). The travel-agency path segment is unconfirmed -- a guessed value returned `UNSUPPORTED_CODE_TYPE` -- so no `codes validate-travel-agency` command was built rather than shipping a guess.
 - **The successful (valid-code) response shape for `codes validate-*` is unconfirmed.** Every live test used a fake code, so only the 404/invalid response shape was observed. A 2xx is treated as "valid" generically; if the real success body carries useful fields (e.g. a discount percentage), they aren't surfaced yet. **Concrete consequence, confirmed 2026-08-20**: `rates search` has no `--corporate-code`, `--rate-plan-id`, or equivalent parameter at all — so even a successfully-validated code cannot currently be used to filter a rates search to that specific rate plan, regardless of what the success response turns out to contain. **Verified workaround**: the booking widget's own page accepts a `RatePlanId` query parameter that pre-selects a corporate rate directly — `https://reservations.travelclick.com/{hotel_id}?RatePlanId={id}` (redirects to `bookings.travelclick.com`). Confirmed working against a real hotel/RatePlanId pair (pre-selected the corporate rate, real price readable from the rendered page). This is a page-level UI parameter only, not a confirmed API query parameter — re-sniffing the `avail` call while this URL parameter is active would likely reveal the real parameter name and unblock wiring it into `rates search`. (Specific rate-plan IDs are sensitive — each one maps to a named corporation's negotiated price, so don't publish one alongside the company it belongs to.)

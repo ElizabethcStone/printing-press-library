@@ -149,7 +149,23 @@ Narrows the deeply-nested avail response to just room name, rate, and rate code 
 travelclick-pp-cli rates calendar 102306 --from 2026-09-01 --to 2026-09-30 --json
 ```
 
-Returns the lowest rate for every day in the range so you can sort for the minimum.
+Returns the lowest rate for every day in the range so you can sort for the minimum. **Public
+Best-Available-Rate calendar only** unless you add `--rate-plan-code` (see next recipe).
+
+### Find the cheapest night against a corporate/negotiated rate plan
+
+```bash
+travelclick-pp-cli rates calendar 102306 --hotel-code 102306 --from 2026-09-01 --to 2026-09-30 \
+  --rate-plan-code <rate_plan_id> --multi-room-occupancy '[{"adults":2,"infant":0,"children":0}]' \
+  --agent --select "dates.date,dates.rate.minRate,dates.rate.rateExternalCode"
+```
+
+Same endpoint as the public calendar scan above, with the corporate plan's own ID (the
+`RatePlanId` from that hotel's `?RatePlanId=<id>` booking-widget URL) in the request body.
+Returns that plan's per-night `minRate`; `rateExternalCode` confirms which plan priced each
+night (the plan's own code, versus the public plan's code on any night the corporate plan had
+no inventory). Sum the nights you need for a stay total. `rates search`, `rates compare`, and
+`rates cheapest-night` do not accept `--rate-plan-code` yet.
 
 ### Check a corporate code before searching
 
@@ -158,8 +174,9 @@ travelclick-pp-cli codes validate-corporate 102306 ACME2026
 ```
 
 Confirms whether a rate-access code is live for this hotel. **Validating a code does not
-currently let you search rates for it** — see Known Limitations below before assuming this
-recipe's name describes the full workflow.
+currently let you search rates for it via `codes` itself** — use the previous recipe
+(`rates calendar --rate-plan-code`) once you have the real plan ID, not this command's output;
+see Known Limitations for why the two are still separate.
 
 ### Compare three boutique hotels for the same weekend
 
@@ -167,43 +184,43 @@ recipe's name describes the full workflow.
 travelclick-pp-cli rates compare --hotels 102306,<id2>,<id3> --check-in 2026-09-15 --check-out 2026-09-18
 ```
 
-Fans out the search across hotels and ranks them by lowest fee-inclusive total.
+Fans out the search across hotels and ranks them by lowest fee-inclusive total. **Public rates
+only** — `rates compare` does not accept `--rate-plan-code` yet (it uses the same `/avail`
+endpoint as `rates search`; see Known Limitations).
 
 ## Known Limitations
 
-**No way to search rates for a specific corporate/rate-access code.** `codes validate-corporate`
-and `codes validate-group` can only confirm whether a code is valid — `rates search` has no
-`--corporate-code`, `--rate-plan-id`, or equivalent parameter to actually filter results to
-that code's rate plan once validated. Confirmed by checking the discovery sample for
-`codes validate-corporate`: the only captured response is a 404 (`INVALID_CORP_ID`, from
-testing an intentionally-fake `TEST123` code) — discovery never observed what a *successful*
-validation returns, so neither the generator nor this CLI's author ever saw whether that
-response carries a rate plan ID, a discount code, or anything `rates search` could consume.
-The "Check a corporate code before searching" recipe above validates the code but cannot
-actually chain into a filtered search; treat it as a standalone validity check only.
+**`rates calendar` supports corporate/negotiated rate plans; `rates search`, `rates compare`, and
+`rates cheapest-night` do not yet.** Discovery only ever captured the booking widget's public-rate
+traffic, so the generator never saw `ratePlanCode`/`ratePlanType` as request fields. A live
+re-sniff with a corporate `RatePlanId`-scoped widget session open captured the widget's own
+`POST /ibe-shop/v1/hotel/{hotel_id}/basicavail/multi-room` call — the endpoint `rates calendar`
+wraps — carrying both fields in its JSON body, and the response's `rate.rateExternalCode`
+switched to the plan's own code, confirming the corporate plan priced each night. `rates
+calendar` therefore accepts `--rate-plan-code`/`--rate-plan-type`; both are omitted by default,
+so an unmodified call is the same public-rate request as before. See
+`.printing-press-patches/travelclick-add-rate-plan-to-calendar.json`.
 
-**Real, verified workaround**: the booking widget itself accepts a page-level `RatePlanId`
-query parameter that pre-selects a specific corporate rate — `https://reservations.travelclick.com/{hotel_id}?RatePlanId={id}`
-(redirects to `bookings.travelclick.com/{hotel_id}?RatePlanId={id}#/guestsandrooms`). Verified
-working directly against a real hotel ID with a valid corporate `RatePlanId`: the page loads
-with that specific negotiated rate pre-selected under Accommodations, and its real price is
-readable from the rendered page. This is a *page-level* UI parameter, not a confirmed
-`/ibe-shop/v1/hotel/{hotel_id}/avail` API query parameter — it was not captured at the network
-level, only observed working through the rendered widget, so it cannot be wired into `rates
-search`'s params without a fresh discovery pass that captures the underlying API call while
-this URL parameter is present. Until then, a specific corporate rate's real price has to be
-read from the widget directly (this URL pattern), not from this CLI. (The specific hotel/rate-plan
-pair used to verify this is omitted deliberately: pairing a real `RatePlanId` with the
-corporation it belongs to discloses that company's negotiated pricing to anyone who reads this
-file, so treat any `RatePlanId` you test with as sensitive and don't publish it alongside the
-company name.)
+**Why the other commands are unchanged**: `rates search` and `rates compare` use a different
+endpoint (`GET /ibe-shop/v1/hotel/{hotel_id}/avail`) that was never re-sniffed with a
+`RatePlanId` present; a live check confirmed it returns only public plans (Best Available Rate,
+package plans, etc.) even for a hotel with an active corporate plan. `rates cheapest-night`
+uses the same `basicavail/multi-room` endpoint as `rates calendar` but builds its own request
+body, so the new flags do not carry over to it. Extending it is the same shape of change, just
+not done yet.
 
-**If you have a real corporate/rate-access code to test with**: re-running discovery's
-browser-sniff against `codes validate-corporate` with that valid code (not `TEST123`) would
-capture the missing successful-response shape, and re-sniffing `avail` while the widget has a
-`RatePlanId` selected would likely surface the real API-level parameter name. Either capture
-would unblock a durable fix; noting this so it doesn't require re-discovering the gap from
-scratch.
+**`codes validate-corporate` / `codes validate-group` still cannot chain into a search.** The
+only captured response for either is a 404 (`INVALID_CORP_ID`, from an intentionally fake
+`TEST123` code), so it is unknown whether a successful validation response carries a rate plan
+ID that `rates calendar --rate-plan-code` could consume. For now the plan ID comes from the
+booking widget's own URL: `https://reservations.travelclick.com/{hotel_id}?RatePlanId={id}`
+(redirects to `bookings.travelclick.com/{hotel_id}?RatePlanId={id}#/guestsandrooms`). If you
+have a real corporate/rate-access code to test with, re-running discovery's browser-sniff
+against `codes validate-corporate` with it would capture the missing successful-response shape.
+
+**Don't publish a real `RatePlanId` next to the company it belongs to.** Pairing the two
+discloses that company's negotiated pricing to anyone who reads this file; treat any
+`RatePlanId` you test with as sensitive.
 
 ## Auth Setup
 

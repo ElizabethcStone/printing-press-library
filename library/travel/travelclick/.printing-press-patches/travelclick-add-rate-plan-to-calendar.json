@@ -1,0 +1,45 @@
+{
+  "schema_version": 2,
+  "id": "travelclick-add-rate-plan-to-calendar",
+  "applied_at": "2026-10-15",
+  "base_run_id": "20260820-153504-d88b22af",
+  "base_printing_press_version": "4.30.3",
+  "summary": "Add --rate-plan-code and --rate-plan-type to `rates calendar` so it can scan a corporate/negotiated rate plan instead of only the public Best-Available-Rate calendar.",
+  "reason": "Discovery never captured widget traffic with a corporate RatePlanId present, so ratePlanCode/ratePlanType were missing from the generated request body and `rates calendar` could only ever see public rates. A live re-sniff of the booking widget under a corporate RatePlanId-scoped session confirmed that POST /ibe-shop/v1/hotel/{hotel_id}/basicavail/multi-room -- the endpoint this command already wraps -- honors both fields and returns the plan's own per-night minRate, with rate.rateExternalCode identifying the plan that priced each night. Both flags are opt-in and omitted from the request body by default, so an unmodified call is the same public-rate request as before.",
+  "files": [
+    "internal/cli/rates_calendar.go",
+    "internal/cli/rates_calendar_rate_plan_test.go",
+    "SKILL.md",
+    "README.md"
+  ],
+  "call_sites": [
+    "bodyMap[\"ratePlanCode\"]"
+  ],
+  "changes": [
+    {
+      "file": "internal/cli/rates_calendar.go",
+      "description": "New --rate-plan-code and --rate-plan-type flags. When a code is given the request body carries ratePlanCode and ratePlanType (type defaults to Regular, the only type verified live, and a blank type also falls back to Regular); with no code neither field is sent. A type given without a code is ignored."
+    },
+    {
+      "file": "internal/cli/rates_calendar_rate_plan_test.go",
+      "description": "New. Runs `rates calendar` against a fake server and asserts the POSTed body: default call omits both fields, a code sends Regular by default, an explicit type passes through, a blank type falls back to Regular, a type alone is ignored."
+    },
+    {
+      "file": "SKILL.md",
+      "description": "New recipe for a rate-plan-scoped calendar scan, and Known Limitations rewritten to say which commands accept --rate-plan-code and why the others do not. Examples use placeholders; a real RatePlanId is never published next to the company it belongs to."
+    },
+    {
+      "file": "README.md",
+      "description": "Same recipe and a Known Gaps entry."
+    }
+  ],
+  "validated_outcome": "go build, go vet and go test ./... pass; the new test fails when the source change is reverted. The endpoint behavior was verified live by the original author on 2026-09-17 against a corporate rate-plan-scoped widget session (per-night minRate matched the rendered booking widget to within display rounding); it was not re-run live for this change.",
+  "findings_addressed": [
+    "`rates calendar` could not read corporate/negotiated rate plans, only the public Best-Available-Rate calendar"
+  ],
+  "known_followups": [
+    "`rates search` (GET /avail) was checked live and returns public plans only, even for a hotel with an active corporate plan; it is a different endpoint than this patch touches and is not fixed here. `rates compare` uses the same /avail endpoint.",
+    "`rates cheapest-night` builds its own request body against the same basicavail/multi-room endpoint independently of rates_calendar.go, so this patch does not carry over; the same shape of fix would apply.",
+    "`codes validate-corporate` / `codes validate-group` still cannot chain into a search: only a 404 (invalid-code) response has ever been captured, so it is unknown whether a successful validation carries a plan ID `rates calendar` could consume."
+  ]
+}
