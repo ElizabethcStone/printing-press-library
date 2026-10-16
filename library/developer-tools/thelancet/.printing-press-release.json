@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "thelancet",
   "cli_name": "thelancet-pp-cli",
-  "version": "2026.10.6",
-  "released_at": "2026-10-14T08:50:32Z",
-  "source_commit": "428dd0e6be95072f307b90398bf81097286451f6",
+  "version": "2026.10.7",
+  "released_at": "2026-10-16T08:54:42Z",
+  "source_commit": "43f3ccc434282f949033f8a743fdaed0a9982486",
   "printing_press_version": "4.24.0",
   "run_id": "20260617-072858-2f9fe13e",
   "changes": [
     {
-      "title": "feat(thelancet): add per-work authors to curate rows and BibTeX output",
-      "pr": 2314,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2314",
-      "commit": "428dd0e6be95072f307b90398bf81097286451f6"
+      "title": "thelancet: group top authors by author_id, not by name and id",
+      "pr": 2326,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2326",
+      "commit": "43f3ccc434282f949033f8a743fdaed0a9982486"
     }
   ]
 }

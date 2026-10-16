@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.7 - 2026-10-16
+
+- thelancet: group top authors by author_id, not by name and id (#2326).
+
 ## 2026.10.6 - 2026-10-14
 
 - feat(thelancet): add per-work authors to curate rows and BibTeX output (#2314).
