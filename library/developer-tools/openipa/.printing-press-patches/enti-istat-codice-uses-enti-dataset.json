@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "id": "enti-istat-codice-uses-enti-dataset",
+  "applied_at": "2026-10-16",
+  "base_run_id": "20260514-212234",
+  "base_printing_press_version": "4.6.1",
+  "summary": "enti istat --codice must resolve the ISTAT code from the CKAN Enti dataset (one row per entity), never from the AOO dataset.",
+  "reason": "Entities with zero AOOs (e.g. professional orders such as oam_2) have no row in the AOO dataset, so the lookup reported them as nonexistent; the Enti dataset carries Codice_comune_ISTAT of every entity's seat.",
+  "files": [
+    "internal/cli/enti_istat.go",
+    "internal/cli/enti_istat_test.go"
+  ],
+  "validated_outcome": "Live 2026-10-16: --codice oam_2 → 004130 (was 'nessun risultato'); --codice c_g273 → 082053 unchanged.",
+  "upstream_issue": "https://github.com/mvanhorn/printing-press-library/issues/2328"
+}
