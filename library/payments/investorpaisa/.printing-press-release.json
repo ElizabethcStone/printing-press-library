@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "investorpaisa",
+  "cli_name": "investorpaisa-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-18T08:50:56Z",
+  "source_commit": "fdbba27f47c7a5be3be30fb47bf6463d1ec3549c",
+  "printing_press_version": "4.33.5",
+  "run_id": "20261017-231640-7863a774",
+  "changes": [
+    {
+      "title": "feat(investorpaisa): add investorpaisa",
+      "pr": 2333,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2333",
+      "commit": "fdbba27f47c7a5be3be30fb47bf6463d1ec3549c"
+    }
+  ]
+}

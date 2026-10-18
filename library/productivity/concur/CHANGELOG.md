@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.2 - 2026-10-18
+
+- feat(concur): inspect and fix itemization lines; attach fallbacks to chrome://inspect Chrome (#2336).
+
 ## 2026.10.1 - 2026-10-16
 
 - fix(concur): read regional press-auth captures; infer policyId before the browser fallback (#2322).
