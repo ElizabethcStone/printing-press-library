@@ -5556,9 +5556,9 @@
       "path": "library/productivity/concur",
       "release": {
         "cli_name": "concur-pp-cli",
-        "version": "2026.9.6",
-        "released_at": "2026-09-29T08:58:34Z",
-        "source_commit": "0535c25884c0ecf87494274c9c9f155955237871"
+        "version": "2026.10.1",
+        "released_at": "2026-10-16T08:55:32Z",
+        "source_commit": "c31eb6d2cf720f0f6d105b4e43b5f2f20fe1e606"
       },
       "printer": "enlewof",
       "printer_name": "Allen Lew",
@@ -5817,6 +5817,12 @@
         "Combine ingredients from multiple public Cookidoo recipes into one structured plan for review and shopping handoff."
       ],
       "path": "library/food-and-dining/cookidoo",
+      "release": {
+        "cli_name": "cookidoo-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-15T08:59:28Z",
+        "source_commit": "12ea868c051d594de728c95c064cb607874aa415"
+      },
       "printer": "educrvz",
       "printer_name": "educrvz",
       "creator": {
@@ -6103,9 +6109,9 @@
       "path": "library/commerce/costco-sameday",
       "release": {
         "cli_name": "costco-sameday-pp-cli",
-        "version": "2026.10.4",
-        "released_at": "2026-10-14T15:37:19Z",
-        "source_commit": "54ca21d4325956ae4739f6e30911622997cef1da"
+        "version": "2026.10.6",
+        "released_at": "2026-10-15T09:04:15Z",
+        "source_commit": "71b657fd0a3e8532fe7ec84bd4a6c60e75bca406"
       },
       "printer": "DashLabsDev",
       "printer_name": "Thomas McCormick",
@@ -14600,6 +14606,63 @@
       }
     },
     {
+      "name": "investorpaisa",
+      "category": "payments",
+      "api": "InvestorPaisa",
+      "description": "The Nifty 200 momentum screener, movers and market breadth in your terminal, with a local history the site never keeps.",
+      "search_terms": [
+        "investorpaisa",
+        "investorpaisa-pp-cli",
+        "The Nifty 200 momentum screener, movers and market breadth in your terminal, with a local history the site never keeps.",
+        "Local expression screener",
+        "screen",
+        "Run the site's screener expression language (close > sma50 and rs >= 70) from the terminal over the Nifty 200 metrics (live, falling back to your last stored snapshot).",
+        "One-stock deep dive",
+        "quote",
+        "Price, range, RSI/SMA/EMA, returns, sector percentile, signals, headlines and watchlist membership for one or more stocks in a single call.",
+        "Movers with confluence",
+        "movers",
+        "Ranked gainers, losers, unusual volume, gappers and 52-week highs/lows, filtered by RS and sector.",
+        "Sector rotation heat",
+        "sectors",
+        "Equal-weight sector returns over 1d-1y, average RS and % above 50/200 DMA, with rank change versus an earlier stored snapshot (--trend needs two stored days).",
+        "Snapshot diff",
+        "changes",
+        "Which stocks entered or left conditions (new 52-week high, RS crossing 70, 50/200 DMA crossings, 2x volume) since an earlier stored snapshot; needs two stored trading days.",
+        "Morning brief",
+        "brief",
+        "Index levels, breadth, your watchlist rows with change, RS and signals, and fresh headlines in one JSON document.",
+        "Breadth history",
+        "breadth",
+        "Trend of advance/decline, % above 50/200 DMA, new 52-week highs and stocks at 52-week lows across your stored daily snapshots.",
+        "Adjusted 5y history",
+        "history",
+        "Five years of daily OHLCV, split/bonus adjustment factors and corporate events for a stock, read from its chart page and cached locally (--raw, --years, --tail)."
+      ],
+      "path": "library/payments/investorpaisa",
+      "printer": "SomSamantray",
+      "printer_name": "Som Samantray",
+      "creator": {
+        "handle": "SomSamantray",
+        "name": "Som Samantray"
+      },
+      "mcp": {
+        "binary": "investorpaisa-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 16,
+        "public_tool_count": 1,
+        "auth_type": "cookie",
+        "env_vars": [
+          "INVESTORPAISA_SESSION_TOKEN"
+        ],
+        "mcp_ready": "partial",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "irail",
       "category": "travel",
       "api": "iRail",
@@ -20352,9 +20415,9 @@
       "path": "library/developer-tools/openipa",
       "release": {
         "cli_name": "openipa-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-17T08:50:24Z",
+        "source_commit": "fca02ab2f5df5a904992e325f240905e5e88835f"
       },
       "printer": "aborruso",
       "printer_name": "aborruso",
@@ -25252,9 +25315,9 @@
       "path": "library/other/scientific-consensus",
       "release": {
         "cli_name": "scientific-consensus-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-10T08:56:54Z",
-        "source_commit": "46115d15264665ec71f4e86c55ce41b8c6f1eb09"
+        "version": "2026.10.3",
+        "released_at": "2026-10-16T08:55:32Z",
+        "source_commit": "84895223e002bb6ab111aa9bd8cbdd5ad9a67b67"
       },
       "printer": "laci141",
       "printer_name": "laci141",
@@ -29800,9 +29863,9 @@
       "path": "library/developer-tools/thelancet",
       "release": {
         "cli_name": "thelancet-pp-cli",
-        "version": "2026.10.6",
-        "released_at": "2026-10-14T08:50:32Z",
-        "source_commit": "428dd0e6be95072f307b90398bf81097286451f6"
+        "version": "2026.10.7",
+        "released_at": "2026-10-16T08:54:42Z",
+        "source_commit": "43f3ccc434282f949033f8a743fdaed0a9982486"
       },
       "printer": "laci141",
       "printer_name": "laci141",
@@ -30469,9 +30532,9 @@
       "path": "library/travel/travelclick",
       "release": {
         "cli_name": "travelclick-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-16T08:55:32Z",
+        "source_commit": "2be6cbec3b60bb73adb9a2470c969e7a7b730fb2"
       },
       "printer": "enlewof",
       "printer_name": "Allen Lew",
