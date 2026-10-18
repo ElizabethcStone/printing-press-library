@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "id": "sync-records-market-snapshots",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20261017-231640-7863a774",
+  "base_printing_press_version": "4.33.5",
+  "summary": "After sync succeeds, persist validated screener, live, and overview responses as dated local snapshots for historical commands.",
+  "reason": "The upstream site only exposes current market data; without a sync snapshot hook, changes, breadth, and trend commands cannot compare across trading days or use stored data after a live fetch fails.",
+  "files": [
+    "internal/cli/sync.go",
+    "internal/cli/ip_data.go"
+  ],
+  "validated_outcome": "Snapshot storage validates each response and retains up to 500 dated snapshots per kind."
+}

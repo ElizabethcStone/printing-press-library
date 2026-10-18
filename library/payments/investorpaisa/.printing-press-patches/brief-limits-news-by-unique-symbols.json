@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "brief-limits-news-by-unique-symbols",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20261017-231640-7863a774",
+  "base_printing_press_version": "4.33.5",
+  "summary": "Apply the brief's eight-symbol news limit after deduplicating moved stocks across watchlists.",
+  "reason": "A stock may appear in multiple watchlists; counting repeated rows against the news limit can exclude distinct movers and leave their headlines out of the brief.",
+  "files": [
+    "internal/cli/brief.go"
+  ],
+  "validated_outcome": "A regression test verifies duplicates do not consume the unique-symbol limit."
+}

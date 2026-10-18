@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "auth-set-token-stores-session-cookie-safely",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20261017-231640-7863a774",
+  "base_printing_press_version": "4.33.5",
+  "summary": "`auth set-token` reads the session cookie from stdin, normalizes a full cookie header to the session token, clears stale legacy auth-header state, and writes zero expiry when the cookie lifetime is unknown.",
+  "reason": "Browser session cookies may contain several cookie pairs and must not be exposed in process arguments or shell history. Keeping an old expiry or auth header can make the freshly supplied cookie appear expired or cause requests to use the wrong credential.",
+  "files": [
+    "internal/cli/auth.go"
+  ],
+  "validated_outcome": "Auth tests cover stdin token handling, normalization, and clearing stale credential metadata."
+}
