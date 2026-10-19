@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "concur",
   "cli_name": "concur-pp-cli",
-  "version": "2026.10.3",
-  "released_at": "2026-10-19T08:55:57Z",
-  "source_commit": "222f6cbd67362d7ef058d9b71163647e45a87e15",
+  "version": "2026.10.4",
+  "released_at": "2026-10-19T08:57:46Z",
+  "source_commit": "25437872c8438ba0c1f63b6d3e48f07733e6a999",
   "printing_press_version": "4.30.3",
   "run_id": "20260812-144651-60addfc5",
   "changes": [
     {
-      "title": "fix(concur): refuse to save an already-expired session in auth login",
-      "pr": 2340,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2340",
-      "commit": "222f6cbd67362d7ef058d9b71163647e45a87e15"
+      "title": "fix(concur): evict cached reads after browser-driven writes; read exceptions live",
+      "pr": 2338,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2338",
+      "commit": "25437872c8438ba0c1f63b6d3e48f07733e6a999"
     }
   ]
 }

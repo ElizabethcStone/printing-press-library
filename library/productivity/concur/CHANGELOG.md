@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.4 - 2026-10-19
+
+- fix(concur): evict cached reads after browser-driven writes; read exceptions live (#2338).
+
 ## 2026.10.3 - 2026-10-19
 
 - fix(concur): refuse to save an already-expired session in auth login (#2340).
