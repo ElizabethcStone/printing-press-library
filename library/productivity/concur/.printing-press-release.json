@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "concur",
   "cli_name": "concur-pp-cli",
-  "version": "2026.10.2",
-  "released_at": "2026-10-18T08:50:56Z",
-  "source_commit": "56e34063315e3d9ebe00112a8fc373fb32c9e628",
+  "version": "2026.10.3",
+  "released_at": "2026-10-19T08:55:57Z",
+  "source_commit": "222f6cbd67362d7ef058d9b71163647e45a87e15",
   "printing_press_version": "4.30.3",
   "run_id": "20260812-144651-60addfc5",
   "changes": [
     {
-      "title": "feat(concur): inspect and fix itemization lines; attach fallbacks to chrome://inspect Chrome",
-      "pr": 2336,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2336",
-      "commit": "56e34063315e3d9ebe00112a8fc373fb32c9e628"
+      "title": "fix(concur): refuse to save an already-expired session in auth login",
+      "pr": 2340,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2340",
+      "commit": "222f6cbd67362d7ef058d9b71163647e45a87e15"
     }
   ]
 }
