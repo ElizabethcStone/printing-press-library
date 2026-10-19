@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "id": "auth-login-must-not-save-an-expired-session",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20260812-144651-60addfc5",
+  "base_printing_press_version": "4.30.3",
+  "summary": "`auth login` must refuse a captured JWT that has already expired instead of saving it, and must leave the stored session untouched.",
+  "reason": "The cookie sources return whatever they have on file -- a stale browser profile, or an old press-auth capture -- and a Concur JWT lasts about an hour. Login printed \"OK Found 2 cookies\" and overwrote the stored session with a dead one, so the failure only surfaced as HTTP 401 on the next, unrelated command.",
+  "files": [
+    "internal/cli/auth.go",
+    "internal/cli/session_expiry.go",
+    "internal/cli/session_expiry_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "call_sites": [
+    "expiredSessionError("
+  ],
+  "upstream_issue": null,
+  "validated_outcome": "go build, go vet and go test ./... pass. Unit tests cover JWT expiry parsing (padded and unpadded payloads, missing exp, malformed tokens) and the age wording. A command-level test imports an expired Cookie header and asserts exit code 4, nothing saved, and an already-stored working session left byte-for-byte unchanged; it fails with the check removed. Found live: a browser profile whose token had expired two days earlier was imported as \"Session saved\".",
+  "findings_addressed": [
+    "F1"
+  ]
+}

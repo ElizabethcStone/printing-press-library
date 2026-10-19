@@ -134,6 +134,7 @@ concur-pp-cli auth login --chrome
 ```
 
 Open Expense once in the capture window so `_csrf` exists before the window closes. `auth login` reads the apex and every captured subdomain, newest capture first, and takes `JWT` and `_csrf` from a single capture rather than blending several. If it reports that the `press-auth` mise shim has no version, reinstall press-auth with the Go toolchain you use now: `go install github.com/mvanhorn/cli-printing-press/v4/cmd/press-auth@latest`.
+`auth login` also refuses a capture whose `JWT` has already expired (a Concur token lasts about an hour) and leaves your stored session untouched; sign in again in the browser you capture from and re-run it.
 
 ### `hotels search` has a second, separate login by default
 
