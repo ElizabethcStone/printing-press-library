@@ -32,6 +32,7 @@ func newMetaImportCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "import",
 		Short:       "Import Rank Math metadata from CSV",
+		Example:     "  rankmath-pp-cli meta import --file meta.csv",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:data-source": "live", "mcp:read-only": "false"},
 		RunE: func(cmd *cobra.Command, args []string) error {

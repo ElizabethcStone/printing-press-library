@@ -25,6 +25,7 @@ func newLinkGeniusExportCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "export",
 		Short:       "Rank Math link-genius: export",
+		Example:     "  rankmath-pp-cli link-genius export --type links --format csv",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.export", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/export", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

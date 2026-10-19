@@ -20,6 +20,7 @@ func newIndexingSubmitUrlsCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "submit-urls",
 		Short:       "Rank Math indexing: submit urls",
+		Example:     "  rankmath-pp-cli indexing submit-urls --urls https://example.com/new-post/",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "indexing.submit-urls", "pp:method": "POST", "pp:path": "/rankmath/v1/in/submitUrls", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

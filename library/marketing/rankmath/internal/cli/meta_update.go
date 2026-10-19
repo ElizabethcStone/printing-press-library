@@ -23,6 +23,7 @@ func newMetaUpdateCmd(flags *rootFlags) *cobra.Command {
 		Use:         "update",
 		Aliases:     []string{"create"},
 		Short:       "Rank Math meta: update meta",
+		Example:     "  rankmath-pp-cli meta update --object-id 42 --object-type post --meta '{\"rank_math_title\":\"New SEO title\"}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "meta.update", "pp:method": "POST", "pp:path": "/rankmath/v1/updateMeta", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -76,7 +77,16 @@ func newMetaUpdateCmd(flags *rootFlags) *cobra.Command {
 				bodyMap := map[string]any{}
 				body = bodyMap
 				if cmd.Flags().Changed("meta") || bodyMeta != "" {
-					bodyMap["meta"] = bodyMeta
+					// Rank Math reads this field as an object; a JSON string is accepted with 200 but silently ignored.
+					var parsedMeta any
+					if err := json.Unmarshal([]byte(bodyMeta), &parsedMeta); err != nil {
+						return fmt.Errorf("parsing --meta JSON: %w", err)
+					}
+					asMap, ok := parsedMeta.(map[string]any)
+					if !ok {
+						return fmt.Errorf("--meta must be a JSON object, got JSON %T", parsedMeta)
+					}
+					bodyMap["meta"] = asMap
 				}
 				if cmd.Flags().Changed("object-id") || bodyObjectID != 0 {
 					bodyMap["objectID"] = bodyObjectID

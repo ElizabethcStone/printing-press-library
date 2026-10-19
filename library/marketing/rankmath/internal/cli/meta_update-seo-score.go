@@ -20,6 +20,7 @@ func newMetaUpdateSeoScoreCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "update-seo-score",
 		Short:       "Rank Math meta: update seo score",
+		Example:     "  rankmath-pp-cli meta update-seo-score --post-scores '{\"42\":80}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "meta.update-seo-score", "pp:method": "POST", "pp:path": "/rankmath/v1/updateSeoScore", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

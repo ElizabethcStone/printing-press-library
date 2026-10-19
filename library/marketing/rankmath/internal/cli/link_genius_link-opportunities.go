@@ -21,6 +21,7 @@ func newLinkGeniusLinkOpportunitiesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "link-opportunities",
 		Short:       "Rank Math link-genius: link opportunities",
+		Example:     "  rankmath-pp-cli link-genius link-opportunities --post-id 42",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.link-opportunities", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/link-opportunities", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

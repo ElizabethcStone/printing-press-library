@@ -22,7 +22,7 @@ func newLinkGeniusBulkUpdatePreviewResultsCmd(flags *rootFlags) *cobra.Command {
 		Short:       "Rank Math link-genius: bulk update preview results",
 		Example:     "  rankmath-pp-cli link-genius bulk-update-preview-results",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "link_genius.bulk-update-preview-results", "pp:method": "GET", "pp:path": "/rankmath/v1/link-genius/bulk-update/preview/results", "mcp:read-only": "true"},
+		Annotations: map[string]string{"pp:endpoint": "link_genius.bulk-update-preview-results", "pp:method": "GET", "pp:path": "/rankmath/v1/link-genius/bulk-update/preview/results", "mcp:read-only": "true", "pp:typed-exit-codes": "0,3"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := "/rankmath/v1/link-genius/bulk-update/preview/results"
 			c, err := flags.newClient()

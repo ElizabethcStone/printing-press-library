@@ -20,6 +20,7 @@ func newLinkGeniusKeywordMapsBulkDeleteCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "keyword-maps-bulk-delete",
 		Short:       "Rank Math link-genius: keyword maps bulk delete",
+		Example:     "  rankmath-pp-cli link-genius keyword-maps-bulk-delete --ids '[7,8]'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.keyword-maps-bulk-delete", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/keyword-maps/bulk-delete", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

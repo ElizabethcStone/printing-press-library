@@ -27,9 +27,9 @@ func newGscGetPageSeoscoreCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "get-page-seoscore",
 		Short:       "Rank Math gsc: get page seoscore",
-		Example:     "  rankmath-pp-cli gsc get-page-seoscore",
+		Example:     "  rankmath-pp-cli gsc get-page-seoscore --id 42 --object-id 3",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "gsc.get-page-seoscore", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getPageSEOScore", "mcp:read-only": "true"},
+		Annotations: map[string]string{"pp:endpoint": "gsc.get-page-seoscore", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getPageSEOScore", "mcp:read-only": "true", "pp:happy-args": "--search=example-value"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !stdinBody {
 			}

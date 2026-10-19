@@ -22,6 +22,7 @@ func newLinkGeniusKeywordMapsBulkToggleCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "keyword-maps-bulk-toggle",
 		Short:       "Rank Math link-genius: keyword maps bulk toggle",
+		Example:     "  rankmath-pp-cli link-genius keyword-maps-bulk-toggle --ids '[7,8]' --enabled false",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.keyword-maps-bulk-toggle", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/keyword-maps/bulk-toggle", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

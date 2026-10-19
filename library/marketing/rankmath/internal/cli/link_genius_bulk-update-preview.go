@@ -21,6 +21,7 @@ func newLinkGeniusBulkUpdatePreviewCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "bulk-update-preview",
 		Short:       "Rank Math link-genius: bulk update preview",
+		Example:     "  rankmath-pp-cli link-genius bulk-update-preview --filters '{\"search\":\"old-domain.com\"}' --update-config '{\"find\":\"old-domain.com\",\"replace\":\"new-domain.com\"}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.bulk-update-preview", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/bulk-update/preview", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

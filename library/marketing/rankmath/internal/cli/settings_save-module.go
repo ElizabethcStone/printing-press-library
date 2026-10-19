@@ -22,6 +22,7 @@ func newSettingsSaveModuleCmd(flags *rootFlags) *cobra.Command {
 		Use:         "save-module",
 		Aliases:     []string{"create"},
 		Short:       "Rank Math settings: save module",
+		Example:     "  rankmath-pp-cli settings save-module --module redirections --state on",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "settings.save-module", "pp:method": "POST", "pp:path": "/rankmath/v1/saveModule", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

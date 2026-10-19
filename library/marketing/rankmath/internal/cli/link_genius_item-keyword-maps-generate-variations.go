@@ -21,6 +21,7 @@ func newLinkGeniusItemKeywordMapsGenerateVariationsCmd(flags *rootFlags) *cobra.
 	cmd := &cobra.Command{
 		Use:         "item-keyword-maps-generate-variations",
 		Short:       "Rank Math link-genius: item keyword maps generate variations",
+		Example:     "  rankmath-pp-cli link-genius item-keyword-maps-generate-variations --keyword \"running shoes\"",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.item-keyword-maps-generate-variations", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/keyword-maps/generate-variations", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

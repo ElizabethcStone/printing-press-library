@@ -18,12 +18,14 @@ func newRedirectionsPromotedCmd(flags *rootFlags) *cobra.Command {
 	var bodyObjectID int
 	var bodyObjectType string
 	var bodyRedirectionID string
+	var bodyRedirectionSources string
 	var bodyRedirectionType string
 	var bodyRedirectionUrl string
 
 	cmd := &cobra.Command{
 		Use:         "redirections",
 		Short:       "Rank Math redirections: update redirection",
+		Example:     "  rankmath-pp-cli redirections --object-id 42 --redirection-sources https://example.com/old-url/ --redirection-url https://example.com/new-url/ --has-redirect true",
 		Long:        "Rank Math redirections: update redirection",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "redirections.update", "pp:method": "POST", "pp:path": "/rankmath/v1/updateRedirection", "pp:requires-input": "true"},
@@ -80,6 +82,10 @@ func newRedirectionsPromotedCmd(flags *rootFlags) *cobra.Command {
 			}
 			if cmd.Flags().Changed("redirection-id") || bodyRedirectionID != "" {
 				bodyMap["redirectionID"] = bodyRedirectionID
+			}
+			// Without a source Rank Math answers "New redirection created." and stores nothing.
+			if cmd.Flags().Changed("redirection-sources") || bodyRedirectionSources != "" {
+				bodyMap["redirectionSources"] = bodyRedirectionSources
 			}
 			if cmd.Flags().Changed("redirection-type") || bodyRedirectionType != "" {
 				bodyMap["redirectionType"] = bodyRedirectionType
@@ -173,6 +179,7 @@ func newRedirectionsPromotedCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().IntVar(&bodyObjectID, "object-id", 0, "Object unique id")
 	cmd.Flags().StringVar(&bodyObjectType, "object-type", "post", "Object Type i.e. post, term, user")
 	cmd.Flags().StringVar(&bodyRedirectionID, "redirection-id", "", "Redirection ID")
+	cmd.Flags().StringVar(&bodyRedirectionSources, "redirection-sources", "", "Source URL to redirect from (the object's own URL); required to create a redirection")
 	cmd.Flags().StringVar(&bodyRedirectionType, "redirection-type", "301", "Redirection Type")
 	cmd.Flags().StringVar(&bodyRedirectionUrl, "redirection-url", "", "Redirection URL")
 

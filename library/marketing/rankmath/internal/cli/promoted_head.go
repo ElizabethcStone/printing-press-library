@@ -21,7 +21,7 @@ func newHeadPromotedCmd(flags *rootFlags) *cobra.Command {
 		Long:        "Rendered Rank Math head tags for a URL (needs headless support enabled)",
 		Example:     "  rankmath-pp-cli head --url https://example.com/resource",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "head.get", "pp:method": "GET", "pp:path": "/rankmath/v1/getHead", "mcp:read-only": "true", "pp:requires-input": "true", "pp:happy-args": "--url=https://example.com/resource"},
+		Annotations: map[string]string{"pp:endpoint": "head.get", "pp:method": "GET", "pp:path": "/rankmath/v1/getHead", "mcp:read-only": "true", "pp:requires-input": "true", "pp:happy-args": "--url=example-value"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Bare invocation of a command with a required flag/body prints help
 			// instead of pflag's terse "required flag not set" error. Optional-

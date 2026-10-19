@@ -17,8 +17,9 @@ func newLinkGeniusKeywordMapsExecuteCmd(flags *rootFlags) *cobra.Command {
 	var stdinBody bool
 
 	cmd := &cobra.Command{
-		Use:   "keyword-maps-execute <id>",
-		Short: "Rank Math link-genius: keyword maps execute",
+		Use:     "keyword-maps-execute <id>",
+		Short:   "Rank Math link-genius: keyword maps execute",
+		Example: "  rankmath-pp-cli link-genius keyword-maps-execute 7",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

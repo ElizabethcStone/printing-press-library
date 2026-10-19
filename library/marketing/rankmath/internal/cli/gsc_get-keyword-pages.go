@@ -23,9 +23,9 @@ func newGscGetKeywordPagesCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "get-keyword-pages",
 		Short:       "Rank Math gsc: get keyword pages",
-		Example:     "  rankmath-pp-cli gsc get-keyword-pages",
+		Example:     "  rankmath-pp-cli gsc get-keyword-pages --query \"running shoes\"",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "gsc.get-keyword-pages", "pp:method": "GET", "pp:path": "/rankmath/v1/an/getKeywordPages", "mcp:read-only": "true"},
+		Annotations: map[string]string{"pp:endpoint": "gsc.get-keyword-pages", "pp:method": "GET", "pp:path": "/rankmath/v1/an/getKeywordPages", "mcp:read-only": "true", "pp:happy-args": "--query=widgets"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := "/rankmath/v1/an/getKeywordPages"
 			c, err := flags.newClient()

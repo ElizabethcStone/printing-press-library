@@ -67,7 +67,7 @@
           "name": "interval",
           "type": "string",
           "location": "body",
-          "description": "Analysis refresh cadence. Omitted → backend applies the account plan\u0026#039;s default."
+          "description": "Analysis refresh cadence. Omitted → backend applies the account plan&#039;s default."
         },
         {
           "name": "language",
@@ -80,7 +80,7 @@
           "name": "locale",
           "type": "string",
           "location": "body",
-          "description": "ISO 3166-1 alpha-2 country code (e.g. \u0026quot;US\u0026quot;, \u0026quot;HU\u0026quot;)."
+          "description": "ISO 3166-1 alpha-2 country code (e.g. &quot;US&quot;, &quot;HU&quot;)."
         },
         {
           "name": "name",
@@ -2258,7 +2258,7 @@
     },
     {
       "name": "redirections_update",
-      "description": "Rank Math redirections: update redirection. Required: hasRedirect, objectID, objectType (default: post), redirectionType (default: 301). Optional: redirectionID, redirectionUrl. Returns the new RedirectionsUpdateResponse.",
+      "description": "Rank Math redirections: update redirection. Required: hasRedirect, objectID, objectType (default: post), redirectionType (default: 301). Optional: redirectionID, redirectionSources, redirectionUrl. Returns the new RedirectionsUpdateResponse.",
       "method": "POST",
       "path": "/rankmath/v1/updateRedirection",
       "params": [
@@ -2295,6 +2295,12 @@
           "location": "body",
           "description": "Redirection Type",
           "required": true
+        },
+        {
+          "name": "redirectionSources",
+          "type": "string",
+          "location": "body",
+          "description": "Source URL to redirect from (the object's own URL); required to create a redirection"
         },
         {
           "name": "redirectionUrl",

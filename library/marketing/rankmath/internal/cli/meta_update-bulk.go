@@ -20,6 +20,7 @@ func newMetaUpdateBulkCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "update-bulk",
 		Short:       "Rank Math meta: update meta bulk",
+		Example:     "  rankmath-pp-cli meta update-bulk --rows '{\"42\":{\"title\":\"New SEO title\"}}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "meta.update-bulk", "pp:method": "POST", "pp:path": "/rankmath/v1/updateMetaBulk", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -67,7 +68,16 @@ func newMetaUpdateBulkCmd(flags *rootFlags) *cobra.Command {
 				bodyMap := map[string]any{}
 				body = bodyMap
 				if cmd.Flags().Changed("rows") || bodyRows != "" {
-					bodyMap["rows"] = bodyRows
+					// Rank Math reads this field as an object; a JSON string is accepted with 200 but silently ignored.
+					var parsedRows any
+					if err := json.Unmarshal([]byte(bodyRows), &parsedRows); err != nil {
+						return fmt.Errorf("parsing --rows JSON: %w", err)
+					}
+					asMap, ok := parsedRows.(map[string]any)
+					if !ok {
+						return fmt.Errorf("--rows must be a JSON object, got JSON %T", parsedRows)
+					}
+					bodyMap["rows"] = asMap
 				}
 			}
 			data, statusCode, err := c.PostWithParams(cmd.Context(), path, params, body)

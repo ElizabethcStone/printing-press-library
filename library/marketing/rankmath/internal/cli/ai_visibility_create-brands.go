@@ -27,6 +27,7 @@ func newAiVisibilityCreateBrandsCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "create-brands",
 		Short:       "Rank Math ai-visibility: create brands",
+		Example:     "  rankmath-pp-cli ai-visibility create-brands --name \"Example Brand\" --url example.com --locale US --platforms chatgpt",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "ai_visibility.create-brands", "pp:method": "POST", "pp:path": "/rankmath/v1/ai-visibility/brands", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -18,6 +18,7 @@ func newGscGetPostCmd(flags *rootFlags) *cobra.Command {
 		Use:     "get-post <id>",
 		Aliases: []string{"get"},
 		Short:   "Rank Math gsc: get post",
+		Example: "  rankmath-pp-cli gsc get-post 42",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

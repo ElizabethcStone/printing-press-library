@@ -26,8 +26,9 @@ func newAiVisibilityUpdateBrandsCmd(flags *rootFlags) *cobra.Command {
 	var stdinBody bool
 
 	cmd := &cobra.Command{
-		Use:   "update-brands <id>",
-		Short: "Rank Math ai-visibility: update brands",
+		Use:     "update-brands <id>",
+		Short:   "Rank Math ai-visibility: update brands",
+		Example: "  rankmath-pp-cli ai-visibility update-brands brand-123 --description \"Updated description\"",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

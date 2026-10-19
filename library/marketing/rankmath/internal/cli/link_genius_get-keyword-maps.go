@@ -15,8 +15,9 @@ import (
 func newLinkGeniusGetKeywordMapsCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "get-keyword-maps <id>",
-		Short: "Rank Math link-genius: get keyword maps",
+		Use:     "get-keyword-maps <id>",
+		Short:   "Rank Math link-genius: get keyword maps",
+		Example: "  rankmath-pp-cli link-genius get-keyword-maps 7",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

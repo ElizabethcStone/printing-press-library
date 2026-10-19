@@ -18,6 +18,7 @@ func newLinkGeniusGetBulkUpdateChangesCmd(flags *rootFlags) *cobra.Command {
 		Use:     "get-bulk-update-changes <batch_id>",
 		Aliases: []string{"get"},
 		Short:   "Rank Math link-genius: get bulk update changes",
+		Example: "  rankmath-pp-cli link-genius get-bulk-update-changes batch_abc123",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

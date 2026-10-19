@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "id": "rankmath-redirection-needs-source-url",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20261016-120833-4fa88c9a",
+  "base_printing_press_version": "4.33.5",
+  "summary": "The redirections command exposes --redirection-sources (body redirectionSources) in the CLI and MCP manifest.",
+  "reason": "updateRedirection without a source returns \"New redirection created.\" with an empty id and stores no row.",
+  "files": [
+    "internal/cli/promoted_redirections.go",
+    "tools-manifest.json"
+  ],
+  "markers": [
+    "bodyMap[\"redirectionSources\"]"
+  ],
+  "validated_outcome": "Live: source URL returned 301 after create and 200 after removal."
+}

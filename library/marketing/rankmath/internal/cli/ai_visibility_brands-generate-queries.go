@@ -20,6 +20,7 @@ func newAiVisibilityBrandsGenerateQueriesCmd(flags *rootFlags) *cobra.Command {
 		Use:     "brands-generate-queries <id>",
 		Aliases: []string{"create"},
 		Short:   "Rank Math ai-visibility: brands generate queries",
+		Example: "  rankmath-pp-cli ai-visibility brands-generate-queries brand-123",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

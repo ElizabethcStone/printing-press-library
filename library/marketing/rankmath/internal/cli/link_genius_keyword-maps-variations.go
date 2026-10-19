@@ -19,8 +19,9 @@ func newLinkGeniusKeywordMapsVariationsCmd(flags *rootFlags) *cobra.Command {
 	var stdinBody bool
 
 	cmd := &cobra.Command{
-		Use:   "keyword-maps-variations <id>",
-		Short: "Rank Math link-genius: keyword maps variations",
+		Use:     "keyword-maps-variations <id>",
+		Short:   "Rank Math link-genius: keyword maps variations",
+		Example: "  rankmath-pp-cli link-genius keyword-maps-variations 7 --variation \"trail running shoes\"",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

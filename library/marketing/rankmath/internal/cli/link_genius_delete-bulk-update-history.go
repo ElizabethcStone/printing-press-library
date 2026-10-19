@@ -15,8 +15,9 @@ import (
 func newLinkGeniusDeleteBulkUpdateHistoryCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "delete-bulk-update-history <batch_id>",
-		Short: "Rank Math link-genius: delete bulk update history",
+		Use:     "delete-bulk-update-history <batch_id>",
+		Short:   "Rank Math link-genius: delete bulk update history",
+		Example: "  rankmath-pp-cli link-genius delete-bulk-update-history batch_abc123",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

@@ -1,0 +1,440 @@
+$ rankmath-pp-cli sync --json
+exit=0
+    {"event":"sync_start","resource":"ai_visibility"}
+    {"event":"sync_start","resource":"dashboard"}
+    {"event":"sync_start","resource":"gsc-dashboard"}
+    {"event":"sync_start","resource":"gsc"}
+    {"event":"sync_warning","resource":"gsc-dashboard","reason":"resource_not_incremental","message":"endpoint does not declare a temporal filter parameter; incremental sync has no effect for this resource"}
+    {"event":"sync_warning","resource":"gsc","reason":"resource_not_incremental","message":"endpoint does not declare a temporal filter parameter; incremental sync has no effect for this resource"}
+    {"event":"sync_complete","resource":"gsc-dashboard","total":1,"duration_ms":47}
+    {"event":"sync_start","resource":"gs
+
+$ rankmath-pp-cli posts --json --select id,slug
+exit=0
+    {
+      "meta": {
+        "freshness": {
+          "decision": "fresh",
+          "ran": false,
+          "reason": "fresh",
+          "resources": [
+            "posts"
+          ],
+          "source": "auto"
+        },
+        "source": "live"
+      },
+      "results": [
+        {
+          "id": 6,
+          "slug": "private-test-post-3"
+        },
+        {
+          "id": 5,
+          "slug": "private-test-post-2"
+        },
+        {
+          "id": 4,
+          "slug": "private-test-post-1"
+        },
+        {
+          "id": 1,
+          "slug": "hello-world"
+        }
+      ]
+    }
+
+$ wpc post meta get 4 rank_math_title
+exit=0
+    PRIVATE TEST SEO title
+
+$ rankmath-pp-cli meta update --object-id 4 --object-type post --meta {"rank_math_title":"PRIVATE TEST SEO title v2","rank_math_description":"PRIVATE TEST meta description"} --json
+exit=0
+    {
+      "action": "post",
+      "data": {
+        "schemas": {
+          "schema-17": {
+            "@type": "Article",
+            "headline": "PRIVATE TEST headline",
+            "metadata": {
+              "isPrimary": "1",
+              "title": "Article",
+              "type": "template"
+            }
+          }
+        },
+        "slug": true
+      },
+      "path": "/rankmath/v1/updateMeta",
+      "resource": "meta",
+      "status": 200,
+      "success": true
+    }
+
+$ rankmath-pp-cli head --url http://localhost:8889/private-test-post-1/ --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "head": "\u003cmeta name=\"description\" content=\"PRIVATE TEST meta description\"\/\u003e\n\u003cmeta name=\"robots\" content=\"index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large\"\/\u003e\n\u003clink rel=\"canonical\" href=\"http:\/\/localhost:8889\/private-test-post-1\/\" \/\u003e\n\u003cmeta property=\"og:locale\" content=\"en_US\" \/\u003e\n\u003cmeta property=\"og:type\" content=\"article\" \/\u003e\n\u003cmeta property=\"og:title\" content=\"PRIVATE TEST SEO title v2\" \/\u003e\n\u003cmeta property=\"og:description\" content=\"PRIVATE TEST meta description\" \/\u003e\n\u003cmeta p
+
+$ wpc post meta get 4 rank_math_title
+exit=0
+    PRIVATE TEST SEO title v2
+
+$ rankmath-pp-cli schema update --object-id 4 --object-type post --schemas {"new-9001":{"@type":"Article","headline":"PRIVATE TEST headline","metadata":{"title":"Article","type":"template","isPrimary":true}}} --json
+exit=0
+    {
+      "action": "post",
+      "data": {
+        "new-9001": 18
+      },
+      "path": "/rankmath/v1/updateSchemas",
+      "resource": "schema",
+      "status": 200,
+      "success": true
+    }
+
+$ wpc post meta list 4 --keys=rank_math_schema_Article --format=json
+exit=0
+    [{"post_id":4,"meta_key":"rank_math_schema_Article","meta_value":"a:3:{s:5:\"@type\";s:7:\"Article\";s:8:\"headline\";s:21:\"PRIVATE TEST headline\";s:8:\"metadata\";a:3:{s:9:\"isPrimary\";s:1:\"1\";s:5:\"title\";s:7:\"Article\";s:4:\"type\";s:8:\"template\";}}"},{"post_id":4,"meta_key":"rank_math_schema_Article","meta_value":"a:3:{s:5:\"@type\";s:7:\"Article\";s:8:\"headline\";s:21:\"PRIVATE TEST headline\";s:8:\"metadata\";a:3:{s:9:\"isPrimary\";s:1:\"1\";s:5:\"title\";s:7:\"Article\";s:4:\"type\";s:8:\"template\";}}"}]
+
+$ rankmath-pp-cli head --url http://localhost:8889/private-test-post-1/ --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "head": "\u003cmeta name=\"description\" content=\"PRIVATE TEST meta description\"\/\u003e\n\u003cmeta name=\"robots\" content=\"index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large\"\/\u003e\n\u003clink rel=\"canonical\" href=\"http:\/\/localhost:8889\/private-test-post-1\/\" \/\u003e\n\u003cmeta property=\"og:locale\" content=\"en_US\" \/\u003e\n\u003cmeta property=\"og:type\" content=\"article\" \/\u003e\n\u003cmeta property=\"og:title\" content=\"PRIVATE TEST SEO title v2\" \/\u003e\n\u003cmeta property=\"og:description\" content=\"PRIVATE TEST meta description\" \/\u003e\n\u003cmeta p
+
+$ rankmath-pp-cli settings save-module --module redirections --state off --json
+exit=0
+    {
+      "action": "post",
+      "data": true,
+      "path": "/rankmath/v1/saveModule",
+      "resource": "settings",
+      "status": 200,
+      "success": true
+    }
+
+$ rankmath-pp-cli settings save-module --module redirections --state on --json
+exit=0
+    {
+      "action": "post",
+      "data": true,
+      "path": "/rankmath/v1/saveModule",
+      "resource": "settings",
+      "status": 200,
+      "success": true
+    }
+
+$ rankmath-pp-cli redirections --object-id 5 --redirection-sources http://localhost:8889/private-test-post-2/ --redirection-url http://localhost:8889/private-test-page/ --redirection-type 301 --has-redirect true --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "id": 3,
+        "action": "new",
+        "message": "New redirection created."
+      }
+    }
+
+$ curl -s -o /dev/null -w %{http_code} %{redirect_url} http://localhost:8889/private-test-post-2/
+exit=0
+    301 http://localhost:8889/private-test-page/
+
+$ wpc db query SELECT id,url_to,header_code,status FROM wp_rank_math_redirections
+exit=0
+    id	url_to	header_code	status
+    3	http://localhost:8889/private-test-page/	301	active
+
+$ rankmath-pp-cli redirections --object-id 5 --redirection-id 3 --has-redirect false --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "action": "delete",
+        "message": "Redirection successfully deleted."
+      }
+    }
+
+$ wpc db query SELECT id,status FROM wp_rank_math_redirections
+exit=0
+    
+
+$ curl -s -o /dev/null -w %{http_code} %{redirect_url} http://localhost:8889/private-test-post-2/
+exit=0
+    200 
+
+$ rankmath-pp-cli link-genius create-keyword-maps --name PRIVATE TEST map --target-url http://localhost:8889/private-test-page/ --json
+exit=0
+    {
+      "action": "post",
+      "data": {
+        "id": 4,
+        "item": {
+          "auto_link_on_publish": false,
+          "case_sensitive": false,
+          "created_at": "2026-10-19 19:13:01",
+          "description": null,
+          "execution_count": 0,
+          "id": 4,
+          "is_enabled": true,
+          "last_executed_at": null,
+          "max_links_per_post": 3,
+          "name": "PRIVATE TEST map",
+          "target_url": "http://localhost:8889/private-test-page/",
+          "updated_at": "2026-10-19 19:13:01",
+          "variations": [],
+          "variations_count": 0
+        },
+        "message": "Keyword map created successfully.",
+        "skipped_variations": [],
+        "success": true
+      },
+      "path": "/rankmath/v1/link-genius/keyword-maps",
+      "resource
+
+$ rankmath-pp-cli link-genius list-keyword-maps --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "items": [
+          {
+            "id": 4,
+            "name": "PRIVATE TEST map",
+            "description": null,
+            "target_url": "http:\/\/localhost:8889\/private-test-page\/",
+            "is_enabled": true,
+            "max_links_per_post": 3,
+            "auto_link_on_publish": false,
+            "case_sensitive": false,
+            "created_at": "2026-10-19 19:13:01",
+            "updated_at": "2026-10-19 19:13:01",
+            "last_executed_at": null,
+            "execution_count": 0,
+            "variations": [],
+            "variations_count": 0
+          }
+        ],
+        "total": 1,
+        "pages": 1,
+        "page": 1
+      }
+    }
+
+$ rankmath-pp-cli link-genius get-keyword-maps 4 --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "item": {
+          "id": 4,
+          "name": "PRIVATE TEST map",
+          "description": null,
+          "target_url": "http:\/\/localhost:8889\/private-test-page\/",
+          "is_enabled": true,
+          "max_links_per_post": 3,
+          "auto_link_on_publish": false,
+          "case_sensitive": false,
+          "created_at": "2026-10-19 19:13:01",
+          "updated_at": "2026-10-19 19:13:01",
+          "last_executed_at": null,
+          "execution_count": 0,
+          "variations": [],
+          "variations_count": 0
+        }
+      }
+    }
+
+$ rankmath-pp-cli link-genius keyword-maps-variations 4 --variation PRIVATE TEST variation --json
+exit=0
+    {
+      "action": "post",
+      "data": {
+        "message": "Variation added successfully.",
+        "success": true,
+        "variation_id": 4,
+        "variations": [
+          {
+            "created_at": "2026-10-19 19:13:01",
+            "id": "4",
+            "keyword_map_id": "4",
+            "source": "manual",
+            "variation": "PRIVATE TEST variation"
+          }
+        ]
+      },
+      "path": "/rankmath/v1/link-genius/keyword-maps/4/variations",
+      "resource": "link_genius",
+      "status": 201,
+      "success": true
+    }
+
+$ rankmath-pp-cli link-genius get-keyword-maps-variations 4 --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "variations": [
+          {
+            "id": "4",
+            "keyword_map_id": "4",
+            "variation": "PRIVATE TEST variation",
+            "source": "manual",
+            "created_at": "2026-10-19 19:13:01"
+          }
+        ]
+      }
+    }
+
+$ rankmath-pp-cli link-genius keyword-maps-preview 4 --json
+exit=0
+    {
+      "action": "post",
+      "data": {
+        "message": "No posts found containing the specified keywords.",
+        "success": true,
+        "total_links": 0,
+        "total_posts": 0
+      },
+      "path": "/rankmath/v1/link-genius/keyword-maps/4/preview",
+      "resource": "link_genius",
+      "status": 200,
+      "success": true
+    }
+
+$ rankmath-pp-cli link-genius keyword-maps-preview-results --keyword-map-id 4 --json
+exit=0
+    warning: 1/1 link_genius items returned but not cached locally (no extractable ID field; offline lookup against these rows will be incomplete; live queries unaffected)
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": {
+        "success": true,
+        "preview_id": 4,
+        "total_links": 0,
+        "total_posts": 0,
+        "sample_changes": [],
+        "warnings": [],
+        "total_pages": 0,
+        "current_page": 1
+      }
+    }
+
+$ rankmath-pp-cli link-genius delete-keyword-maps 4 --json
+exit=0
+    {
+      "action": "delete",
+      "data": {
+        "message": "Keyword map deleted successfully.",
+        "success": true
+      },
+      "path": "/rankmath/v1/link-genius/keyword-maps/4",
+      "resource": "link_genius",
+      "status": 200,
+      "success": true
+    }
+
+$ rankmath-pp-cli link-genius get-keyword-maps 4 --json
+exit=3
+    {"code":3,"error":"GET /rankmath/v1/link-genius/keyword-maps/4 returned HTTP 404: {\"code\":\"not_found\",\"message\":\"Keyword map not found.\",\"data\":{\"status\":404}}\nhint: resource not found. Run the 'list' command to see available items"}
+    Error: GET /rankmath/v1/link-genius/keyword-maps/4 returned HTTP 404: {"code":"not_found","message":"Keyword map not found.","data":{"status":404}}
+    hint: resource not found. Run the 'list' command to see available items
+
+$ rankmath-pp-cli reindex --since 7d --json
+exit=0
+    {
+      "since": "7d",
+      "candidates": 6,
+      "skipped_already_submitted": 0,
+      "to_submit": [
+        "http://localhost:8889/private-test-post-3/",
+        "http://localhost:8889/private-test-post-2/",
+        "http://localhost:8889/private-test-post-1/",
+        "http://localhost:8889/hello-world/",
+        "http://localhost:8889/private-test-page/",
+        "http://localhost:8889/sample-page/"
+      ],
+      "submitted": 0,
+      "confirmed": false,
+      "batches": []
+    }
+
+$ rankmath-pp-cli indexing get-log --json
+exit=0
+    {
+      "meta": {
+        "source": "live"
+      },
+      "results": []
+    }
+
+$ rankmath-pp-cli coverage --json
+exit=0
+    {
+      "published": 6,
+      "inspected": 0,
+      "scanned_pages": 1,
+      "scan_complete": true,
+      "gaps": [
+        {
+          "url": "http://localhost:8889/hello-world/",
+          "post_id": 1,
+          "verdict": "",
+          "coverage_state": "",
+          "robots": "",
+          "status": "never_inspected"
+        },
+        {
+          "url": "http://localhost:8889/private-test-post-1/",
+          "post_id": 4,
+          "verdict": "",
+          "coverage_state": "",
+          "robots": "",
+          "status": "never_inspected"
+        },
+        {
+          "url": "http://localhost:8889/private-test-post-2/",
+          "post_id": 5,
+          "verdict": "",
+          "coverage_state": "",
+          "robots": "",
+          "status": "never_inspected"
+        },
+        {
+          "url": "http:/
+
+$ rankmath-pp-cli opportunities --json
+exit=0
+    {
+      "scanned_keyword_pages": 1,
+      "keywords_considered": 0,
+      "unmatched_pages": 0,
+      "page_lookup": "unavailable",
+      "opportunities": [],
+      "note": "No missing metadata matched position 4–20 and at least 50 impressions within 1 scanned keyword pages."
+    }
+

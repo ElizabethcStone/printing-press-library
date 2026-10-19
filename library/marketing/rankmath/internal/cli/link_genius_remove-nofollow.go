@@ -20,6 +20,7 @@ func newLinkGeniusRemoveNofollowCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "remove-nofollow",
 		Short:       "Rank Math link-genius: remove nofollow",
+		Example:     "  rankmath-pp-cli link-genius remove-nofollow --link-id 15",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.remove-nofollow", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/remove-nofollow", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -79,7 +79,7 @@ func newNovelReindexCmd(flags *rootFlags) *cobra.Command {
 		Short:       "Submit recently modified posts to IndexNow",
 		Long:        "Use this command to submit recently modified posts to IndexNow. Do NOT use this command to find unindexed posts; use 'coverage' instead.",
 		Example:     "  rankmath-pp-cli reindex --since 7d\n  rankmath-pp-cli reindex --since 24h --confirm",
-		Annotations: map[string]string{"mcp:read-only": "false", "pp:data-source": "live", "pp:happy-args": "--since=7d"},
+		Annotations: map[string]string{"mcp:read-only": "false", "pp:data-source": "live", "pp:happy-args": "--since=7d", "pp:preview-happy-path": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 && cmd.Flags().NFlag() == 0 {
 				return cmd.Help()

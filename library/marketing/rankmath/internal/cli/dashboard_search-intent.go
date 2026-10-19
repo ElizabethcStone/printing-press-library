@@ -21,6 +21,7 @@ func newDashboardSearchIntentCmd(flags *rootFlags) *cobra.Command {
 		Use:         "search-intent",
 		Aliases:     []string{"create"},
 		Short:       "Rank Math dashboard: search intent",
+		Example:     "  rankmath-pp-cli dashboard search-intent --keyword \"best running shoes\"",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "dashboard.search-intent", "pp:method": "POST", "pp:path": "/rankmath/v1/searchIntent", "mcp:read-only": "true", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

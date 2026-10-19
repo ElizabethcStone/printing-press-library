@@ -15,8 +15,9 @@ import (
 func newLinkGeniusGetLinksDetailsCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "get-links-details <id>",
-		Short: "Rank Math link-genius: get links details",
+		Use:     "get-links-details <id>",
+		Short:   "Rank Math link-genius: get links details",
+		Example: "  rankmath-pp-cli link-genius get-links-details 15",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

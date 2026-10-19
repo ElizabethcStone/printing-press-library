@@ -21,6 +21,7 @@ func newLinkGeniusBulkUpdateRollbackCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "bulk-update-rollback",
 		Short:       "Rank Math link-genius: bulk update rollback",
+		Example:     "  rankmath-pp-cli link-genius bulk-update-rollback --batch-id batch_abc123",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.bulk-update-rollback", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/bulk-update/rollback", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

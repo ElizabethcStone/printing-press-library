@@ -26,6 +26,7 @@ func newLinkGeniusCreateKeywordMapsCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "create-keyword-maps",
 		Short:       "Rank Math link-genius: create keyword maps",
+		Example:     "  rankmath-pp-cli link-genius create-keyword-maps --name \"Running shoes\" --target-url https://example.com/running-shoes/",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.create-keyword-maps", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/keyword-maps", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

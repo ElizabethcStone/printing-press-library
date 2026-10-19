@@ -21,8 +21,9 @@ func newLinkGeniusKeywordMapsPreviewResultsCmd(flags *rootFlags) *cobra.Command 
 	cmd := &cobra.Command{
 		Use:         "keyword-maps-preview-results",
 		Short:       "Rank Math link-genius: keyword maps preview results",
+		Example:     "  rankmath-pp-cli link-genius keyword-maps-preview-results --keyword-map-id 7",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "link_genius.keyword-maps-preview-results", "pp:method": "GET", "pp:path": "/rankmath/v1/link-genius/keyword-maps/preview/results", "mcp:read-only": "true", "pp:requires-input": "true"},
+		Annotations: map[string]string{"pp:endpoint": "link_genius.keyword-maps-preview-results", "pp:method": "GET", "pp:path": "/rankmath/v1/link-genius/keyword-maps/preview/results", "mcp:read-only": "true", "pp:typed-exit-codes": "0,3", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Bare invocation of a command with required input prints help
 			// instead of pflag's terse "required flag not set" error. Optional-

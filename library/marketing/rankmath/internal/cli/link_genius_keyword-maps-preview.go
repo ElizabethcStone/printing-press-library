@@ -17,8 +17,9 @@ func newLinkGeniusKeywordMapsPreviewCmd(flags *rootFlags) *cobra.Command {
 	var stdinBody bool
 
 	cmd := &cobra.Command{
-		Use:   "keyword-maps-preview <id>",
-		Short: "Rank Math link-genius: keyword maps preview",
+		Use:     "keyword-maps-preview <id>",
+		Short:   "Rank Math link-genius: keyword maps preview",
+		Example: "  rankmath-pp-cli link-genius keyword-maps-preview 7",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "id": "rankmath-object-body-fields-send-json-objects",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20261016-120833-4fa88c9a",
+  "base_printing_press_version": "4.33.5",
+  "summary": "meta update, schema update, and meta update-bulk decode their JSON flag into an object before sending.",
+  "reason": "The sniffed spec types meta, schemas, and rows as strings; Rank Math accepts a string with HTTP 200 and saves nothing, so the write silently no-ops.",
+  "files": [
+    "internal/cli/meta_update.go",
+    "internal/cli/schema_update.go",
+    "internal/cli/meta_update-bulk.go",
+    "internal/cli/meta_update_test.go"
+  ],
+  "markers": [
+    "bodyMap[\"meta\"] = asMap",
+    "bodyMap[\"schemas\"] = asMap",
+    "bodyMap[\"rows\"] = asMap"
+  ],
+  "validated_outcome": "Live round-trip on local Rank Math 1.0.280: post meta and rank_math_schema_Article persisted only after the fix."
+}

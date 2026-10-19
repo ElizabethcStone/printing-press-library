@@ -20,6 +20,7 @@ func newLinkGeniusBulkActionsRestoreCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "bulk-actions-restore",
 		Short:       "Rank Math link-genius: bulk actions restore",
+		Example:     "  rankmath-pp-cli link-genius bulk-actions-restore --batch-id batch_abc123",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.bulk-actions-restore", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/bulk-actions/restore", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

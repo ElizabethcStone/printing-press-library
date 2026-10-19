@@ -15,8 +15,9 @@ import (
 func newLinkGeniusDeleteKeywordMapsVariationsCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "delete-keyword-maps-variations <id>",
-		Short: "Rank Math link-genius: delete keyword maps variations",
+		Use:     "delete-keyword-maps-variations <id>",
+		Short:   "Rank Math link-genius: delete keyword maps variations",
+		Example: "  rankmath-pp-cli link-genius delete-keyword-maps-variations 12",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

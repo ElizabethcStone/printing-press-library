@@ -21,6 +21,7 @@ func newLinkGeniusUndoDeleteCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "undo-delete",
 		Short:       "Rank Math link-genius: undo delete",
+		Example:     "  rankmath-pp-cli link-genius undo-delete --post-id 42 --original-content \"<p>Original content</p>\"",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.undo-delete", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/undo-delete", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {

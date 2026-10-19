@@ -27,9 +27,9 @@ func newGscGetMobilePagespeedCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "get-mobile-pagespeed",
 		Short:       "Rank Math gsc: get mobile pagespeed",
-		Example:     "  rankmath-pp-cli gsc get-mobile-pagespeed",
+		Example:     "  rankmath-pp-cli gsc get-mobile-pagespeed --id 42 --object-id 3",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "gsc.get-mobile-pagespeed", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getMobilePagespeed", "mcp:read-only": "true"},
+		Annotations: map[string]string{"pp:endpoint": "gsc.get-mobile-pagespeed", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getMobilePagespeed", "mcp:read-only": "true", "pp:happy-args": "--search=example-value"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !stdinBody {
 			}

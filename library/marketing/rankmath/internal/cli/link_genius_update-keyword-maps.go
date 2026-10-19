@@ -24,8 +24,9 @@ func newLinkGeniusUpdateKeywordMapsCmd(flags *rootFlags) *cobra.Command {
 	var stdinBody bool
 
 	cmd := &cobra.Command{
-		Use:   "update-keyword-maps <id>",
-		Short: "Rank Math link-genius: update keyword maps",
+		Use:     "update-keyword-maps <id>",
+		Short:   "Rank Math link-genius: update keyword maps",
+		Example: "  rankmath-pp-cli link-genius update-keyword-maps 7 --max-links-per-post 2",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

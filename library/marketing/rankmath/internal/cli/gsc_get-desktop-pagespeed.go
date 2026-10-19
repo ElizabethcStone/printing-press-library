@@ -27,9 +27,9 @@ func newGscGetDesktopPagespeedCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "get-desktop-pagespeed",
 		Short:       "Rank Math gsc: get desktop pagespeed",
-		Example:     "  rankmath-pp-cli gsc get-desktop-pagespeed",
+		Example:     "  rankmath-pp-cli gsc get-desktop-pagespeed --id 42 --object-id 3",
 		Args:        cobra.NoArgs,
-		Annotations: map[string]string{"pp:endpoint": "gsc.get-desktop-pagespeed", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getDesktopPagespeed", "mcp:read-only": "true"},
+		Annotations: map[string]string{"pp:endpoint": "gsc.get-desktop-pagespeed", "pp:method": "POST", "pp:path": "/rankmath/v1/an/getDesktopPagespeed", "mcp:read-only": "true", "pp:happy-args": "--search=example-value"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !stdinBody {
 			}

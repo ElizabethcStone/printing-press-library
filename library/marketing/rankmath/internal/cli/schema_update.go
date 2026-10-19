@@ -22,6 +22,7 @@ func newSchemaUpdateCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "update",
 		Short:       "Rank Math schema: update schemas",
+		Example:     "  rankmath-pp-cli schema update --object-id 42 --object-type post --schemas '{\"new-1\":{\"@type\":\"Article\",\"metadata\":{\"title\":\"Article\",\"type\":\"template\"}}}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "schema.update", "pp:method": "POST", "pp:path": "/rankmath/v1/updateSchemas", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,7 +82,16 @@ func newSchemaUpdateCmd(flags *rootFlags) *cobra.Command {
 					bodyMap["objectType"] = bodyObjectType
 				}
 				if cmd.Flags().Changed("schemas") || bodySchemas != "" {
-					bodyMap["schemas"] = bodySchemas
+					// Rank Math reads this field as an object; a JSON string is accepted with 200 but silently ignored.
+					var parsedSchemas any
+					if err := json.Unmarshal([]byte(bodySchemas), &parsedSchemas); err != nil {
+						return fmt.Errorf("parsing --schemas JSON: %w", err)
+					}
+					asMap, ok := parsedSchemas.(map[string]any)
+					if !ok {
+						return fmt.Errorf("--schemas must be a JSON object, got JSON %T", parsedSchemas)
+					}
+					bodyMap["schemas"] = asMap
 				}
 			}
 			data, statusCode, err := c.PostWithParams(cmd.Context(), path, params, body)

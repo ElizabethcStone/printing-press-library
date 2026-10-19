@@ -15,8 +15,9 @@ import (
 func newAiVisibilityGetBrandsQueriesCmd(flags *rootFlags) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "get-brands-queries <id>",
-		Short: "Rank Math ai-visibility: get brands queries",
+		Use:     "get-brands-queries <id>",
+		Short:   "Rank Math ai-visibility: get brands queries",
+		Example: "  rankmath-pp-cli ai-visibility get-brands-queries brand-123",
 		Args: func(cmd *cobra.Command, args []string) error {
 			return endpointPositionalArgs(cmd, flags, args, cobra.MaximumNArgs(1))
 		},

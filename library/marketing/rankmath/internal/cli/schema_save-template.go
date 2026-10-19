@@ -22,6 +22,7 @@ func newSchemaSaveTemplateCmd(flags *rootFlags) *cobra.Command {
 		Use:         "save-template",
 		Aliases:     []string{"create"},
 		Short:       "Rank Math schema: save template",
+		Example:     "  rankmath-pp-cli schema save-template --post-id 42 --schema '{\"@type\":\"Article\"}'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "schema.save-template", "pp:method": "POST", "pp:path": "/rankmath/v1/saveTemplate", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
