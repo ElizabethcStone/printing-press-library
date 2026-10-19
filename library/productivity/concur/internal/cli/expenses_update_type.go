@@ -242,6 +242,12 @@ func updateExpenseTypeViaBrowserFallback(cmd *cobra.Command, c *client.Client, u
 	// its error does not prove nothing was saved. Hold it and read the line
 	// back to decide, rather than reporting an ordinary failure for a type
 	// that may already be changed.
+	//
+	// PATCH(amend-2026-10-18: browser writes bypassed cache eviction) -- the
+	// click can land even when it reports an error, and a browser write never
+	// reaches the client's mutation path that evicts cached reads, so a later
+	// `reports exceptions` or `expenses list` would show the pre-edit state.
+	defer c.InvalidateCache()
 	saveErr := clickWithNavigationRetry(saveRef, "itemizations/"+expenseId, "Save Itemization", "button", stepTimeout)
 	time.Sleep(1 * time.Second)
 

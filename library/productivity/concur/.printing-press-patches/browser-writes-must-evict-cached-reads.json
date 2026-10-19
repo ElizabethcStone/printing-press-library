@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "id": "browser-writes-must-evict-cached-reads",
+  "applied_at": "2026-10-18",
+  "base_run_id": "20260812-144651-60addfc5",
+  "base_printing_press_version": "4.30.3",
+  "summary": "A write made through the browser must evict the client's cached reads, and `reports exceptions` must always read live; the browser flows bypass the only code that clears the response cache.",
+  "reason": "The response cache holds GETs for five minutes and is cleared only after a successful API mutation, but every browser fallback saves through Concur's web form instead. A read made soon after an edit (reports get, expenses list, reports exceptions) therefore returned the pre-edit state, including a blocking error that had just been fixed. An edit made in the web UI can never evict the cache, so the validation view skips it altogether.",
+  "files": [
+    "internal/client/client.go",
+    "internal/client/client_test.go",
+    "internal/cli/expenses_create.go",
+    "internal/cli/expenses_update.go",
+    "internal/cli/expenses_update_type.go",
+    "internal/cli/reports_create.go",
+    "internal/cli/reports_submit.go",
+    "internal/cli/reports_exceptions.go",
+    "internal/cli/browser_write_cache_test.go",
+    "internal/cli/expenses_create_fallback_test.go",
+    "internal/cli/expenses_update_fallback_test.go",
+    "internal/cli/expenses_update_type_test.go",
+    "internal/cli/reports_create_fallback_test.go",
+    "internal/cli/reports_submit_fallback_test.go",
+    "internal/cli/reports_exceptions_test.go"
+  ],
+  "call_sites": [
+    "InvalidateCache("
+  ],
+  "upstream_issue": null,
+  "validated_outcome": "go build, go vet and go test ./... pass. Each browser-write flow's success-path test plants a cached response and asserts it is gone afterwards, and a live-read test asserts that `reports exceptions` reaches the server on every call; all six fail when the fix is removed. Found live: after `expenses update --type` cleared a line's blocking error, `reports exceptions` and `reports get` kept reporting it for several minutes until `--no-cache` was passed.",
+  "findings_addressed": [
+    "F1",
+    "F2"
+  ]
+}

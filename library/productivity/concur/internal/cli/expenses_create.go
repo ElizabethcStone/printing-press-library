@@ -610,6 +610,11 @@ func createExpenseViaBrowserFallback(cmd *cobra.Command, c *client.Client, flags
 	// PATCH(amend-2026-09-24: bounded retry against a fresh ref) -- see
 	// clickWithNavigationRetry's doc comment (browser_fallback_helpers.go)
 	// for the live-confirmed timing race this guards against.
+	//
+	// PATCH(amend-2026-10-18: browser writes bypassed cache eviction) -- the
+	// click can land even when it errors, and nothing else evicts the cached
+	// reads, so `expenses list` would not show the new expense.
+	defer c.InvalidateCache()
 	if err := clickWithNavigationRetry(saveRef, "/expenses/new", "Save Expense", "button", stepTimeout); err != nil {
 		return nil, 0, err
 	}

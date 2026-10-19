@@ -473,6 +473,10 @@ func createReportViaBrowserFallback(cmd *cobra.Command, c *client.Client, flags 
 	if err != nil {
 		return nil, 0, fmt.Errorf("could not find the Create Report button: %w", err)
 	}
+	// PATCH(amend-2026-10-18: browser writes bypassed cache eviction) -- the
+	// click can land even when it errors, and nothing else evicts the cached
+	// reads, so `reports list` would not show the new report.
+	defer c.InvalidateCache()
 	if _, err := runAgentBrowser("click", "@"+createButtonRef); err != nil {
 		return nil, 0, err
 	}

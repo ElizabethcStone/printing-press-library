@@ -81,6 +81,12 @@ func newReportsExceptionsCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			// PATCH(amend-2026-10-18: reports exceptions served a fixed error from
+			// cache) -- this is the "what blocks submit" view, re-run right after
+			// an edit, and the report is also edited in the web UI where nothing
+			// can evict the cache. A response held for the cache TTL kept
+			// reporting a blocking error that had already been fixed.
+			c.NoCache = true
 			path = replacePathParam(path, "user_id", formatCLIParamValue(flagUserId))
 			path = replacePathParam(path, "context_type", formatCLIParamValue(flagContextType))
 			params := map[string]string{}

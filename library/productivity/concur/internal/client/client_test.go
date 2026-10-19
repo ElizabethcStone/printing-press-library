@@ -182,6 +182,27 @@ func TestMutationInvalidatesOnlyItsResourceTag(t *testing.T) {
 	}
 }
 
+// PATCH(amend-2026-10-18: browser writes bypassed cache eviction)
+func TestInvalidateCacheEvictsEveryCachedRead(t *testing.T) {
+	c := &Client{BaseURL: "https://api.example.test", cacheDir: t.TempDir()}
+	c.writeCache("/v1/orders", nil, json.RawMessage(`{"resource":"orders"}`))
+	c.writeCache("/v1/customers", nil, json.RawMessage(`{"resource":"customers"}`))
+	if _, ok := c.readCache("/v1/orders", nil); !ok {
+		t.Fatal("setup: a fresh cache write was not readable")
+	}
+
+	c.InvalidateCache()
+
+	for _, path := range []string{"/v1/orders", "/v1/customers"} {
+		if _, ok := c.readCache(path, nil); ok {
+			t.Errorf("%s is still served from cache after InvalidateCache", path)
+		}
+	}
+
+	// No cache directory means nothing to evict, not a panic or a stray RemoveAll.
+	(&Client{}).InvalidateCache()
+}
+
 func TestGetWithHeadersValuesPreservesRepeatedQueryParams(t *testing.T) {
 	t.Parallel()
 

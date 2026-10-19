@@ -237,6 +237,7 @@ exit 0
 	t.Run("PolicyIdRequiredError_TriggersFallback", func(t *testing.T) {
 		// Reset mock state file
 		_ = os.Remove(stateFile)
+		stillCached := seedStaleCache(t)
 
 		// Set up mock HTTP server
 		apiCalls := 0
@@ -297,6 +298,9 @@ exit 0
 		// Ensure mock state file was touched (meaning browser fallback actually click-submitted)
 		if _, err := os.Stat(stateFile); os.IsNotExist(err) {
 			t.Error("expected browser fallback to be driven, but state file does not exist")
+		}
+		if stillCached() {
+			t.Error("the browser write left a stale cached read behind")
 		}
 
 		var envelope map[string]any

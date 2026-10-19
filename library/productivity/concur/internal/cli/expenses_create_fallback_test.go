@@ -385,6 +385,7 @@ exit 0
 
 	t.Run("404Defect_TriggersFallback", func(t *testing.T) {
 		_ = os.Remove(stateFile)
+		stillCached := seedStaleCache(t)
 
 		apiCalls := 0
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -439,6 +440,9 @@ exit 0
 
 		if _, err := os.Stat(stateFile); os.IsNotExist(err) {
 			t.Error("expected browser fallback to be driven (Save Expense clicked), but state file does not exist")
+		}
+		if stillCached() {
+			t.Error("the browser write left a stale cached read behind")
 		}
 
 		var envelope map[string]any

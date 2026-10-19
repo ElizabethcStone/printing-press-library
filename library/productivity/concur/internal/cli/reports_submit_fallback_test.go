@@ -95,6 +95,7 @@ exit 0
 	t.Run("405Defect_TriggersFallback_ConfirmsDialogAndSubmits", func(t *testing.T) {
 		_ = os.Remove(stateFile)
 		_ = os.Remove(dialogOpenFile)
+		stillCached := seedStaleCache(t)
 
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -141,6 +142,9 @@ exit 0
 		}
 		if _, err := os.Stat(stateFile); os.IsNotExist(err) {
 			t.Error("expected the DIALOG's own Submit Report button to be clicked (not just the page button), but it wasn't")
+		}
+		if stillCached() {
+			t.Error("the browser write left a stale cached read behind")
 		}
 
 		var envelope map[string]any

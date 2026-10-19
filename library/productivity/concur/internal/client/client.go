@@ -709,6 +709,15 @@ func (c *Client) invalidateCacheAfterMutation(path string) {
 	_ = os.RemoveAll(filepath.Join(c.cacheDir, "resources"))
 }
 
+// InvalidateCache evicts every cached response. Writes made outside this
+// client -- the browser fallbacks drive Concur's web form -- never reach the
+// mutation path that evicts them, so without this a read made within the cache
+// TTL still returns the state from before the edit.
+// PATCH(amend-2026-10-18: browser writes bypassed cache eviction)
+func (c *Client) InvalidateCache() {
+	c.invalidateCacheAfterMutation("")
+}
+
 func (c *Client) Post(ctx context.Context, path string, body any) (json.RawMessage, int, error) {
 	return c.do(ctx, "POST", path, nil, body, nil)
 }

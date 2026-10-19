@@ -394,6 +394,11 @@ func submitReportViaBrowserFallback(cmd *cobra.Command, c *client.Client, flags 
 	// reportsCreatePartialSuccessError / expensesCreatePartialSuccessError's
 	// rationale: every error path below wraps in
 	// reportsSubmitPartialSuccessError.
+	//
+	// PATCH(amend-2026-10-18: browser writes bypassed cache eviction) -- nothing
+	// else evicts the cached reads, so `reports get` would still show the
+	// report as not submitted.
+	defer c.InvalidateCache()
 	if _, err := runAgentBrowser("click", "@"+confirmRef); err != nil {
 		return nil, 0, &reportsSubmitPartialSuccessError{
 			reportId: reportId,

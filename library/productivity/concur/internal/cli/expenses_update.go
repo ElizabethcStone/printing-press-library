@@ -539,6 +539,10 @@ func updateExpenseViaBrowserFallback(cmd *cobra.Command, c *client.Client, flags
 	// URL) vs. successful (navigated away) attempt against this exact
 	// expense.
 	editURLMarker := "/expenses/" + expenseId
+	// PATCH(amend-2026-10-18: browser writes bypassed cache eviction) -- see
+	// updateExpenseTypeViaBrowserFallback: the click can land even when it
+	// errors, and nothing else evicts the cached reads of the edited report.
+	defer c.InvalidateCache()
 	if err := clickWithNavigationRetry(saveRef, editURLMarker, "Save Expense", "button", stepTimeout); err != nil {
 		return nil, 0, err
 	}
