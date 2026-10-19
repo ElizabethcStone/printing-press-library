@@ -12,7 +12,7 @@
     "type": "api_key",
     "api_key_available": true
   },
-  "source_fingerprint": "5b4658550be1f595be3c71707cb4f627f1ad5fa3639cea4f0151c5eff33d9738",
+  "source_fingerprint": "a2bd84fe6ed133cf37ffee36fc28133c35accae558ee726e6a6dbabeb97a1d0f",
   "source_files": {
     "cmd/rankmath-pp-cli/main.go": "b35e9497102c70706ec810ada8e090f21c390640696b8ce48621228f82178d40",
     "cmd/rankmath-pp-mcp/http_auth_test.go": "c2d4bc87b02d336786b07e389bad60ec9215214a559a7d8d27ac51c6fef8e7d8",
@@ -23,7 +23,7 @@
     "internal/cli/agent_context.go": "f402b32e051b7811b5df2cb6ee6bfbba90fed33f053a0229f50fa39b5d7172b9",
     "internal/cli/ai_visibility.go": "0fcf43f20440896060f850e7f17c5eb9ec88903b29a0d129cd92ddf16af1bd59",
     "internal/cli/ai_visibility_brands-generate-queries.go": "25a71437c1040650b417c394fc6e2c03875eede51d34b28a512bfaf8448301ec",
-    "internal/cli/ai_visibility_create-brands.go": "8dc688ee319516228fef1615646625b067a648d185f3eeeaa36e9cbee8b5e030",
+    "internal/cli/ai_visibility_create-brands.go": "b1cbf7c4f39a11c26ecfc52c222d16338a12300e20f2121f7d0a12829a909e44",
     "internal/cli/ai_visibility_get-brands-insights.go": "9304543802ceba292c5c6383004f32ca4ffa266816d9210f9c7fc9892126a0cb",
     "internal/cli/ai_visibility_get-brands-queries.go": "67e871c6f348d545c9e54f4e923eec0cde4f9ee989c000bedc425dc1368d24c6",
     "internal/cli/ai_visibility_get-brands.go": "d5546686fd292050ad7af94295664847bbabe3b918786ddc4ba06b12a88308e3",
@@ -140,7 +140,7 @@
     "internal/cli/link_genius_stats.go": "857d552aa67dfbd475f93bbbf58c496e1e596b47c9d5290bbd7313f2182040f2",
     "internal/cli/link_genius_undo-delete.go": "adb00a6d81875b82e7aa5279321290d4011b23960e812305ec14d63bac02e9bf",
     "internal/cli/link_genius_update-keyword-maps.go": "2f6c5ee3cd25cc1d52da76ab04cfb2428eda6fc9a5dda458e409f37b0d3f7285",
-    "internal/cli/link_genius_update.go": "9be7e1c4256bc490f519bd357373c2d970b1c8d04299eaf5f0184202862c1ae1",
+    "internal/cli/link_genius_update.go": "7fd02bec468c3553fc8269ebf91f8075a10c2e4d22c00336c5f1043f0d9f1151",
     "internal/cli/meta.go": "7aa992718ef796b2771a12e96632b1db7b548f6f26e96d57e68cb6c503402750",
     "internal/cli/meta_import.go": "1e275db9a2eb64bd8d4ef3581e20e02de55697c337d2da0d86e855cc22ed6f76",
     "internal/cli/meta_import_test.go": "3956a073dddbabeb60dd04334058f19e52f0213cbbdc677605ff9a27be1ebfb0",

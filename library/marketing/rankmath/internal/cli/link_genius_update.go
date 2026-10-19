@@ -24,7 +24,7 @@ func newLinkGeniusUpdateCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "update",
 		Short:       "Rank Math link-genius: update",
-		Example:     "  rankmath-pp-cli link-genius update --link-id 15 --new-anchor \"running shoes\"",
+		Example:     "  rankmath-pp-cli link-genius update --link-id 15 --new-anchor \"running shoes\" --new-url https://example.com/running-shoes/",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.update", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/update", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
