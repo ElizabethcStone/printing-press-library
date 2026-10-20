@@ -134,9 +134,12 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       get:
         method: GET
+        example: "  airtable-pp-cli records get recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
         path: "/v0/{base_id}/{table}/{record_id}"
         description: "Retrieve a single record"
         happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments"
@@ -197,6 +200,7 @@ resources:
 
       update:
         method: PATCH
+        example: "  airtable-pp-cli records update recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --fields '{\"Status\":\"Delayed\"}'"
         path: "/v0/{base_id}/{table}/{record_id}"
         description: "Update a single record; only the fields you specify are changed (partial update)"
         happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments;--fields={\"Status\":\"Delayed\"}"
@@ -231,6 +235,7 @@ resources:
 
       replace:
         method: PUT
+        example: "  airtable-pp-cli records replace recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --fields '{\"Status\":\"Delivered\"}'"
         path: "/v0/{base_id}/{table}/{record_id}"
         description: "Destructively replace a single record; unspecified cell values are cleared"
         params:
@@ -294,6 +299,7 @@ resources:
 
       replace_multiple:
         method: PUT
+        example: "  airtable-pp-cli records replace-multiple --base appLkNDICXNqxSDhG --table Shipments --records '[{\"id\":\"recA1b2C3d4E5f6G7\",\"fields\":{\"Status\":\"Delivered\"}}]'"
         path: "/v0/{base_id}/{table}"
         description: "Destructively replace multiple records in one request (or upsert, clearing unspecified fields)"
         params:
@@ -324,6 +330,7 @@ resources:
 
       delete:
         method: DELETE
+        example: "  airtable-pp-cli records delete recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
         path: "/v0/{base_id}/{table}/{record_id}"
         description: "Delete a single record"
         params:
@@ -346,6 +353,7 @@ resources:
 
       delete_multiple:
         method: DELETE
+        example: "  airtable-pp-cli records delete-multiple --base appLkNDICXNqxSDhG --table Shipments --records '[\"recA1b2C3d4E5f6G7\",\"recB1b2C3d4E5f6G7\"]'"
         path: "/v0/{base_id}/{table}"
         description: "Delete multiple records by ID"
         params:
@@ -373,6 +381,7 @@ resources:
       list:
         method: GET
         path: "/v0/meta/bases"
+        response_path: "bases"
         description: "List bases the token can access"
         params:
           - name: offset
@@ -381,9 +390,12 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       get_schema:
         method: GET
+        example: "  airtable-pp-cli bases get-schema appLkNDICXNqxSDhG"
         path: "/v0/meta/bases/{base_id}/tables"
         description: "Return the schema (tables, fields, views) for a base"
         happy_args: "id=appLkNDICXNqxSDhG"
@@ -399,6 +411,7 @@ resources:
 
       get_collaborators:
         method: GET
+        example: "  airtable-pp-cli bases get-collaborators appLkNDICXNqxSDhG"
         path: "/v0/meta/bases/{base_id}"
         description: "Get basic base info: name, permission level, and outstanding invites"
         happy_args: "id=appLkNDICXNqxSDhG"
@@ -411,6 +424,7 @@ resources:
 
       create:
         method: POST
+        example: "  airtable-pp-cli bases create --name \"Ops Tracker\" --workspace-id wspA1b2C3d4E5f6G7 --tables '[{\"name\":\"Tasks\",\"fields\":[{\"name\":\"Name\",\"type\":\"singleLineText\"}]}]'"
         path: "/v0/meta/bases"
         description: "Create a base with tables and return its schema"
         body:
@@ -433,6 +447,7 @@ resources:
     endpoints:
       create:
         method: POST
+        example: "  airtable-pp-cli tables create appLkNDICXNqxSDhG --name Carriers --fields '[{\"name\":\"Name\",\"type\":\"singleLineText\"}]'"
         path: "/v0/meta/bases/{base_id}/tables"
         description: "Create a table in a base"
         params:
@@ -457,6 +472,7 @@ resources:
 
       update:
         method: PATCH
+        example: "  airtable-pp-cli tables update tblA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG --name \"Carrier Directory\""
         path: "/v0/meta/bases/{base_id}/tables/{table_id}"
         description: "Update a table's name, description, or date-dependency settings"
         params:
@@ -487,6 +503,7 @@ resources:
     endpoints:
       create:
         method: POST
+        example: "  airtable-pp-cli fields create --base-id appLkNDICXNqxSDhG --table-id tblA1b2C3d4E5f6G7 --name Priority --type singleSelect --options '{\"choices\":[{\"name\":\"High\"},{\"name\":\"Low\"}]}'"
         path: "/v0/meta/bases/{base_id}/tables/{table_id}/fields"
         description: "Create a field in a table"
         params:
@@ -519,6 +536,7 @@ resources:
 
       update:
         method: PATCH
+        example: "  airtable-pp-cli fields update fldAbC123dEf456Gh --base-id appLkNDICXNqxSDhG --table-id tblA1b2C3d4E5f6G7 --name \"Priority Level\""
         path: "/v0/meta/bases/{base_id}/tables/{table_id}/fields/{field_id}"
         description: "Update a field's name, description, or options"
         params:
@@ -554,7 +572,9 @@ resources:
     endpoints:
       list:
         method: GET
+        example: "  airtable-pp-cli views list appLkNDICXNqxSDhG"
         path: "/v0/meta/bases/{base_id}/views"
+        response_path: "views"
         description: "List views in a base"
         params:
           - name: base_id
@@ -565,6 +585,7 @@ resources:
 
       get:
         method: GET
+        example: "  airtable-pp-cli views get viwA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
         path: "/v0/meta/bases/{base_id}/views/{view_id}"
         description: "Get metadata for a view"
         params:
@@ -581,6 +602,7 @@ resources:
 
       delete:
         method: DELETE
+        example: "  airtable-pp-cli views delete viwA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
         path: "/v0/meta/bases/{base_id}/views/{view_id}"
         description: "Delete a view"
         params:
@@ -600,7 +622,9 @@ resources:
     endpoints:
       list:
         method: GET
+        example: "  airtable-pp-cli webhooks list appLkNDICXNqxSDhG"
         path: "/v0/bases/{base_id}/webhooks"
+        response_path: "webhooks"
         description: "List webhooks registered on a base"
         params:
           - name: base_id
@@ -611,6 +635,7 @@ resources:
 
       create:
         method: POST
+        example: "  airtable-pp-cli webhooks create appLkNDICXNqxSDhG --notification-url https://example.com/airtable-hook --specification '{\"options\":{\"filters\":{\"dataTypes\":[\"tableData\"]}}}'"
         path: "/v0/bases/{base_id}/webhooks"
         description: "Create a webhook on a base (max 10 per base)"
         params:
@@ -631,6 +656,7 @@ resources:
 
       delete:
         method: DELETE
+        example: "  airtable-pp-cli webhooks delete achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
         path: "/v0/bases/{base_id}/webhooks/{webhook_id}"
         description: "Delete a webhook"
         params:
@@ -663,6 +689,7 @@ resources:
 
       set_notifications:
         method: POST
+        example: "  airtable-pp-cli webhooks set-notifications achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG --enable"
         path: "/v0/bases/{base_id}/webhooks/{webhook_id}/enableNotifications"
         description: "Enable or disable notification pings for a webhook"
         params:
@@ -685,6 +712,7 @@ resources:
 
       list_payloads:
         method: GET
+        example: "  airtable-pp-cli webhooks list-payloads achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
         path: "/v0/bases/{base_id}/webhooks/{webhook_id}/payloads"
         description: "Retrieve queued change payloads for a webhook (call after receiving a ping)"
         params:
@@ -707,7 +735,9 @@ resources:
     endpoints:
       list:
         method: GET
+        example: "  airtable-pp-cli comments list recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
         path: "/v0/{base_id}/{table}/{record_id}/comments"
+        response_path: "comments"
         description: "List comments on a record, newest first"
         params:
           - name: base_id
@@ -736,9 +766,12 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       create:
         method: POST
+        example: "  airtable-pp-cli comments create recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --text \"Carrier confirmed pickup\""
         path: "/v0/{base_id}/{table}/{record_id}/comments"
         description: "Create a comment on a record"
         params:
@@ -767,6 +800,7 @@ resources:
 
       update:
         method: PATCH
+        example: "  airtable-pp-cli comments update comA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --record-id recA1b2C3d4E5f6G7 --text \"Pickup moved to Friday\""
         path: "/v0/{base_id}/{table}/{record_id}/comments/{comment_id}"
         description: "Update a comment you created"
         params:
@@ -800,6 +834,7 @@ resources:
 
       delete:
         method: DELETE
+        example: "  airtable-pp-cli comments delete comA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --record-id recA1b2C3d4E5f6G7"
         path: "/v0/{base_id}/{table}/{record_id}/comments/{comment_id}"
         description: "Delete a comment you created (Enterprise Admins can delete any)"
         params:
@@ -830,6 +865,7 @@ resources:
     endpoints:
       upload:
         method: POST
+        example: "  airtable-pp-cli attachments fldAbC123dEf456Gh --base appLkNDICXNqxSDhG --record-id recA1b2C3d4E5f6G7 --file photo.jpg --filename photo.jpg --content-type image/jpeg"
         path: "/v0/{base_id}/{record_id}/{field_id}/uploadAttachment"
         base_url: "https://content.airtable.com"
         description: "Upload a file (up to 5MB) directly to an attachment cell"

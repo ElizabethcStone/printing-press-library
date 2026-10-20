@@ -81,7 +81,7 @@ func newCommentsListCmd(flags *rootFlags) *cobra.Command {
 			data, prov, err := resolvePaginatedReadWithStrategy(cmd.Context(), c, flags, "live", "comments", path, retainCLIQueryParams(cmd, map[string]string{
 				"pageSize": formatCLIParamValue(flagPageSize),
 				"offset":   formatCLIParamValue(flagOffset),
-			}, map[string][]string{"pageSize": {"page-size"}, "offset": {"offset"}}, "", "cursor"), nil, flagAll, "", "cursor", "", 0, "offset", "", "comments", cmd.ErrOrStderr())
+			}, map[string][]string{"pageSize": {"page-size"}, "offset": {"offset"}}, "offset", "cursor"), nil, flagAll, "offset", "cursor", "", 0, "offset", "", "comments", cmd.ErrOrStderr())
 			if err != nil {
 				return classifyAPIError(cmd.OutOrStdout(), err, flags)
 			}

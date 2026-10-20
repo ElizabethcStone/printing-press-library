@@ -38,6 +38,7 @@ func newNovelRecordsDiffCmd(flags *rootFlags) *cobra.Command {
 	var flagBase string
 	var flagTable string
 	var flagStdin bool
+	var flagChanges string
 
 	cmd := &cobra.Command{
 		Use:         "diff",
@@ -52,20 +53,27 @@ func newNovelRecordsDiffCmd(flags *rootFlags) *cobra.Command {
 				_ = cmd.Usage()
 				return usageErr(fmt.Errorf("--base and --table are required"))
 			}
-			if !flagStdin {
+			changesSet := cmd.Flags().Changed("changes")
+			if flagStdin == changesSet {
 				_ = cmd.Usage()
-				return usageErr(fmt.Errorf("--stdin is required; pipe a JSON array of {\"id\":\"recXXX\",\"fields\":{...}} objects"))
+				return usageErr(fmt.Errorf("exactly one of --stdin or --changes is required"))
 			}
-			raw, err := io.ReadAll(cmd.InOrStdin())
-			if err != nil {
-				return fmt.Errorf("reading stdin: %w", err)
+			raw := []byte(flagChanges)
+			inputName := "--changes"
+			if flagStdin {
+				inputName = "stdin"
+				var err error
+				raw, err = io.ReadAll(cmd.InOrStdin())
+				if err != nil {
+					return fmt.Errorf("reading stdin: %w", err)
+				}
 			}
 			var proposed []recordsDiffProposed
 			// Empty stdin is a valid degenerate case (nothing to diff), not a
 			// parse error - only non-empty, malformed input is a real error.
 			if len(bytes.TrimSpace(raw)) > 0 {
 				if err := json.Unmarshal(raw, &proposed); err != nil {
-					return fmt.Errorf("parsing stdin JSON array: %w", err)
+					return fmt.Errorf("parsing %s JSON array: %w", inputName, err)
 				}
 			}
 			c, err := flags.newClient()
@@ -77,7 +85,7 @@ func newNovelRecordsDiffCmd(flags *rootFlags) *cobra.Command {
 				path := replacePathParam("/v0/{base_id}/{table}/{record_id}", "base_id", formatCLIParamValue(flagBase))
 				path = replacePathParam(path, "table", formatCLIParamValue(flagTable))
 				path = replacePathParam(path, "record_id", p.ID)
-				data, err := c.Get(cmd.Context(), path, nil)
+				data, err := c.GetNoCache(cmd.Context(), path, nil)
 				if err != nil {
 					var apiErr *client.APIError
 					if errors.As(err, &apiErr) && (apiErr.StatusCode == 404 || apiErrorNotFound(apiErr)) {
@@ -113,6 +121,7 @@ func newNovelRecordsDiffCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&flagBase, "base", "", "Base ID")
 	cmd.Flags().StringVar(&flagTable, "table", "", "Table name or ID")
 	cmd.Flags().BoolVar(&flagStdin, "stdin", false, "Read proposed changes as a JSON array of {\"id\":...,\"fields\":{...}} from stdin")
+	cmd.Flags().StringVar(&flagChanges, "changes", "", "Proposed changes as a JSON array of {\"id\":...,\"fields\":{...}}")
 	return cmd
 }
 

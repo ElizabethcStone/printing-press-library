@@ -30,7 +30,7 @@ func newBasesListCmd(flags *rootFlags) *cobra.Command {
 			}
 			data, prov, err := resolvePaginatedReadWithStrategy(cmd.Context(), c, flags, "auto", "bases", path, retainCLIQueryParams(cmd, map[string]string{
 				"offset": formatCLIParamValue(flagOffset),
-			}, map[string][]string{"offset": {"offset"}}, "", "cursor"), nil, flagAll, "", "cursor", "", 0, "offset", "", "bases", cmd.ErrOrStderr())
+			}, map[string][]string{"offset": {"offset"}}, "offset", "cursor"), nil, flagAll, "offset", "cursor", "", 0, "offset", "", "bases", cmd.ErrOrStderr())
 			if err != nil {
 				return classifyAPIError(cmd.OutOrStdout(), err, flags)
 			}

@@ -113,7 +113,7 @@ func newRecordsListCmd(flags *rootFlags) *cobra.Command {
 				"filterByFormula":       formatCLIParamValue(flagFilterByFormula),
 				"cellFormat":            formatCLIParamValue(flagCellFormat),
 				"returnFieldsByFieldId": formatCLIParamValue(flagReturnFieldsByFieldId),
-			}, map[string][]string{"timeZone": {"timezone"}, "userLocale": {"user-locale"}, "pageSize": {"page-size"}, "maxRecords": {"max-records"}, "offset": {"offset"}, "view": {"view"}, "sort[0][field]": {"sort-field"}, "sort[0][direction]": {"sort-direction"}, "filterByFormula": {"filter-formula"}, "cellFormat": {"cell-format"}, "returnFieldsByFieldId": {"return-fields-by-field-id"}}, "", "cursor"), nil, flagAll, "", "cursor", "", 0, "offset", "", "", cmd.ErrOrStderr())
+			}, map[string][]string{"timeZone": {"timezone"}, "userLocale": {"user-locale"}, "pageSize": {"page-size"}, "maxRecords": {"max-records"}, "offset": {"offset"}, "view": {"view"}, "sort[0][field]": {"sort-field"}, "sort[0][direction]": {"sort-direction"}, "filterByFormula": {"filter-formula"}, "cellFormat": {"cell-format"}, "returnFieldsByFieldId": {"return-fields-by-field-id"}}, "offset", "cursor"), nil, flagAll, "offset", "cursor", "", 0, "offset", "", "", cmd.ErrOrStderr())
 			if err != nil {
 				return classifyAPIError(cmd.OutOrStdout(), err, flags)
 			}

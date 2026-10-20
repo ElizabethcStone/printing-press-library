@@ -33,3 +33,5 @@ exit=0
 Result: the first upsert created 1 row. The second upsert with the same merge key updated it (records_updated=1), and exactly 1 matching row exists, so there was no duplicate.
 
 Cleanup: deleted only the created test row by ID (exit 0). A re-query returns 0 matching rows, and the table's record count is back to its pre-test value of 18.
+
+Addendum (after Greptile review on PR #2346): upsert-csv now sends `typecast: true` by default. The text-only sandbox fixture above is unaffected by this; typed-column conversion is covered by unit tests (TestGreptileUpsertCSVTypecast).

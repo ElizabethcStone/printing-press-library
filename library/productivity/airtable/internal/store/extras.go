@@ -26,3 +26,13 @@ func (s *Store) migrateExtras(ctx context.Context, conn *sql.Conn) error {
 	}
 	return nil
 }
+
+// ReconcileAirtableRecords prunes a fully fetched base/table partition.
+func (s *Store) ReconcileAirtableRecords(baseID, table string, seenIDs []string) (int, error) {
+	return s.reconcileUnseen("records", seenIDs, "", nil,
+		`SELECT id FROM resources
+		 WHERE resource_type = ?
+		   AND (CASE WHEN json_valid(data) THEN json_extract(data, ?) END) = ?
+		   AND (CASE WHEN json_valid(data) THEN json_extract(data, ?) END) = ?`,
+		"records", "$.base_id", baseID, "$.table", table)
+}

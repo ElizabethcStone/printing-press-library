@@ -1150,6 +1150,15 @@ func cursorPageHasContinuation(cursorType string, hasMore bool, nextCursor strin
 // Values are detected from the API spec by the profiler at generation time.
 func determinePaginationDefaults(resource string) paginationDefaults {
 	switch resource {
+	case "bases":
+		return paginationDefaults{
+			cursorParam:    "offset",
+			cursorType:     "cursor",
+			initialCursor:  "",
+			nextCursorPath: "offset",
+			limitParam:     "",
+			limit:          100,
+		}
 	case "bases/bases_comments":
 		return paginationDefaults{
 			cursorParam:    "offset",
@@ -1161,7 +1170,7 @@ func determinePaginationDefaults(resource string) paginationDefaults {
 		}
 	}
 	return paginationDefaults{
-		cursorParam:    "cursor",
+		cursorParam:    "offset",
 		cursorType:     "cursor",
 		initialCursor:  "",
 		nextCursorPath: "",
@@ -1199,6 +1208,8 @@ func nextSyncPageNumber(cursor string) string {
 
 func resourceSupportsPagination(resource string) bool {
 	switch resource {
+	case "bases":
+		return true
 	case "bases_comments":
 		return true
 	}

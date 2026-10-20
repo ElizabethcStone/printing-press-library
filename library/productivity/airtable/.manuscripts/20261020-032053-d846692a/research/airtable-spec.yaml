@@ -134,6 +134,8 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       get:
         method: GET
@@ -388,6 +390,8 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       get_schema:
         method: GET
@@ -762,6 +766,8 @@ resources:
         pagination:
           type: cursor
           cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
 
       create:
         method: POST

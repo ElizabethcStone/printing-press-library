@@ -128,11 +128,14 @@ func newNovelBasesSchemaDiffCmd(flags *rootFlags) *cobra.Command {
 
 			addedTables := []string{}
 			removedTables := []string{}
+			renamedTables := []map[string]string{}
 			tableChanges := []map[string]any{}
 
 			for id, t := range liveTables {
-				if _, ok := priorTables[id]; !ok {
+				if priorTable, ok := priorTables[id]; !ok {
 					addedTables = append(addedTables, t.Name)
+				} else if priorTable.Name != t.Name {
+					renamedTables = append(renamedTables, map[string]string{"id": id, "from": priorTable.Name, "to": t.Name})
 				}
 			}
 			for id, t := range priorTables {
@@ -156,13 +159,19 @@ func newNovelBasesSchemaDiffCmd(flags *rootFlags) *cobra.Command {
 				addedFields := []string{}
 				removedFields := []string{}
 				retypedFields := []map[string]string{}
+				renamedFields := []map[string]string{}
 				for fid, f := range liveFields {
 					if pf, ok := priorFields[fid]; !ok {
 						addedFields = append(addedFields, f.Name)
-					} else if pf.Type != f.Type {
-						retypedFields = append(retypedFields, map[string]string{
-							"field": f.Name, "from": pf.Type, "to": f.Type,
-						})
+					} else {
+						if pf.Name != f.Name {
+							renamedFields = append(renamedFields, map[string]string{"id": fid, "from": pf.Name, "to": f.Name})
+						}
+						if pf.Type != f.Type {
+							retypedFields = append(retypedFields, map[string]string{
+								"field": f.Name, "from": pf.Type, "to": f.Type,
+							})
+						}
 					}
 				}
 				for fid, f := range priorFields {
@@ -170,12 +179,13 @@ func newNovelBasesSchemaDiffCmd(flags *rootFlags) *cobra.Command {
 						removedFields = append(removedFields, f.Name)
 					}
 				}
-				if len(addedFields) > 0 || len(removedFields) > 0 || len(retypedFields) > 0 {
+				if len(addedFields) > 0 || len(removedFields) > 0 || len(retypedFields) > 0 || len(renamedFields) > 0 {
 					tableChanges = append(tableChanges, map[string]any{
 						"table":          liveTable.Name,
 						"added_fields":   addedFields,
 						"removed_fields": removedFields,
 						"retyped_fields": retypedFields,
+						"renamed_fields": renamedFields,
 					})
 				}
 			}
@@ -185,8 +195,9 @@ func newNovelBasesSchemaDiffCmd(flags *rootFlags) *cobra.Command {
 				"prior_captured_at":   capturedAt.String,
 				"added_tables":        addedTables,
 				"removed_tables":      removedTables,
+				"renamed_tables":      renamedTables,
 				"changed_tables":      tableChanges,
-				"no_changes_detected": len(addedTables) == 0 && len(removedTables) == 0 && len(tableChanges) == 0,
+				"no_changes_detected": len(addedTables) == 0 && len(removedTables) == 0 && len(renamedTables) == 0 && len(tableChanges) == 0,
 			}
 			return printJSONFiltered(cmd.OutOrStdout(), view, flags)
 		},

@@ -1114,7 +1114,7 @@ func handleContextResult(s *server.MCPServer, _ context.Context, _ mcplib.CallTo
 			},
 		},
 		"query_tips": []string{
-			"Pagination uses cursor-based paging. Pass cursor parameter for subsequent pages.",
+			"Pagination uses cursor-based paging. Pass offset parameter for subsequent pages.",
 			"Control page size with the limit parameter (default 100).",
 			"Use the sql tool for ad-hoc analysis on synced data. Run sync first to populate the local database.",
 			"Use the search tool for full-text search across all synced resources. Faster than iterating list endpoints.",

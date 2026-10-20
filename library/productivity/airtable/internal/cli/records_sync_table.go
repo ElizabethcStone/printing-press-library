@@ -60,7 +60,7 @@ func newRecordsSyncTableCmd(flags *rootFlags) *cobra.Command {
 				if offset != "" {
 					params["offset"] = offset
 				}
-				data, err := c.Get(cmd.Context(), path, params)
+				data, err := c.GetNoCache(cmd.Context(), path, params)
 				if err != nil {
 					return classifyAPIError(cmd.OutOrStdout(), err, flags)
 				}
@@ -101,12 +101,25 @@ func newRecordsSyncTableCmd(flags *rootFlags) *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("storing records: %w", err)
 			}
+			pruned := 0
+			if flagView == "" && failures == 0 && len(items) == len(rawRecords) {
+				seenIDs := make([]string, 0, len(items))
+				for _, item := range items {
+					obj, _ := store.DecodeJSONObject(item)
+					seenIDs = append(seenIDs, store.ExtractResourceID("records", obj))
+				}
+				pruned, err = db.ReconcileAirtableRecords(flagBase, flagTable, seenIDs)
+				if err != nil {
+					return fmt.Errorf("pruning stale records: %w", err)
+				}
+			}
 			view := map[string]any{
 				"base":             flagBase,
 				"table":            flagTable,
 				"records_fetched":  len(rawRecords),
 				"records_synced":   stored,
 				"extract_failures": failures,
+				"records_pruned":   pruned,
 			}
 			return printJSONFiltered(cmd.OutOrStdout(), view, flags)
 		},
