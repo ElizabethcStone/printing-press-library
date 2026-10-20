@@ -2508,10 +2508,6 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 	if codeOrchRefuseForReadOnlySwitch(ep, method, executeTool) {
 		return mcplib.NewToolResultError(fmt.Sprintf("refusing %s %s while %s=1", method, id, cliutil.MCPReadOnlyEnvVar)), nil
 	}
-	// pp:patch mcp-code-orch-multipart-refusal — this route sends JSON only; n8n requires a multipart file upload here.
-	if multipartCLI, ok := codeOrchMultipartOnly[ep.ID]; ok {
-		return mcplib.NewToolResultError(fmt.Sprintf("%s needs a multipart file upload, which this MCP route cannot send; run: %s", ep.ID, multipartCLI)), nil
-	}
 
 	params, _ := args["params"].(map[string]any)
 	if params == nil {
@@ -2573,6 +2569,9 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 				} else {
 					params["cursor"] = up
 				}
+			} else {
+				// A raw n8n nextCursor goes upstream as-is and anchors any local continuation to that page.
+				requestCursor = s
 			}
 		}
 	}
@@ -2667,6 +2666,15 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 			data, _, err = c.DeleteWithParams(ctx, path, query)
 		}
 	case "POST":
+		// pp:patch mcp-code-orch-multipart-upload — n8n requires multipart/form-data for package imports.
+		if fileKeys, ok := codeOrchMultipartFiles[ep.ID]; ok {
+			fields, files, perr := codeOrchMultipartParts(ep.ID, fileKeys, params)
+			if perr != nil {
+				return mcplib.NewToolResultError(perr.Error()), nil
+			}
+			data, _, err = c.PostMultipart(ctx, path, fields, files)
+			break
+		}
 		body := writeBody()
 		if len(hdrs) > 0 {
 			data, _, err = c.PostWithHeaders(ctx, path, body, hdrs)
@@ -2703,9 +2711,27 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 	return mcplib.NewToolResultText(text), nil
 }
 
-// codeOrchMultipartOnly maps endpoints whose request body must be multipart/form-data to the CLI command that uploads it.
-var codeOrchMultipartOnly = map[string]string{
-	"n8n-packages.import-package": "n8n-pp-cli n8n-packages import-package --package <file>.n8np",
+// codeOrchMultipartFiles lists endpoints whose body must be multipart/form-data, with the
+// params that name local files to upload; every other param is sent as a form field.
+var codeOrchMultipartFiles = map[string][]string{
+	"n8n-packages.import-package": {"package"},
+}
+
+// codeOrchMultipartParts splits params into form fields and file parts; it errors when a required file param is missing.
+func codeOrchMultipartParts(id string, fileKeys []string, params map[string]any) (map[string]string, map[string]string, error) {
+	fields, files := map[string]string{}, map[string]string{}
+	for k, v := range params {
+		fields[k] = formatMCPParamValue(v)
+	}
+	for _, k := range fileKeys {
+		p, _ := params[k].(string)
+		if strings.TrimSpace(p) == "" {
+			return nil, nil, fmt.Errorf("%s uploads a file: set params.%s to a local file path", id, k)
+		}
+		files[k] = p
+		delete(fields, k)
+	}
+	return fields, files, nil
 }
 
 // codeOrchWriteBody returns the value handed to the client layer as the

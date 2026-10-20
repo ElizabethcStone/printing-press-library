@@ -22,7 +22,7 @@
     "type": "api_key",
     "api_key_available": true
   },
-  "source_fingerprint": "17fcd5980e60c41810ab05d08b551c79cd20debf57e496357fd7134ad3876936",
+  "source_fingerprint": "3d576bfea0765c44de53e6e5cfb3bd062163338606778a6c05c52f1106269be1",
   "source_files": {
     "cmd/n8n-pp-cli/main.go": "d4b0e89c74f4292b1d08b6b03722fc5f9b7369b70ffcab12eb4804f2f47e1a46",
     "cmd/n8n-pp-mcp/http_auth_test.go": "4672183a5447a8a0b45e1975bc37fa027148e7c3976cf2966441230691e520a8",
@@ -389,10 +389,10 @@
     "internal/mcp/cobratree/shellout_test.go": "e2bedb98761b9010a9697d1d8fdddb7a9b32fd0f2cd6ea1edd63bb43deffea9c",
     "internal/mcp/cobratree/typemap.go": "53f4ba31203c9492f853421c79e9f046ff2ccda2ff1da430c79527e83be741e4",
     "internal/mcp/cobratree/walker.go": "52a9b7320b195f42dd447dd70794ecd292dc0f9be0d667e50f6c514c46f964ce",
-    "internal/mcp/code_orch.go": "e1093ae37ad6570381d966cc076ac543a16b7ecb13c473bb3db335e9278240f3",
+    "internal/mcp/code_orch.go": "85bdbf3b4ee6ae48b4df8db9b919f20a16f40bf2df71ac89e668173d72c5a371",
     "internal/mcp/code_orch_writebody_test.go": "7ca665f5a50cd99a39aa74661db672d8815a0b3f7d9138d4643b61a3666258f0",
     "internal/mcp/mirror_property_names_test.go": "80b3da821fb3a31ac922a342b7621d4938f70a64b77d2f235d5b9b2bf7f1ee73",
-    "internal/mcp/n8n_paging_test.go": "2fcea65f95a149397871bb70198c9058b4091154632bcd2162ecaa78dc5b73ce",
+    "internal/mcp/n8n_paging_test.go": "45e1d033ff9b4070376b01c7b0a44677d98d43be3ab9b941f3b7294d963d35d8",
     "internal/mcp/platform_gate.go": "8e6b3803357943e28f8684c1bb3332aacf253cdf6a49fd00f434ed1f7eec1351",
     "internal/mcp/platform_gate_test.go": "61eb5110dc1f2a2aa343cbd7295407aba9338779788e52552feebc231b860229",
     "internal/mcp/tools.go": "4f35504bfc62081393344456b887c192f829cd2ffc720714e8e1185d1726e81c",
