@@ -5556,9 +5556,9 @@
       "path": "library/productivity/concur",
       "release": {
         "cli_name": "concur-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-16T08:55:32Z",
-        "source_commit": "c31eb6d2cf720f0f6d105b4e43b5f2f20fe1e606"
+        "version": "2026.10.4",
+        "released_at": "2026-10-19T08:57:46Z",
+        "source_commit": "25437872c8438ba0c1f63b6d3e48f07733e6a999"
       },
       "printer": "enlewof",
       "printer_name": "Allen Lew",
@@ -14640,6 +14640,12 @@
         "Five years of daily OHLCV, split/bonus adjustment factors and corporate events for a stock, read from its chart page and cached locally (--raw, --years, --tail)."
       ],
       "path": "library/payments/investorpaisa",
+      "release": {
+        "cli_name": "investorpaisa-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-18T08:50:56Z",
+        "source_commit": "fdbba27f47c7a5be3be30fb47bf6463d1ec3549c"
+      },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
       "creator": {
@@ -20415,9 +20421,9 @@
       "path": "library/developer-tools/openipa",
       "release": {
         "cli_name": "openipa-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-17T08:50:24Z",
-        "source_commit": "fca02ab2f5df5a904992e325f240905e5e88835f"
+        "version": "2026.10.2",
+        "released_at": "2026-10-18T08:50:56Z",
+        "source_commit": "694be703e760d384e9e540ace86201ea8e62d71f"
       },
       "printer": "aborruso",
       "printer_name": "aborruso",
@@ -23695,9 +23701,9 @@
       "path": "library/productivity/raindrop",
       "release": {
         "cli_name": "raindrop-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-18T08:50:09Z",
+        "source_commit": "bfe52f5d8244dadbfa0b173795fa1b3935dd0391"
       },
       "printer": "srijits",
       "printer_name": "srijits",
@@ -23769,6 +23775,56 @@
         "env_vars": [],
         "mcp_ready": "full",
         "spec_format": "internal"
+      }
+    },
+    {
+      "name": "rankmath",
+      "category": "marketing",
+      "api": "Rank Math",
+      "description": "Rank Math SEO from the terminal: bulk meta edits, site-wide SEO audits, Search Console analytics, and IndexNow — with no bridge plugin.",
+      "search_terms": [
+        "rankmath",
+        "Rank Math",
+        "rankmath-pp-cli",
+        "Rank Math SEO from the terminal: bulk meta edits, site-wide SEO audits, Search Console analytics, and IndexNow — with no bridge plugin.",
+        "SEO head audit",
+        "audit",
+        "One list of every synced post with a missing or duplicate SEO title or description, long title, canonical problem, accidental noindex, or no schema. Works on public pages without credentials; run sync first.",
+        "Index coverage gaps",
+        "coverage",
+        "Find published posts Google has not indexed or never inspected, excluding intentionally noindexed pages. Needs credentials and Rank Math Analytics connected to Search Console.",
+        "Reindex changed posts",
+        "reindex",
+        "Preview the posts edited since a given window that are not yet in the IndexNow log; --confirm plus credentials submits them.",
+        "Striking-distance opportunities",
+        "opportunities",
+        "Queries ranking in positions 4-20 whose post title or description does not mention the query. Needs credentials and Rank Math Analytics connected to Search Console.",
+        "Portfolio rollup",
+        "portfolio",
+        "Clicks, impressions, and average position for each site in --sites (or RANKMATH_SITES) in one table. Needs credentials per site."
+      ],
+      "path": "library/marketing/rankmath",
+      "printer": "ElizabethcStone",
+      "printer_name": "ElizabethcStone",
+      "creator": {
+        "handle": "ElizabethcStone",
+        "name": "ElizabethcStone"
+      },
+      "mcp": {
+        "binary": "rankmath-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 97,
+        "public_tool_count": 3,
+        "auth_type": "api_key",
+        "env_vars": [
+          "RANKMATH_USERNAME",
+          "RANKMATH_APP_PASSWORD"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
       }
     },
     {
