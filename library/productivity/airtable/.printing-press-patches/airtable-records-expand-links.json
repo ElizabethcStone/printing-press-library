@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "id": "airtable-records-expand-links",
+  "files": [
+    "internal/cli/records_list.go",
+    "internal/cli/records_get.go"
+  ],
+  "call_sites": [
+    "expandLinkedRecords(cmd.Context(), data)"
+  ],
+  "summary": "Add --expand-links to generated records list/get.",
+  "reason": "Airtable returns linked-record fields as bare rec... IDs. --expand-links resolves them to the linked record's display value from the local mirror filled by `records sync-table`. The flag and one post-read call are hand-added to the two generated endpoint files, because the generator has no hook for post-read response transforms on endpoint commands.",
+  "validated_outcome": "TestRecordsExpandLinksAcceptance: without the flag, Company stays [\"rec2\"]; with it, the value becomes [\"Acme\"].",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-032053-d846692a",
+  "base_printing_press_version": "4.33.8"
+}

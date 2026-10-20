@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "airtable-pp-mcp",
+  "display_name": "Airtable",
+  "version": "0.1.0",
+  "description": "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/airtable-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/airtable-pp-mcp",
+      "args": [],
+      "env": {
+        "AIRTABLE_API_KEY": "${user_config.airtable_api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "airtable_api_key": {
+      "type": "string",
+      "title": "AIRTABLE_API_KEY",
+      "description": "Sets AIRTABLE_API_KEY for the Airtable MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

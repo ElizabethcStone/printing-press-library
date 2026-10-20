@@ -1,0 +1,6 @@
+{
+  "descriptions": {
+    "views_delete": "Permanently delete a view from an Airtable base. Required: base_id and view_id. This is destructive and irreversible for the view's saved filters, sorts, and field order; table records are unaffected. Use views_get or views_list first to confirm the target view.",
+    "views_list": "List all views defined in an Airtable base. Required: base_id. Returns the views available in the base; use views_get when you need one view's metadata by id."
+  }
+}

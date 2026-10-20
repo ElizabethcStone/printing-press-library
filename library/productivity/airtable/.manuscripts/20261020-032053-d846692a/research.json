@@ -1,0 +1,265 @@
+{
+  "api_name": "airtable",
+  "novelty_score": 0,
+  "alternatives": [
+    {
+      "name": "airtable-mcp-cli",
+      "url": "https://github.com/Airtable/airtable-mcp-cli",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "airtable-mcp-server",
+      "url": "https://github.com/domdomegg/airtable-mcp-server",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 13,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "airtable.js",
+      "url": "https://github.com/Airtable/airtable.js",
+      "language": "JavaScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "pyairtable",
+      "url": "https://github.com/gtalarico/pyairtable",
+      "language": "Python",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "airrecord",
+      "url": "https://github.com/sirupsen/airrecord",
+      "language": "Ruby",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "airtable.net",
+      "url": "https://github.com/ngocnicholas/airtable.net",
+      "language": "C#",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "rashidazarang/airtable-mcp",
+      "url": "https://github.com/rashidazarang/airtable-mcp",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "arnoldadlv/airtable-cli",
+      "url": "https://github.com/arnoldadlv/airtable-cli",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
+  ],
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-10-20T10:25:35Z",
+  "novel_features": [
+    {
+      "name": "Merge-field upsert from CSV",
+      "command": "records upsert-csv",
+      "description": "Take a raw CSV export and merge-upsert it straight into an Airtable table, matched on the field you choose.",
+      "rationale": "Requires header-to-field mapping plus batching into Airtable's performUpsert.fieldsToMergeOn contract — no other Airtable tool goes straight from CSV to a merge upsert.",
+      "example": "airtable-pp-cli records upsert-csv --base appLkNDICXNqxSDhG --table Leads --file leads.csv --merge-on Email",
+      "why_it_matters": "Reach for this whenever the input is a CSV export from another system and existing rows should be updated instead of duplicated.",
+      "group": "Bulk data sync"
+    },
+    {
+      "name": "Local diff before bulk write",
+      "command": "records diff",
+      "description": "See exactly which fields on which existing records would change before a bulk update or upsert actually runs.",
+      "rationale": "Fetches current live field values for each target record ID and diffs them field-by-field against a proposed payload, something no live 'would create N records' dry-run shows.",
+      "example": "airtable-pp-cli records diff --base appLkNDICXNqxSDhG --table Shipments --stdin \u003c changes.json",
+      "why_it_matters": "Use before any agent-authored bulk update to confirm what will actually change, not just how many rows will be touched.",
+      "group": "Bulk data sync"
+    },
+    {
+      "name": "Cross-base full-text search",
+      "command": "search",
+      "description": "Search text across every synced base and table at once from one local index.",
+      "rationale": "Builds an FTS index over the flattened fields JSON of every record synced via 'records sync-table' — Airtable's REST API has no cross-base search endpoint.",
+      "example": "airtable-pp-cli search \"union square\" --type records --agent --limit 10",
+      "why_it_matters": "Reach for this instead of iterating records list per table when the query might match any base or table already synced locally.",
+      "group": "Local state that compounds"
+    },
+    {
+      "name": "Schema drift detection",
+      "command": "bases schema-diff",
+      "description": "Show exactly what changed in a base's schema since the last time this command ran for that base.",
+      "rationale": "Diffs the last-stored local schema snapshot against a fresh live schema pull, field-by-field, instead of forcing a full manual re-read.",
+      "example": "airtable-pp-cli bases schema-diff appLkNDICXNqxSDhG",
+      "why_it_matters": "Run before deploying pipeline changes that depend on a base's field names or types staying stable.",
+      "group": "Local state that compounds"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Merge-field upsert from CSV",
+      "command": "records upsert-csv",
+      "description": "Take a raw CSV export and merge-upsert it straight into an Airtable table, matched on the field you choose.",
+      "rationale": "Requires header-to-field mapping plus batching into Airtable's performUpsert.fieldsToMergeOn contract — no other Airtable tool goes straight from CSV to a merge upsert.",
+      "example": "airtable-pp-cli records upsert-csv --base appLkNDICXNqxSDhG --table Leads --file leads.csv --merge-on Email",
+      "why_it_matters": "Reach for this whenever the input is a CSV export from another system and existing rows should be updated instead of duplicated.",
+      "group": "Bulk data sync"
+    },
+    {
+      "name": "Local diff before bulk write",
+      "command": "records diff",
+      "description": "See exactly which fields on which existing records would change before a bulk update or upsert actually runs.",
+      "rationale": "Fetches current live field values for each target record ID and diffs them field-by-field against a proposed payload, something no live 'would create N records' dry-run shows.",
+      "example": "airtable-pp-cli records diff --base appLkNDICXNqxSDhG --table Shipments --stdin \u003c changes.json",
+      "why_it_matters": "Use before any agent-authored bulk update to confirm what will actually change, not just how many rows will be touched.",
+      "group": "Bulk data sync"
+    },
+    {
+      "name": "Cross-base full-text search",
+      "command": "search",
+      "description": "Search text across every synced base and table at once from one local index.",
+      "rationale": "Builds an FTS index over the flattened fields JSON of every record synced via 'records sync-table' — Airtable's REST API has no cross-base search endpoint.",
+      "example": "airtable-pp-cli search \"union square\" --type records --agent --limit 10",
+      "why_it_matters": "Reach for this instead of iterating records list per table when the query might match any base or table already synced locally.",
+      "group": "Local state that compounds"
+    },
+    {
+      "name": "Schema drift detection",
+      "command": "bases schema-diff",
+      "description": "Show exactly what changed in a base's schema since the last time this command ran for that base.",
+      "rationale": "Diffs the last-stored local schema snapshot against a fresh live schema pull, field-by-field, instead of forcing a full manual re-read.",
+      "example": "airtable-pp-cli bases schema-diff appLkNDICXNqxSDhG",
+      "why_it_matters": "Run before deploying pipeline changes that depend on a base's field names or types staying stable.",
+      "group": "Local state that compounds"
+    }
+  ],
+  "auth": {
+    "canonical_env_var": "AIRTABLE_API_KEY"
+  },
+  "narrative": {
+    "display_name": "Airtable",
+    "headline": "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection.",
+    "value_prop": "Airtable's wrappers are libraries, and its official MCP is an online-only tool surface without delete, comments, webhooks, attachments, or a local store. This CLI mirrors your bases into local SQLite for full-text search across every base at once, runs CSV-to-merge-upserts, shows field-level diffs before bulk writes, and serves the whole API to agents over stdio or HTTP MCP.",
+    "auth_narrative": "Create a Personal Access Token at airtable.com/create/tokens with the scopes you need (for example data.records:read, data.records:write, schema.bases:read) and the specific bases or workspaces it should reach. Set it as AIRTABLE_API_KEY, or store it with the auth commands. This CLI authenticates with personal access tokens only.",
+    "quickstart": [
+      {
+        "command": "airtable-pp-cli doctor --dry-run",
+        "comment": "Preview the health check offline; drop --dry-run to verify auth and connectivity"
+      },
+      {
+        "command": "airtable-pp-cli bases list --json",
+        "comment": "Find the base IDs your token can access"
+      },
+      {
+        "command": "airtable-pp-cli records sync-table --base appLkNDICXNqxSDhG --table Shipments",
+        "comment": "Mirror one table's records into the local store to power search/analytics/expand-links"
+      },
+      {
+        "command": "airtable-pp-cli records list --base appLkNDICXNqxSDhG --table Shipments --filter-formula \"{Status}='Delayed'\"",
+        "comment": "Query live records with a formula filter, the core Airtable workflow"
+      },
+      {
+        "command": "airtable-pp-cli records upsert-csv --base appLkNDICXNqxSDhG --table Leads --file leads.csv --merge-on Email",
+        "comment": "Bulk-sync a CSV export straight into Airtable with merge-field upsert semantics"
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "429 Too Many Requests",
+        "fix": "Airtable enforces 5 req/s per base and 50 req/s per token; wait 30s before retrying, the client backs off automatically but persistent 429s mean too much concurrent traffic against one base."
+      },
+      {
+        "symptom": "403 INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND",
+        "fix": "Both the user AND the token need access: check that the token has the base added as a resource and the required scope (e.g. data.records:write), and that your user account is a collaborator on the base."
+      },
+      {
+        "symptom": "bases list returns an empty array despite having access",
+        "fix": "On Enterprise plans this usually means an org-level 'Block API access to organization-owned apps \u0026 workspaces' setting is restricting the token; check Enterprise/org-unit Integrations settings."
+      },
+      {
+        "symptom": "records upsert-csv reports unmapped columns",
+        "fix": "CSV header names must exactly match Airtable field names (or field IDs); rerun bases get-schema to see the exact field names for the target table."
+      },
+      {
+        "symptom": "search / analytics / --expand-links return nothing for a table",
+        "fix": "Those commands only see data synced by 'records sync-table --base \u003cid\u003e --table \u003cname\u003e'; run it for that table first."
+      }
+    ],
+    "when_to_use": "Use this CLI for scripted or agent-driven Airtable workflows: bulk record sync from CSV/external systems, cross-base reporting and search, schema change monitoring across many bases, and any automation that outgrew a no-code tool's per-task limits.",
+    "anti_triggers": [
+      "Do not use this CLI to build or edit Airtable's visual interface layer (Interface Designer) — that requires the Interface Extensions SDK.",
+      "Do not use this CLI for real-time collaborative editing inside the Airtable UI — writes here are one-shot API calls, not live cursor-synced edits.",
+      "Do not use this CLI for record revision/activity history — that endpoint is Enterprise-only and not exposed here.",
+      "Do not use this CLI to write Airtable automations/scripting-block code — that's the separate Scripting API surface."
+    ],
+    "recipes": [
+      {
+        "title": "Find delayed shipments and summarize by carrier",
+        "command": "airtable-pp-cli records list --base appLkNDICXNqxSDhG --table Shipments --filter-formula \"{Status}='Delayed'\" --expand-links --agent --select fields.Carrier,fields.Status,fields.Address",
+        "explanation": "Pulls only delayed shipments, resolves linked carrier IDs to names from the local mirror (run records sync-table on the linked Carriers table first), and trims the response to the fields a report needs."
+      },
+      {
+        "title": "Bulk-sync a CRM export into Airtable",
+        "command": "airtable-pp-cli records upsert-csv --base appLkNDICXNqxSDhG --table Leads --file leads.csv --merge-on Email --dry-run",
+        "explanation": "Preview a merge-upsert from a CSV export before committing the write, matched on the Email field."
+      },
+      {
+        "title": "Search every synced base for a customer name",
+        "command": "airtable-pp-cli search \"Acme Corp\" --type records --json",
+        "explanation": "One query across every base/table already synced locally, instead of repeating records list per table."
+      },
+      {
+        "title": "Check what changed in a base's schema",
+        "command": "airtable-pp-cli bases schema-diff appLkNDICXNqxSDhG",
+        "explanation": "Flags added, removed, or retyped fields since the last time schema-diff ran for this base."
+      }
+    ],
+    "trigger_phrases": [
+      "query my Airtable base",
+      "sync this CSV into Airtable",
+      "search across my Airtable bases",
+      "check Airtable schema changes",
+      "upsert records into Airtable",
+      "use airtable-cli",
+      "run airtable-pp-cli"
+    ]
+  }
+}
