@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "amazon-orders",
   "cli_name": "amazon-orders-pp-cli",
-  "version": "2026.9.2",
-  "released_at": "2026-09-11T09:22:21Z",
-  "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e",
+  "version": "2026.10.1",
+  "released_at": "2026-10-20T08:52:42Z",
+  "source_commit": "206eac67a5b9a10d32b06a5342a9b24742fb122f",
   "printing_press_version": "4.2.2",
   "run_id": "20260510-105710",
   "changes": [
     {
-      "title": "fix: fail closed on ambiguous fleet write retries",
-      "pr": 1978,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/1978",
-      "commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+      "title": "fix(amazon-orders): parse Next.js transactions page and add --since paging",
+      "pr": 2341,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2341",
+      "commit": "206eac67a5b9a10d32b06a5342a9b24742fb122f"
     }
   ]
 }
