@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "binary-dry-run-action",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-022313-25b483ed",
+  "base_printing_press_version": "4.33.8",
+  "summary": "Binary-response commands (n8n-packages create, the package export) stamp the --dry-run JSON with a top-level action from the command's pp:method.",
+  "reason": "handleBinaryResponseDelivery printed the client's bare {dry_run:true} sentinel, so the --dry-run --json contract (dry_run plus action) failed for binary endpoints. Generator template gap; fixed in the shared helper, not per command.",
+  "files": [
+    "internal/cli/helpers.go"
+  ],
+  "validated_outcome": "n8n-pp-cli n8n-packages create --dry-run --json prints {\"action\":\"post\",\"dry_run\":true}; live dogfood dry_run_json and json_fidelity rows pass."
+}

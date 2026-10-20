@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "tail-happy-args-workflows",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-022313-25b483ed",
+  "base_printing_press_version": "4.33.8",
+  "summary": "tail's live-dogfood happy-path fixture polls workflows instead of community-packages.",
+  "reason": "A one-shot tail of an empty resource emits an empty NDJSON stream, which the JSON-fidelity probe reads as invalid JSON. community-packages is empty on most n8n instances; workflows is not. Behavior of tail itself is unchanged.",
+  "files": [
+    "internal/cli/tail.go"
+  ],
+  "validated_outcome": "tail workflows --follow=false --json emits one data event per workflow on the local test instance."
+}

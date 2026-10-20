@@ -1,0 +1,16 @@
+- humanName(slug) renders 'N8n CLI' in root Short/Long despite x-display-name: n8n (root.go.tmpl:380)
+- Cross-spec regen (fusion guard) silently reverts body edits in templated config.go; only the n8n_config_test caught it. pp:patch markers did not trigger a fail-closed regen warning.
+- novel_host_check: any dotted string literal (e.g. a diff path label "settings.errorWorkflow") is treated as a host and fails dogfood.
+- novel_host_check: novel source detection matches by Cobra leaf only, so novel `credentials audit` pulls generated root `audit` (promoted_audit.go, "audit.generate") into the host scan.
+- generator emits printStampedDryRunOutput unused for this spec (dead helper fails dogfood); removed locally.
+- same-spec --force rerun still took the cross-spec path (novel-only preservation), dropping templated hand-edits each regen.
+- README config path rendered as ~/.config/n8n-public-pp-cli/ (slug from spec title "n8n Public API") while code uses n8n-pp-cli.
+- README/SKILL Freshness lists include ~43 command paths that do not exist (e.g. promotions-providers, community-packages list, workflows search).
+- README says `auth-status` (not a command); env table lists only the auth var, omits base-URL override vars.
+- Novel commands render twice in Command Reference under empty-description resource headings.
+- Global exit-code table cannot express per-command typed codes (pp:typed-exit-codes).
+- generator: endpoints whose required inputs have no spec examples get no Cobra Example; live dogfood help check fails (120 n8n commands). Fixed via x-pp-example in derived spec.
+- generator: handleBinaryResponseDelivery prints the bare {dry_run:true} sentinel without stamping action; dry_run_json fails for binary endpoints.
+- generator: tail pp:happy-args uses the first resource (community-packages), empty on most instances -> invalid-JSON json_fidelity.
+- live dogfood: hand-written Use/annotation probe could not mark local-write novel commands live without per-command pp:live-happy-path.
+- polish/gosec: pinned gosec v2.26.1 (and v2.29.0 as released) cannot type-check under go1.27 — bundled golang.org/x/tools reads export data v4, go1.27 writes v5. Building gosec v2.29.0 with golang.org/x/tools v0.52.0 gives a full scan (0 load errors; 60 findings vs 31 partial). Bump the pin or build gosec against current x/tools.

@@ -1,0 +1,16 @@
+# agentcookie.toml: secrets-bus adoption manifest v2
+# See docs/spec-agentcookie-secrets-bus-v2-adoption.md
+schema_version = 2
+name = "n8n-pp-cli"
+display_name = "n8n"
+description = "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed."
+project_kind = "cli"
+
+[secrets.file]
+path = "~/.config/n8n-pp-cli/config.toml"
+
+[sync]
+default = false
+
+[sync.keys]
+N8N_API_KEY = true
