@@ -28,11 +28,13 @@ func (s *Store) migrateExtras(ctx context.Context, conn *sql.Conn) error {
 }
 
 // ReconcileAirtableRecords prunes a fully fetched base/table partition.
-func (s *Store) ReconcileAirtableRecords(baseID, table string, seenIDs []string) (int, error) {
+// Only rows synced before syncedBefore (RFC3339 UTC) are candidates.
+func (s *Store) ReconcileAirtableRecords(baseID, table string, seenIDs []string, syncedBefore string) (int, error) {
 	return s.reconcileUnseen("records", seenIDs, "", nil,
 		`SELECT id FROM resources
 		 WHERE resource_type = ?
 		   AND (CASE WHEN json_valid(data) THEN json_extract(data, ?) END) = ?
-		   AND (CASE WHEN json_valid(data) THEN json_extract(data, ?) END) = ?`,
-		"records", "$.base_id", baseID, "$.table", table)
+		   AND (CASE WHEN json_valid(data) THEN json_extract(data, ?) END) = ?
+		   AND synced_at < ?`,
+		"records", "$.base_id", baseID, "$.table", table, syncedBefore)
 }

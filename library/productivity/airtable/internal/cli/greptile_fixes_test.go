@@ -173,6 +173,7 @@ func TestGreptileSyncTablePruning(t *testing.T) {
 			isolateNovelCommand(t, server.URL)
 			args := []string{"records", "sync-table", "--base", "app1", "--table", "Contacts", "--json"}
 			runNovelCommand(t, args, "")
+			backdateAirtableRecords(t)
 			out := runNovelCommand(t, append(args, tt.secondArgs...), "")
 			var result struct {
 				Pruned int `json:"records_pruned"`
@@ -225,5 +226,75 @@ func TestGreptileSchemaDiffRenames(t *testing.T) {
 	}
 	if len(result.ChangedTables) != 1 || len(result.ChangedTables[0].RenamedFields) != 1 || result.ChangedTables[0].RenamedFields[0]["from"] != "Name" || result.ChangedTables[0].RenamedFields[0]["to"] != "Full Name" || result.NoChanges {
 		t.Fatalf("schema diff = %#v", result)
+	}
+}
+
+// backdateAirtableRecords marks every stored record as synced long ago, so a
+// following sync-table run (which only prunes rows older than its start)
+// treats them as stale regardless of same-second timing.
+func backdateAirtableRecords(t *testing.T) {
+	t.Helper()
+	db, err := store.Open(defaultDBPath("airtable-pp-cli"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if _, err := db.DB().Exec(`UPDATE resources SET synced_at = ? WHERE resource_type = ?`, "2000-01-01T00:00:00Z", "records"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGreptileSyncTableOverlapKeepsNewerRows(t *testing.T) {
+	requests := 0
+	server := newNovelTestServer(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests == 1 {
+			_, _ = io.WriteString(w, `{"records":[{"id":"rec1","fields":{"Name":"A"}},{"id":"recOld","fields":{"Name":"Stale"}},{"id":"recNew","fields":{"Name":"Newer"}}]}`)
+			return
+		}
+		_, _ = io.WriteString(w, `{"records":[{"id":"rec1","fields":{"Name":"A"}}]}`)
+	}))
+	isolateNovelCommand(t, server.URL)
+	args := []string{"records", "sync-table", "--base", "app1", "--table", "Contacts", "--json"}
+	runNovelCommand(t, args, "")
+	db, err := store.Open(defaultDBPath("airtable-pp-cli"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	// recOld is stale; recNew stands in for a row an overlapping newer run wrote
+	// after this (older) run started, so it must survive the prune.
+	if _, err := db.DB().Exec(`UPDATE resources SET synced_at = CASE id WHEN 'recNew' THEN '2999-01-01T00:00:00Z' ELSE '2000-01-01T00:00:00Z' END WHERE resource_type = 'records'`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	out := runNovelCommand(t, args, "")
+	var result struct {
+		Pruned int `json:"records_pruned"`
+	}
+	if err := json.Unmarshal([]byte(out), &result); err != nil || result.Pruned != 1 {
+		t.Fatalf("result = %q, want exactly recOld pruned (err=%v)", out, err)
+	}
+	db, err = store.Open(defaultDBPath("airtable-pp-cli"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	ids := map[string]bool{}
+	rows, err := db.DB().Query(`SELECT id FROM resources WHERE resource_type = 'records'`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		ids[id] = true
+	}
+	if err := rows.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !ids["rec1"] || !ids["recNew"] || ids["recOld"] {
+		t.Fatalf("stored ids = %v, want rec1 and recNew kept, recOld pruned", ids)
 	}
 }

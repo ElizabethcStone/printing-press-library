@@ -7,6 +7,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/productivity/airtable/internal/store"
 
@@ -50,6 +51,9 @@ func newRecordsSyncTableCmd(flags *rootFlags) *cobra.Command {
 			// only when more pages remain) doesn't match the framework's
 			// generic --all cursor detection, so this hand-written command
 			// paginates manually rather than through resolvePaginatedReadWithStrategy.
+			// Prune only rows last written before this run started, so an overlapping
+			// newer sync's rows are never deleted by an older run's stale ID set.
+			runStart := time.Now().UTC().Format(time.RFC3339)
 			var rawRecords []json.RawMessage
 			offset := ""
 			for {
@@ -108,7 +112,7 @@ func newRecordsSyncTableCmd(flags *rootFlags) *cobra.Command {
 					obj, _ := store.DecodeJSONObject(item)
 					seenIDs = append(seenIDs, store.ExtractResourceID("records", obj))
 				}
-				pruned, err = db.ReconcileAirtableRecords(flagBase, flagTable, seenIDs)
+				pruned, err = db.ReconcileAirtableRecords(flagBase, flagTable, seenIDs, runStart)
 				if err != nil {
 					return fmt.Errorf("pruning stale records: %w", err)
 				}
