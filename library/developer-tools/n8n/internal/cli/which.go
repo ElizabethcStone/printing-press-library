@@ -33,9 +33,9 @@ var whichIndex = []whichEntry{
 	{Command: "executions wait", Description: "Block until an execution finishes and exit non-zero if it failed, with the failing node and message.", Group: "Agent-native plumbing", WhyItMatters: "Use in an edit-then-test loop to branch on whether the run passed without writing a polling script."},
 	{Command: "workflows diff", Description: "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise.", Group: "Cross-workflow insight", WhyItMatters: "Use before promoting dev to prod or after an edit to see exactly which nodes changed."},
 	{Command: "credentials usage", Description: "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist.", Group: "Cross-workflow insight", WhyItMatters: "Use before credential rotation or client handoff cleanup."},
-	{Command: "audit", Description: "Generate a security audit for your n8n instance.", Group: "audit", WhyItMatters: "Generate a security audit for your n8n instance."}, // pp:which-promoted
+	{Command: "audit", Description: "Generate a security audit for your n8n instance.", Group: "audit", WhyItMatters: "Generate a security audit for your n8n instance."},                                                     // pp:which-promoted
 	{Command: "discover", Description: "Returns a filtered capability map based on the caller's API key scopes.", Group: "discover", WhyItMatters: "Returns a filtered capability map based on the caller's API key scopes."}, // pp:which-promoted
-	{Command: "insights", Description: "Retrieve the insights summary for the selected date range.", Group: "insights", WhyItMatters: "Retrieve the insights summary for the selected date range."}, // pp:which-promoted
+	{Command: "insights", Description: "Retrieve the insights summary for the selected date range.", Group: "insights", WhyItMatters: "Retrieve the insights summary for the selected date range."},                           // pp:which-promoted
 }
 
 // whichMatch pairs an index entry with its ranking score for a query.

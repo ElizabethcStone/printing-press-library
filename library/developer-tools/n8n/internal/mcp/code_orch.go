@@ -2508,6 +2508,10 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 	if codeOrchRefuseForReadOnlySwitch(ep, method, executeTool) {
 		return mcplib.NewToolResultError(fmt.Sprintf("refusing %s %s while %s=1", method, id, cliutil.MCPReadOnlyEnvVar)), nil
 	}
+	// pp:patch mcp-code-orch-multipart-refusal — this route sends JSON only; n8n requires a multipart file upload here.
+	if multipartCLI, ok := codeOrchMultipartOnly[ep.ID]; ok {
+		return mcplib.NewToolResultError(fmt.Sprintf("%s needs a multipart file upload, which this MCP route cannot send; run: %s", ep.ID, multipartCLI)), nil
+	}
 
 	params, _ := args["params"].(map[string]any)
 	if params == nil {
@@ -2557,6 +2561,21 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 	// Route params to their runtime slots. GET/DELETE params are query
 	// strings; write methods split spec-declared query params from the
 	// remaining params used as the request body below.
+	// pp:patch mcp-code-orch-cursor-paging — n8n lists page via ?cursor= and nextCursor. Decode the
+	// opaque MCP cursor the same way the per-endpoint handlers do, so a bounded page resumes instead of skipping rows.
+	mcpCursor, requestCursor := "", ""
+	if method == "GET" {
+		if s, ok := params["cursor"].(string); ok && s != "" {
+			if up, err := bound.UpstreamCursor(s); err == nil {
+				mcpCursor, requestCursor = s, up
+				if up == "" {
+					delete(params, "cursor")
+				} else {
+					params["cursor"] = up
+				}
+			}
+		}
+	}
 	query := map[string]string{}
 	if method == "GET" || method == "DELETE" {
 		for k, v := range params {
@@ -2675,10 +2694,18 @@ func codeOrchInvoke(ctx context.Context, req mcplib.CallToolRequest, executeTool
 		return mcplib.NewToolResultError(err.Error()), nil
 	}
 	text := bound.EndpointResponse(method, data)
+	if method == "GET" {
+		text = bound.EndpointPageResponse(method, data, bound.PageOptions{Cursor: mcpCursor, CursorParam: "cursor", NextCursorPath: "nextCursor", RequestCursor: requestCursor})
+	}
 	if platformSession != nil {
 		text = bound.WithMetadata(text, platformSession.OutputMetadata())
 	}
 	return mcplib.NewToolResultText(text), nil
+}
+
+// codeOrchMultipartOnly maps endpoints whose request body must be multipart/form-data to the CLI command that uploads it.
+var codeOrchMultipartOnly = map[string]string{
+	"n8n-packages.import-package": "n8n-pp-cli n8n-packages import-package --package <file>.n8np",
 }
 
 // codeOrchWriteBody returns the value handed to the client layer as the

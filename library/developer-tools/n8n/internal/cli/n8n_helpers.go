@@ -97,10 +97,10 @@ func writeDiffLines(w io.Writer, d n8nwf.DiffResult, baseActive, targetActive bo
 		change(x)
 	}
 	for _, x := range d.EdgesAdded {
-		fmt.Fprintf(w, "+ edge %s -> %s\n", x.From, x.To)
+		fmt.Fprintf(w, "+ edge %s -> %s%s\n", x.From, x.To, edgeInput(x))
 	}
 	for _, x := range d.EdgesRemoved {
-		fmt.Fprintf(w, "- edge %s -> %s\n", x.From, x.To)
+		fmt.Fprintf(w, "- edge %s -> %s%s\n", x.From, x.To, edgeInput(x))
 	}
 	for _, x := range d.SettingsChanges {
 		change(x)
@@ -130,4 +130,12 @@ func savedVersionID(raw []byte) (any, bool) {
 	}
 	v, ok := saved["versionId"]
 	return v, ok
+}
+
+// edgeInput labels a non-default target input so Merge-node rewiring is visible.
+func edgeInput(e n8nwf.Edge) string {
+	if e.Input == 0 {
+		return ""
+	}
+	return fmt.Sprintf(" (input %d)", e.Input)
 }

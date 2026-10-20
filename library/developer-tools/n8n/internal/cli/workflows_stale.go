@@ -142,7 +142,8 @@ func newNovelWorkflowsStaleCmd(flags *rootFlags) *cobra.Command {
 				return fmt.Errorf("closing executions: %w", ce)
 			}
 			// With no synced executions, run-history reasons would flag every workflow; report only config reasons.
-			haveRuns := executionCount > 0
+			// A completed empty executions sync is real data; only a never-synced table means "no run history".
+			haveRuns := executionCount > 0 || db.GetLastSyncedAt("executions") != ""
 			out := make([]staleWorkflowRow, 0)
 			scanned, unparsed := 0, 0
 			for _, x := range wfs {

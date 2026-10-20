@@ -133,6 +133,8 @@ func newNovelCredentialsUsageCmd(flags *rootFlags) *cobra.Command {
 			if ce != nil {
 				return fmt.Errorf("closing workflows: %w", ce)
 			}
+			// A completed empty credentials sync means every reference is dangling; only a never-synced table is unknown.
+			credsSynced := len(creds) > 0 || db.GetLastSyncedAt("credentials") != ""
 			byID := make(map[string]*credentialSummary, len(creds))
 			usedBy := make(map[string]map[string]bool, len(creds))
 			for _, c := range creds {
@@ -165,7 +167,7 @@ func newNovelCredentialsUsageCmd(flags *rootFlags) *cobra.Command {
 						}
 						c, ok := byID[ref.ID]
 						if !ok {
-							if len(creds) > 0 {
+							if credsSynced {
 								dangling = append(dangling, danglingCredential{w.id, name, n.Name, ref.Type, ref.ID, ref.Name})
 							}
 							continue
@@ -217,7 +219,7 @@ func newNovelCredentialsUsageCmd(flags *rootFlags) *cobra.Command {
 				return printJSONFiltered(cmd.OutOrStdout(), map[string]any{"unused": unusedRows, "scanned_credentials": len(creds), "scanned_workflows": scanned, "unparsed_workflows": unparsed}, flags)
 			}
 			result := map[string]any{"credentials": all, "unused": unusedRows, "dangling": dangling, "scanned_workflows": scanned, "scanned_credentials": len(creds), "unparsed_workflows": unparsed}
-			if len(creds) == 0 {
+			if !credsSynced {
 				result["note"] = "credentials not synced"
 			}
 			if !wantsHumanTable(cmd.OutOrStdout(), flags) {

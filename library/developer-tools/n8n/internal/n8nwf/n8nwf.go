@@ -47,6 +47,7 @@ type Edge struct {
 	To     string `json:"to"`
 	Kind   string `json:"kind"`
 	Output int    `json:"output"`
+	Input  int    `json:"input"`
 }
 
 // Workflow is the parsed subset of an n8n workflow body.
@@ -78,7 +79,8 @@ type rawWorkflow struct {
 	IsArchived  bool              `json:"isArchived"`
 	Nodes       []json.RawMessage `json:"nodes"`
 	Connections map[string]map[string][][]struct {
-		Node string `json:"node"`
+		Node  string `json:"node"`
+		Index int    `json:"index"`
 	} `json:"connections"`
 	Settings map[string]any `json:"settings"`
 }
@@ -114,7 +116,7 @@ func ParseWorkflow(data []byte) (Workflow, error) {
 		for kind, outputs := range kinds {
 			for idx, targets := range outputs {
 				for _, t := range targets {
-					wf.Edges = append(wf.Edges, Edge{From: from, To: t.Node, Kind: kind, Output: idx})
+					wf.Edges = append(wf.Edges, Edge{From: from, To: t.Node, Kind: kind, Output: idx, Input: t.Index})
 				}
 			}
 		}
@@ -124,7 +126,7 @@ func ParseWorkflow(data []byte) (Workflow, error) {
 }
 
 func edgeKey(e Edge) string {
-	return fmt.Sprintf("%s\x00%s\x00%d\x00%s", e.From, e.Kind, e.Output, e.To)
+	return fmt.Sprintf("%s\x00%s\x00%d\x00%s\x00%d", e.From, e.Kind, e.Output, e.To, e.Input)
 }
 
 func parseNode(rn rawNode, raw json.RawMessage) Node {
@@ -622,9 +624,12 @@ func RenameNode(body map[string]any, from, to string) error {
 // rewriteNodeRefs updates expression references to a renamed node in every
 // node's parameters: $('Name'), $("Name"), $node["Name"] and $node['Name'].
 func rewriteNodeRefs(body map[string]any, from, to string) {
+	// Names are JS string literals inside expressions, so escape per quote style.
+	sq := func(n string) string { return strings.NewReplacer(`\`, `\\`, `'`, `\'`).Replace(n) }
+	dq := func(n string) string { return strings.NewReplacer(`\`, `\\`, `"`, `\"`).Replace(n) }
 	r := strings.NewReplacer(
-		"$('"+from+"')", "$('"+to+"')", `$("`+from+`")`, `$("`+to+`")`,
-		`$node["`+from+`"]`, `$node["`+to+`"]`, "$node['"+from+"']", "$node['"+to+"']",
+		"$('"+sq(from)+"')", "$('"+sq(to)+"')", `$("`+dq(from)+`")`, `$("`+dq(to)+`")`,
+		`$node["`+dq(from)+`"]`, `$node["`+dq(to)+`"]`, "$node['"+sq(from)+"']", "$node['"+sq(to)+"']",
 	)
 	var walk func(v any) any
 	walk = func(v any) any {

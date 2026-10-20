@@ -4,6 +4,7 @@
 package cli
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -84,13 +85,19 @@ func newNovelExecutionsWaitCmd(flags *rootFlags) *cobra.Command {
 				id = args[0]
 			}
 			var ex executionStatus
+			// Requests inside the poll loop share the --max-wait deadline so a slow call cannot overrun it.
+			pollCtx, cancelPoll := context.WithDeadline(ctx, deadline)
+			defer cancelPoll()
 			for {
 				if err := ctx.Err(); err != nil {
 					return err
 				}
 				var raw json.RawMessage
 				if workflow == "" {
-					raw, err = c.GetNoCache(ctx, "/executions/"+id, nil)
+					raw, err = c.GetNoCache(pollCtx, "/executions/"+id, nil)
+					if err != nil && pollCtx.Err() != nil && ctx.Err() == nil {
+						break
+					}
 					if err != nil {
 						if isNotFound(err) {
 							return notFoundErr(fmt.Errorf("execution %s not found", id))
@@ -101,7 +108,10 @@ func newNovelExecutionsWaitCmd(flags *rootFlags) *cobra.Command {
 						return fmt.Errorf("decode execution: %w", err)
 					}
 				} else {
-					raw, err = c.GetNoCache(ctx, "/executions", map[string]string{"workflowId": workflow, "limit": "5"})
+					raw, err = c.GetNoCache(pollCtx, "/executions", map[string]string{"workflowId": workflow, "limit": "5"})
+					if err != nil && pollCtx.Err() != nil && ctx.Err() == nil {
+						break
+					}
 					if err != nil {
 						return classifyAPIError(cmd.OutOrStdout(), err, flags)
 					}
@@ -130,7 +140,7 @@ func newNovelExecutionsWaitCmd(flags *rootFlags) *cobra.Command {
 				if !time.Now().Before(deadline) {
 					break
 				}
-				timer := time.NewTimer(pollDur)
+				timer := time.NewTimer(min(pollDur, time.Until(deadline)))
 				select {
 				case <-ctx.Done():
 					timer.Stop()

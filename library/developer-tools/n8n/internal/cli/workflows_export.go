@@ -150,17 +150,6 @@ func newWorkflowsExportCmd(flags *rootFlags) *cobra.Command {
 				}
 				data := buf.Bytes()
 				file := filepath.Join(dir, workflowSlug(name)+"--"+id+".json")
-				// A renamed workflow leaves its old <slug>--<id>.json behind; remove it so one id maps to one file.
-				if olds := existingByID[id]; len(olds) > 0 {
-					for _, o := range olds {
-						if o != file {
-							if err := os.Remove(o); err != nil {
-								return fmt.Errorf("remove renamed export file: %w", err)
-							}
-							renamed++
-						}
-					}
-				}
 				old, err := os.ReadFile(file) // #nosec G304 -- path under user-chosen --dir
 				status := "written"
 				if err == nil && string(old) == string(data) {
@@ -170,10 +159,19 @@ func newWorkflowsExportCmd(flags *rootFlags) *cobra.Command {
 					if err != nil && !os.IsNotExist(err) {
 						return fmt.Errorf("read export file: %w", err)
 					}
-					if err := os.WriteFile(file, data, 0o600); err != nil {
+					if err := writeFileAtomic(file, data); err != nil {
 						return fmt.Errorf("write export file: %w", err)
 					}
 					written++
+				}
+				// A renamed workflow leaves its old <slug>--<id>.json behind; remove it only after the new file is in place.
+				for _, o := range existingByID[id] {
+					if o != file {
+						if err := os.Remove(o); err != nil {
+							return fmt.Errorf("remove renamed export file: %w", err)
+						}
+						renamed++
+					}
 				}
 				files = append(files, workflowExportFile{ID: id, Name: name, File: file, Status: status})
 			}
@@ -203,4 +201,25 @@ func workflowSlug(s string) string {
 		return "workflow"
 	}
 	return s
+}
+
+// writeFileAtomic replaces path via a temp file and rename so an interrupted write never truncates the last good export.
+func writeFileAtomic(path string, data []byte) error {
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	defer os.Remove(tmp.Name()) // no-op after a successful rename
+	if _, err := tmp.Write(data); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Chmod(0o600); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmp.Name(), path)
 }

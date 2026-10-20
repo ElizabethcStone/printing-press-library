@@ -4,6 +4,7 @@ package n8nwf
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -291,5 +292,33 @@ func TestBodiesDifferIgnoresDerivedSettings(t *testing.T) {
 	b["settings"].(map[string]any)["credentialResolverId"] = "r1"
 	if BodiesDiffer(a, b) {
 		t.Fatal("server-derived settings must not count as a change")
+	}
+}
+
+func TestRenameEscapesQuotesInExpressions(t *testing.T) {
+	body := map[string]any{
+		"nodes": []any{
+			map[string]any{"name": "Fetch", "parameters": map[string]any{}},
+			map[string]any{"name": "Use", "parameters": map[string]any{"v": `={{ $('Fetch').item }} {{ $node["Fetch"].json }}`}},
+		},
+		"connections": map[string]any{},
+	}
+	if err := RenameNode(body, "Fetch", `Customer's "Data"`); err != nil {
+		t.Fatal(err)
+	}
+	v := body["nodes"].([]any)[1].(map[string]any)["parameters"].(map[string]any)["v"].(string)
+	if want := `={{ $('Customer\'s "Data"').item }} {{ $node["Customer's \"Data\""].json }}`; v != want {
+		t.Errorf("got %s\nwant %s", v, want)
+	}
+}
+
+func TestDiffSeesMergeInputRewiring(t *testing.T) {
+	wf := func(index int) Workflow {
+		return mustParse(t, fmt.Sprintf(`{"id":"w","name":"w","nodes":[{"name":"A","type":"x"},{"name":"M","type":"n8n-nodes-base.merge"}],
+		"connections":{"A":{"main":[[{"node":"M","type":"main","index":%d}]]}}}`, index))
+	}
+	d := Diff(wf(0), wf(1))
+	if !d.ContentChanged() || len(d.EdgesAdded) != 1 || d.EdgesAdded[0].Input != 1 {
+		t.Fatalf("input rewiring not detected: %+v", d)
 	}
 }
