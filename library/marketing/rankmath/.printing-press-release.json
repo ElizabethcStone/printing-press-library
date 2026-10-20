@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "slug": "rankmath",
+  "cli_name": "rankmath-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-20T01:36:31Z",
+  "source_commit": "6ea3e3bc5ad8ad66e4459d39cf313e8365f65dc2",
+  "printing_press_version": "4.33.5",
+  "run_id": "20261016-120833-4fa88c9a",
+  "changes": [
+    {
+      "title": "feat(rankmath): add rankmath (#2330)",
+      "commit": "6ea3e3bc5ad8ad66e4459d39cf313e8365f65dc2"
+    }
+  ]
+}
