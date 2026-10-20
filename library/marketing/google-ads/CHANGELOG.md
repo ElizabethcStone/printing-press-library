@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.1 - 2026-10-20
+
+- fix(google-ads): raise API error body limit from 200 to 4096 bytes (#2342).
+
 ## 2026.9.1 - 2026-09-11
 
 - fix: fail closed on ambiguous fleet write retries (#1978).
