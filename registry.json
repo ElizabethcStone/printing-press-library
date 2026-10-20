@@ -1403,9 +1403,9 @@
       "path": "library/commerce/amazon-orders",
       "release": {
         "cli_name": "amazon-orders-pp-cli",
-        "version": "2026.9.2",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-20T08:52:42Z",
+        "source_commit": "206eac67a5b9a10d32b06a5342a9b24742fb122f"
       },
       "printer": "bwishan",
       "printer_name": "Brian Wishan",
@@ -11558,6 +11558,10 @@
         {
           "handle": "bobeglz",
           "name": "bobe"
+        },
+        {
+          "handle": "marshalldavies",
+          "name": "Marshall Davies"
         }
       ],
       "mcp": {
@@ -23804,6 +23808,12 @@
         "Clicks, impressions, and average position for each site in --sites (or RANKMATH_SITES) in one table. Needs credentials per site."
       ],
       "path": "library/marketing/rankmath",
+      "release": {
+        "cli_name": "rankmath-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-20T01:36:31Z",
+        "source_commit": "6ea3e3bc5ad8ad66e4459d39cf313e8365f65dc2"
+      },
       "printer": "ElizabethcStone",
       "printer_name": "ElizabethcStone",
       "creator": {
