@@ -465,10 +465,13 @@ func maskToken(token string) string {
 	return "****" + token[len(token)-4:]
 }
 
+// maxErrorBodyBytes caps the API error body kept in APIError.Body. Google Ads
+// errors put the specific errorCode after the first ~200 bytes of pretty-printed JSON.
+const maxErrorBodyBytes = 4096
+
 func truncateBody(b []byte) string {
-	s := string(b)
-	if len(s) > 200 {
-		return s[:200] + "..."
+	if len(b) <= maxErrorBodyBytes {
+		return string(b)
 	}
-	return s
+	return strings.ToValidUTF8(string(b[:maxErrorBodyBytes]), "") + "..."
 }

@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "id": "api-error-body-limit-4096",
+  "applied_at": "2026-10-19",
+  "base_run_id": "20260506-162403",
+  "base_printing_press_version": "3.10.0",
+  "summary": "Google Ads API error bodies keep up to 4096 bytes and are cut on a valid UTF-8 boundary with a visible ... marker.",
+  "reason": "Google Ads puts the specific errorCode after the first ~200 bytes of pretty-printed JSON, so a 200-byte cut made distinct query errors indistinguishable; a byte slice could also split a multibyte character.",
+  "files": [
+    "internal/client/client.go",
+    "internal/client/client_test.go"
+  ],
+  "validated_outcome": "TestTruncateBody covers short, at-limit, over-limit and a rune split at the limit."
+}
