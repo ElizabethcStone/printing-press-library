@@ -1060,6 +1060,12 @@
         "Show exactly what changed in a base's schema since the last time this command ran for that base."
       ],
       "path": "library/productivity/airtable",
+      "release": {
+        "cli_name": "airtable-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-21T08:52:22Z",
+        "source_commit": "1927cc03aef67b9e3247b18a364d97c356d8fdab"
+      },
       "printer": "ElizabethcStone",
       "printer_name": "Elizabeth Stone",
       "creator": {
@@ -6496,6 +6502,12 @@
         "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos."
       ],
       "path": "library/developer-tools/crocoblock",
+      "release": {
+        "cli_name": "crocoblock-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-21T08:52:22Z",
+        "source_commit": "1a5d6d48e3874268c96278dc25021c7fa28d09e4"
+      },
       "printer": "bobeglz",
       "printer_name": "bobe",
       "creator": {
@@ -18589,6 +18601,12 @@
         "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist."
       ],
       "path": "library/developer-tools/n8n",
+      "release": {
+        "cli_name": "n8n-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-21T08:52:22Z",
+        "source_commit": "a792670458f827816f8d3b5942ea4bfc4f220c95"
+      },
       "printer": "ElizabethcStone",
       "printer_name": "Mini",
       "creator": {
