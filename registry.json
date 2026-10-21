@@ -5503,9 +5503,9 @@
       "path": "library/travel/coinlocker-navi",
       "release": {
         "cli_name": "coinlocker-navi-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-10T08:56:54Z",
-        "source_commit": "24b9ba5e3db31f0c8677b8be84171b2da5c3eb78"
+        "version": "2026.10.2",
+        "released_at": "2026-10-21T22:55:07Z",
+        "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
       },
       "printer": "zjsng",
       "printer_name": "zjsng",
@@ -12171,9 +12171,9 @@
       "path": "library/devices/googlehealth",
       "release": {
         "cli_name": "googlehealth-pp-cli",
-        "version": "2026.9.2",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-21T22:55:07Z",
+        "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
       },
       "printer": "coopdogGGs",
       "printer_name": "ryanc00per",
@@ -15181,9 +15181,9 @@
       "path": "library/travel/japan-theme-parks",
       "release": {
         "cli_name": "japan-theme-parks-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-10T08:56:54Z",
-        "source_commit": "6f1c0c6001a9e5e434be76965b52888e48c1e20d"
+        "version": "2026.10.2",
+        "released_at": "2026-10-21T22:55:07Z",
+        "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
       },
       "printer": "zjsng",
       "printer_name": "zjsng",
@@ -15226,9 +15226,9 @@
       "path": "library/travel/japan-timed-tickets",
       "release": {
         "cli_name": "japan-timed-tickets-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-10T08:56:54Z",
-        "source_commit": "f84e442f9ca72536ec7de62eb0f7fc0df4898506"
+        "version": "2026.10.2",
+        "released_at": "2026-10-21T22:55:07Z",
+        "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
       },
       "printer": "zjsng",
       "printer_name": "zjsng",
