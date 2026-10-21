@@ -1038,6 +1038,51 @@
       }
     },
     {
+      "name": "airtable",
+      "category": "productivity",
+      "api": "Airtable",
+      "description": "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection.",
+      "search_terms": [
+        "airtable",
+        "airtable-pp-cli",
+        "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection.",
+        "Merge-field upsert from CSV",
+        "records upsert-csv",
+        "Take a raw CSV export and merge-upsert it straight into an Airtable table, matched on the field you choose.",
+        "Local diff before bulk write",
+        "records diff",
+        "See exactly which fields on which existing records would change before a bulk update or upsert actually runs.",
+        "Cross-base full-text search",
+        "search",
+        "Search text across every synced base and table at once from one local index.",
+        "Schema drift detection",
+        "bases schema-diff",
+        "Show exactly what changed in a base's schema since the last time this command ran for that base."
+      ],
+      "path": "library/productivity/airtable",
+      "printer": "ElizabethcStone",
+      "printer_name": "Elizabeth Stone",
+      "creator": {
+        "handle": "ElizabethcStone",
+        "name": "Elizabeth Stone"
+      },
+      "mcp": {
+        "binary": "airtable-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 32,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "AIRTABLE_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "alaska-airlines",
       "category": "travel",
       "api": "Alaska Airlines",
@@ -18516,6 +18561,57 @@
       }
     },
     {
+      "name": "n8n",
+      "category": "developer-tools",
+      "api": "n8n",
+      "description": "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed.",
+      "search_terms": [
+        "n8n",
+        "n8n-pp-cli",
+        "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed.",
+        "Failure triage",
+        "executions failures",
+        "See what broke recently, grouped by workflow and failing node, with the latest execution to retry.",
+        "Find usages",
+        "workflows uses",
+        "Find every workflow and node that uses a credential, node type, webhook path, variable, or sub-workflow.",
+        "Stale and unprotected workflows",
+        "workflows stale",
+        "Find active workflows with no recent successful run, workflows that never ran, and active workflows without an error workflow.",
+        "Wait for execution",
+        "executions wait",
+        "Block until an execution finishes and exit non-zero if it failed, with the failing node and message.",
+        "Semantic workflow diff",
+        "workflows diff",
+        "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise.",
+        "Credential audit",
+        "credentials usage",
+        "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist."
+      ],
+      "path": "library/developer-tools/n8n",
+      "printer": "ElizabethcStone",
+      "printer_name": "Mini",
+      "creator": {
+        "handle": "ElizabethcStone",
+        "name": "Mini"
+      },
+      "mcp": {
+        "binary": "n8n-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 168,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "N8N_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "namecheap",
       "category": "developer-tools",
       "api": "Namecheap",
@@ -23861,9 +23957,9 @@
       "path": "library/marketing/rankmath",
       "release": {
         "cli_name": "rankmath-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-20T01:36:31Z",
-        "source_commit": "6ea3e3bc5ad8ad66e4459d39cf313e8365f65dc2"
+        "version": "2026.10.2",
+        "released_at": "2026-10-21T08:51:19Z",
+        "source_commit": "1d2a4ea1a0485ff7fffd7e4ebc7a50ff1ba5ecc1"
       },
       "printer": "ElizabethcStone",
       "printer_name": "ElizabethcStone",
