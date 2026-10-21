@@ -1,0 +1,47 @@
+{
+  "manifest_version": "0.3",
+  "name": "n8n-pp-mcp",
+  "display_name": "n8n",
+  "version": "1.1.1",
+  "description": "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/n8n-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/n8n-pp-mcp",
+      "args": [],
+      "env": {
+        "N8N_API_KEY": "${user_config.n8n_api_key}",
+        "N8N_URL": "${user_config.n8n_url}"
+      }
+    }
+  },
+  "user_config": {
+    "n8n_api_key": {
+      "type": "string",
+      "title": "N8N_API_KEY",
+      "description": "Sets N8N_API_KEY for the n8n MCP server.",
+      "sensitive": true,
+      "required": true
+    },
+    "n8n_url": {
+      "type": "string",
+      "title": "N8N_URL",
+      "description": "Sets N8N_URL for the n8n MCP server. Required by the generated client for credential refresh or hand-written auth flow.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

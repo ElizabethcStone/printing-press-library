@@ -1,0 +1,258 @@
+{
+  "api_name": "n8n",
+  "novelty_score": 0,
+  "alternatives": [
+    {
+      "name": "@n8n/cli (official)",
+      "url": "https://github.com/n8n-io/n8n/tree/master/packages/@n8n/cli",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 80,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "n8n-mcp",
+      "url": "https://github.com/czlonkowski/n8n-mcp",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 23102,
+      "last_updated": "",
+      "command_count": 21,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "n8n-mcp-server",
+      "url": "https://github.com/leonardsellem/n8n-mcp-server",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 1630,
+      "last_updated": "",
+      "command_count": 12,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "n8nc",
+      "url": "https://github.com/rvben/n8nc",
+      "language": "Python",
+      "install_method": "",
+      "stars": 2,
+      "last_updated": "",
+      "command_count": 22,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "n8n-cli (n8n-toolkit)",
+      "url": "https://github.com/8Dvibes/n8n-cli",
+      "language": "Python",
+      "install_method": "",
+      "stars": 17,
+      "last_updated": "",
+      "command_count": 10,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
+  ],
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-10-20T09:32:02Z",
+  "novel_features": [
+    {
+      "name": "Failure triage",
+      "command": "executions failures",
+      "description": "See what broke recently, grouped by workflow and failing node, with the latest execution to retry.",
+      "rationale": "Groups synced error executions with cached failing-node detail; the API only returns a flat paginated list.",
+      "example": "n8n-pp-cli executions failures --since 24h --agent",
+      "why_it_matters": "Reach for this first when asked what is failing in n8n instead of paging through executions one by one. Reads the synced mirror: run `n8n-pp-cli sync --resources workflows,executions,credentials` first.",
+      "group": "Operations triage"
+    },
+    {
+      "name": "Find usages",
+      "command": "workflows uses",
+      "description": "Find every workflow and node that uses a credential, node type, webhook path, variable, or sub-workflow.",
+      "rationale": "Queries a local table of every node across all synced workflows; no API endpoint answers cross-workflow references.",
+      "example": "n8n-pp-cli workflows uses --node-type n8n-nodes-base.slack --agent",
+      "why_it_matters": "Use before rotating a credential, retiring a webhook, or editing a shared sub-workflow to know the blast radius. Reads the synced mirror: run `n8n-pp-cli sync --resources workflows,executions,credentials` first.",
+      "group": "Cross-workflow insight"
+    },
+    {
+      "name": "Stale and unprotected workflows",
+      "command": "workflows stale",
+      "description": "Find active workflows with no recent successful run, workflows that never ran, and active workflows without an error workflow.",
+      "rationale": "Joins synced workflows against their latest successful execution locally.",
+      "example": "n8n-pp-cli workflows stale --days 7 --agent",
+      "why_it_matters": "Use for hygiene sweeps to catch silently dead automations. Reads the synced mirror: run `n8n-pp-cli sync --resources workflows,executions,credentials` first.",
+      "group": "Operations triage"
+    },
+    {
+      "name": "Wait for execution",
+      "command": "executions wait",
+      "description": "Block until an execution finishes and exit non-zero if it failed, with the failing node and message.",
+      "rationale": "Polls with backoff and maps execution status to exit codes for scripts and agents.",
+      "example": "n8n-pp-cli executions wait 1234 --max-wait 5m --agent",
+      "why_it_matters": "Use in an edit-then-test loop to branch on whether the run passed without writing a polling script.",
+      "group": "Agent-native plumbing"
+    },
+    {
+      "name": "Semantic workflow diff",
+      "command": "workflows diff",
+      "description": "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise.",
+      "rationale": "Understands n8n's nodes and connections graph and filters positions, ids, and timestamps.",
+      "example": "n8n-pp-cli workflows diff 0vB2cZqgHEmb3RKs --against-config ~/.config/n8n-pp-cli/prod.toml --agent",
+      "why_it_matters": "Use before promoting dev to prod or after an edit to see exactly which nodes changed.",
+      "group": "Cross-workflow insight"
+    },
+    {
+      "name": "Credential audit",
+      "command": "credentials usage",
+      "description": "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist.",
+      "rationale": "Anti-joins synced credentials against every node's credential references locally; secrets are never read.",
+      "example": "n8n-pp-cli credentials usage --unused --agent",
+      "why_it_matters": "Use before credential rotation or client handoff cleanup. Reads the synced mirror: run `n8n-pp-cli sync --resources workflows,executions,credentials` first.",
+      "group": "Cross-workflow insight"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Failure triage",
+      "command": "executions failures",
+      "description": "See what broke recently, grouped by workflow and failing node, with the latest execution to retry.",
+      "rationale": "Groups synced error executions with cached failing-node detail; the API only returns a flat paginated list.",
+      "example": "n8n-pp-cli executions failures --since 24h --agent",
+      "why_it_matters": "Reach for this first when asked what is failing in n8n instead of paging through executions one by one.",
+      "group": "Operations triage"
+    },
+    {
+      "name": "Find usages",
+      "command": "workflows uses",
+      "description": "Find every workflow and node that uses a credential, node type, webhook path, variable, or sub-workflow.",
+      "rationale": "Queries a local table of every node across all synced workflows; no API endpoint answers cross-workflow references.",
+      "example": "n8n-pp-cli workflows uses --node-type n8n-nodes-base.slack --agent",
+      "why_it_matters": "Use before rotating a credential, retiring a webhook, or editing a shared sub-workflow to know the blast radius.",
+      "group": "Cross-workflow insight"
+    },
+    {
+      "name": "Stale and unprotected workflows",
+      "command": "workflows stale",
+      "description": "Find active workflows with no recent successful run, workflows that never ran, and active workflows without an error workflow.",
+      "rationale": "Joins synced workflows against their latest successful execution locally.",
+      "example": "n8n-pp-cli workflows stale --days 7 --agent",
+      "why_it_matters": "Use for hygiene sweeps to catch silently dead automations.",
+      "group": "Operations triage"
+    },
+    {
+      "name": "Wait for execution",
+      "command": "executions wait",
+      "description": "Block until an execution finishes and exit non-zero if it failed, with the failing node and message.",
+      "rationale": "Polls with backoff and maps execution status to exit codes for scripts and agents.",
+      "example": "n8n-pp-cli executions wait 1234 --max-wait 5m --agent",
+      "why_it_matters": "Use in an edit-then-test loop to branch on whether the run passed without writing a polling script.",
+      "group": "Agent-native plumbing"
+    },
+    {
+      "name": "Semantic workflow diff",
+      "command": "workflows diff",
+      "description": "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise.",
+      "rationale": "Understands n8n's nodes and connections graph and filters positions, ids, and timestamps.",
+      "example": "n8n-pp-cli workflows diff 0vB2cZqgHEmb3RKs --against-config ~/.config/n8n-pp-cli/prod.toml --agent",
+      "why_it_matters": "Use before promoting dev to prod or after an edit to see exactly which nodes changed.",
+      "group": "Cross-workflow insight"
+    },
+    {
+      "name": "Credential audit",
+      "command": "credentials usage",
+      "description": "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist.",
+      "rationale": "Anti-joins synced credentials against every node's credential references locally; secrets are never read.",
+      "example": "n8n-pp-cli credentials usage --unused --agent",
+      "why_it_matters": "Use before credential rotation or client handoff cleanup.",
+      "group": "Cross-workflow insight"
+    }
+  ],
+  "auth": {
+    "canonical_env_var": "N8N_API_KEY"
+  },
+  "narrative": {
+    "display_name": "n8n",
+    "headline": "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed.",
+    "value_prop": "Manage workflows, executions, credentials, data tables, projects, and more on any self-hosted or cloud n8n instance. Sync once and get offline search, failure triage with 'executions failures', cross-workflow usage lookups with 'workflows uses', and node-level diffs between instances with 'workflows diff'.",
+    "auth_narrative": "Create an API key in n8n under Settings > n8n API, then export N8N_API_KEY. Point at your instance with N8N_URL=https://n8n.example.com (the same variable the official n8n CLI uses; /api/v1 is appended) or N8N_BASE_URL=https://n8n.example.com/api/v1. The default is http://localhost:5678/api/v1. The public API must be enabled on the instance, and some resources (projects, variables, source control, SSO, LDAP, log streaming, promotions) need an n8n license.",
+    "quickstart": [
+      {
+        "command": "n8n-pp-cli doctor --dry-run",
+        "comment": "Check configuration without touching the network"
+      },
+      {
+        "command": "n8n-pp-cli workflows list --agent --select data.id,data.name,data.active",
+        "comment": "Confirm the API key works and see your workflows"
+      },
+      {
+        "command": "n8n-pp-cli sync --resources workflows,executions,credentials --since 7d",
+        "comment": "Build the local mirror the cross-workflow commands read from"
+      },
+      {
+        "command": "n8n-pp-cli executions failures --since 24h",
+        "comment": "See what broke recently, grouped by workflow and node"
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "401 Unauthorized",
+        "fix": "Set N8N_API_KEY to a key from Settings > n8n API on the same instance as N8N_BASE_URL"
+      },
+      {
+        "symptom": "404 on every request",
+        "fix": "N8N_BASE_URL must end in /api/v1 (for example https://n8n.example.com/api/v1); or set N8N_URL to the bare instance root and /api/v1 is added for you"
+      },
+      {
+        "symptom": "403 with a license message",
+        "fix": "That resource needs an n8n Enterprise or Pro license; use the community-edition resources instead"
+      },
+      {
+        "symptom": "workflows uses, workflows stale, credentials usage, or executions failures returns nothing",
+        "fix": "Run n8n-pp-cli sync --resources workflows,executions,credentials first"
+      }
+    ],
+    "when_to_use": "Use this CLI to operate an n8n instance from a terminal or agent: list and edit workflows, triage failed executions, find which workflows use a credential or node, compare workflows between instances, and manage data tables, tags, variables, and projects through the public API.",
+    "anti_triggers": [
+      "Designing new workflows from scratch with node documentation lookup; use n8n-mcp or the n8n editor",
+      "Instance administration that needs the server shell (database backups, encryption keys, n8n export:credentials --decrypted)",
+      "Reading credential secret values; the public API never returns them"
+    ],
+    "recipes": [
+      {
+        "title": "Morning failure triage",
+        "command": "n8n-pp-cli executions failures --since 24h --agent",
+        "explanation": "Groups error executions by workflow and failing node so one broken credential shows as one row."
+      },
+      {
+        "title": "Blast radius before rotating a credential",
+        "command": "n8n-pp-cli workflows uses --credential 'Slack Bot' --agent",
+        "explanation": "Lists every workflow and node that references the credential."
+      },
+      {
+        "title": "Narrow a large workflow payload",
+        "command": "n8n-pp-cli workflows get 0vB2cZqgHEmb3RKs --agent --select name,active,nodes.name,nodes.type",
+        "explanation": "Workflow JSON is large; select only node names and types."
+      },
+      {
+        "title": "Promote check",
+        "command": "n8n-pp-cli workflows diff 0vB2cZqgHEmb3RKs --against-config ~/.config/n8n-pp-cli/prod.toml",
+        "explanation": "Shows node and connection changes between this instance and the instance configured in prod.toml."
+      }
+    ],
+    "trigger_phrases": [
+      "what n8n workflows are failing",
+      "which workflows use this credential",
+      "diff this workflow against prod",
+      "list my n8n workflows",
+      "use n8n",
+      "run n8n-pp-cli"
+    ]
+  }
+}

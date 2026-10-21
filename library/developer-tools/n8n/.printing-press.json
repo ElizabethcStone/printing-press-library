@@ -1,0 +1,111 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-20T16:33:12.901587Z",
+  "printing_press_version": "4.33.8",
+  "api_name": "n8n",
+  "display_name": "n8n",
+  "cli_name": "n8n-pp-cli",
+  "creator": {
+    "handle": "ElizabethcStone",
+    "name": "Mini"
+  },
+  "owner": "elizabethcstone",
+  "printer": "ElizabethcStone",
+  "printer_name": "Mini",
+  "spec_url": "https://github.com/n8n-io/n8n/blob/n8n@2.44.4/packages/cli/src/public-api/v1/openapi.yml",
+  "spec_path": "n8n-spec.yaml",
+  "spec_format": "openapi3",
+  "spec_source": "official",
+  "spec_checksum": "sha256:5b5a2273be010172ebb26f88784109f51e957e39caa64a1a8674166f39af3145",
+  "run_id": "20261020-022313-25b483ed",
+  "category": "developer-tools",
+  "description": "Every n8n Public API endpoint, plus a local mirror that answers what is failing, what uses what, and what changed.",
+  "mcp_binary": "n8n-pp-mcp",
+  "mcp_tool_count": 168,
+  "mcp_ready": "full",
+  "api_version": "1.1.1",
+  "auth_type": "api_key",
+  "auth_preference": "ApiKeyAuth",
+  "auth_env_vars": [
+    "N8N_API_KEY"
+  ],
+  "novel_features": [
+    {
+      "name": "Failure triage",
+      "command": "executions failures",
+      "description": "See what broke recently, grouped by workflow and failing node, with the latest execution to retry."
+    },
+    {
+      "name": "Find usages",
+      "command": "workflows uses",
+      "description": "Find every workflow and node that uses a credential, node type, webhook path, variable, or sub-workflow."
+    },
+    {
+      "name": "Stale and unprotected workflows",
+      "command": "workflows stale",
+      "description": "Find active workflows with no recent successful run, workflows that never ran, and active workflows without an error workflow."
+    },
+    {
+      "name": "Wait for execution",
+      "command": "executions wait",
+      "description": "Block until an execution finishes and exit non-zero if it failed, with the failing node and message."
+    },
+    {
+      "name": "Semantic workflow diff",
+      "command": "workflows diff",
+      "description": "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise."
+    },
+    {
+      "name": "Credential audit",
+      "command": "credentials usage",
+      "description": "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Failure triage",
+      "command": "executions failures",
+      "description": "See what broke recently, grouped by workflow and failing node, with the latest execution to retry."
+    },
+    {
+      "name": "Find usages",
+      "command": "workflows uses",
+      "description": "Find every workflow and node that uses a credential, node type, webhook path, variable, or sub-workflow."
+    },
+    {
+      "name": "Stale and unprotected workflows",
+      "command": "workflows stale",
+      "description": "Find active workflows with no recent successful run, workflows that never ran, and active workflows without an error workflow."
+    },
+    {
+      "name": "Wait for execution",
+      "command": "executions wait",
+      "description": "Block until an execution finishes and exit non-zero if it failed, with the failing node and message."
+    },
+    {
+      "name": "Semantic workflow diff",
+      "command": "workflows diff",
+      "description": "Compare a workflow across two instances or two saved versions at the node and connection level, ignoring layout noise."
+    },
+    {
+      "name": "Credential audit",
+      "command": "credentials usage",
+      "description": "List unused credentials, credentials many workflows depend on, and workflow references to credentials that no longer exist."
+    }
+  ],
+  "verify": {
+    "mode": "mock",
+    "pass_rate": 100,
+    "passed": 164,
+    "total": 164,
+    "data_pipeline": true,
+    "verdict": "PASS"
+  },
+  "scorecard": {
+    "steinberger": {
+      "percentage": 96,
+      "grade": "A",
+      "total": 96
+    }
+  }
+}

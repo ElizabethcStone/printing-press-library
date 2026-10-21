@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "test-runs-list-no-error-probe",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-022313-25b483ed",
+  "base_printing_press_version": "4.33.8",
+  "summary": "workflows test-runs list opts out of the live-dogfood error-path probe.",
+  "reason": "n8n 2.44.4 answers GET /workflows/{unknown}/test-runs with HTTP 200 and an empty list, so a bad workflow id is indistinguishable from a workflow with no test runs. Inventing a not-found rule would misreport real empty results.",
+  "files": [
+    "internal/cli/workflows_test-runs_list.go"
+  ],
+  "validated_outcome": "Live dogfood skips error_path for this command with reason no-error-path-probe annotation; help, happy path and JSON checks still run."
+}

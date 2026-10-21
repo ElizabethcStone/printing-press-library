@@ -1,0 +1,9 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/n8n-pp-cli
+/n8n-pp-cli.exe
+/n8n-pp-mcp
+/n8n-pp-mcp.exe
+/bin/
+/build/
+/dist/
+.gocache
