@@ -628,7 +628,7 @@ class LibraryGoFloorSignalTest(unittest.TestCase):
     def test_go_directive_at_floor_does_not_block(self) -> None:
         gomod = (
             "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
-            "\ngo 1.26.10\n"
+            "\ngo %s\n" % signals.DEFAULT_GO_FLOOR
         )
         findings = signals.signal_library_go_floor(
             _fc("library/payments/kalshi/go.mod", head=gomod)
@@ -650,6 +650,75 @@ class LibraryGoFloorSignalTest(unittest.TestCase):
             )
         )
         self.assertEqual(len(findings), 1)
+        self.assertTrue(findings[0].is_block())
+
+    def test_lowered_directive_below_floor_blocks(self) -> None:
+        base = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.8\n"
+        )
+        head = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.4\n"
+        )
+        findings = signals.signal_library_go_floor(
+            _fc("library/payments/kalshi/go.mod", base=base, head=head)
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertTrue(findings[0].is_block())
+        self.assertEqual(findings[0].signal_id, "library_go_directive_below_floor")
+
+    def test_unchanged_directive_below_floor_advises(self) -> None:
+        base = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.5\n"
+        )
+        head = base + "\nrequire example.com/foo v1.2.3\n"
+        findings = signals.signal_library_go_floor(
+            _fc("library/payments/kalshi/go.mod", base=base, head=head)
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].severity, "advise")
+        self.assertFalse(findings[0].is_block())
+        self.assertEqual(findings[0].signal_id, "library_go_directive_below_floor")
+
+    def test_raised_directive_still_below_floor_advises(self) -> None:
+        base = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.4\n"
+        )
+        head = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.5\n"
+        )
+        findings = signals.signal_library_go_floor(
+            _fc("library/payments/kalshi/go.mod", base=base, head=head)
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertEqual(findings[0].severity, "advise")
+
+    def test_lowered_directive_at_or_above_floor_is_silent(self) -> None:
+        base = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.12\n"
+        )
+        head = (
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n"
+            "\ngo 1.26.11\n"
+        )
+        findings = signals.signal_library_go_floor(
+            signals.FileChange(
+                path="library/payments/kalshi/go.mod",
+                base_content=base,
+                head_content=head,
+                added_lines=[],
+                # Both directives stay at or above this floor. Do not use
+                # DEFAULT_GO_FLOOR: Renovate bumps that constant, and a later
+                # patch would turn this lowered directive into a block.
+                go_floor="1.26.11",
+            )
+        )
+        self.assertEqual(findings, [])
 
 
 class NpmLifecycleSignalTest(unittest.TestCase):
@@ -806,7 +875,7 @@ class ScanIntegrationTest(unittest.TestCase):
     # -------- Happy paths --------
 
     def test_missing_go_version_uses_current_default(self) -> None:
-        self.assertEqual(scan.go_floor_for_ref("HEAD"), "1.26.10")
+        self.assertEqual(scan.go_floor_for_ref("HEAD"), signals.DEFAULT_GO_FLOOR)
 
     def test_clean_pr_no_findings(self) -> None:
         """Bug fix to a CLI's internal/cli/ — no scoped files touched → exit 0."""
@@ -870,7 +939,10 @@ class ScanIntegrationTest(unittest.TestCase):
         self.assertEqual(rc, 1)
 
     def test_replace_to_local_path_advises_but_does_not_fail(self) -> None:
-        gomod = "module github.com/mvanhorn/printing-press-library/library/food-and-dining/foo\n\ngo 1.26.10\n"
+        gomod = (
+            "module github.com/mvanhorn/printing-press-library/library/food-and-dining/foo\n\ngo %s\n"
+            % signals.DEFAULT_GO_FLOOR
+        )
         self._write("library/food-and-dining/foo/go.mod", gomod)
         self._commit("baseline")
         self._git("checkout", "-q", "-b", "feat/x")
@@ -942,7 +1014,7 @@ class ScanIntegrationTest(unittest.TestCase):
         rc = self._run_scan(base="main")
         self.assertEqual(rc, 0)
 
-    def test_library_go_directive_below_head_floor_fails(self) -> None:
+    def test_unchanged_library_go_directive_below_head_floor_advises(self) -> None:
         base = "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n\ngo 1.26.5\n"
         self._write(".go-version", "1.26.5\n")
         self._write("library/payments/kalshi/go.mod", base)
@@ -954,6 +1026,22 @@ class ScanIntegrationTest(unittest.TestCase):
             base + "\nrequire example.com/foo v1.2.3\n",
         )
         self._commit("touch stale go mod after floor bump")
+        rc = self._run_scan(base="main")
+        self.assertEqual(rc, 0)
+
+    def test_lowered_library_go_directive_below_floor_fails(self) -> None:
+        self._write(".go-version", "1.26.10\n")
+        self._write(
+            "library/payments/kalshi/go.mod",
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n\ngo 1.26.8\n",
+        )
+        self._commit("baseline")
+        self._git("checkout", "-q", "-b", "feat/x")
+        self._write(
+            "library/payments/kalshi/go.mod",
+            "module github.com/mvanhorn/printing-press-library/library/payments/kalshi\n\ngo 1.26.4\n",
+        )
+        self._commit("lower the go directive")
         rc = self._run_scan(base="main")
         self.assertEqual(rc, 1)
 
@@ -1000,14 +1088,18 @@ class ScanIntegrationTest(unittest.TestCase):
         self._git("checkout", "-q", "-b", "feat/new-cli")
         self._write(
             "library/other/freshly-minted/go.mod",
-            "module github.com/mvanhorn/printing-press-library/library/other/freshly-minted\n\ngo 1.26.10\n",
+            "module github.com/mvanhorn/printing-press-library/library/other/freshly-minted\n\ngo %s\n"
+            % signals.DEFAULT_GO_FLOOR,
         )
         self._commit("add new CLI")
         rc = self._run_scan(base="main")
         self.assertEqual(rc, 0)
 
     def test_strict_mode_promotes_advise_to_block(self) -> None:
-        gomod = "module github.com/mvanhorn/printing-press-library/library/food-and-dining/foo\n\ngo 1.26.10\n"
+        gomod = (
+            "module github.com/mvanhorn/printing-press-library/library/food-and-dining/foo\n\ngo %s\n"
+            % signals.DEFAULT_GO_FLOOR
+        )
         self._write("library/food-and-dining/foo/go.mod", gomod)
         self._commit("baseline")
         self._git("checkout", "-q", "-b", "feat/x")

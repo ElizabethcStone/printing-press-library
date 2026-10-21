@@ -155,6 +155,19 @@ PRs touching `.github/workflows/**`, `library/**/go.mod`, or `npm/package.json` 
 
 Runs informationally on landing — promote to a required branch-protection check only after a one-week green window. Mirror gate runs in [`mvanhorn/cli-printing-press`](https://github.com/mvanhorn/cli-printing-press) with scope adaptations. Incident background and primary sources: [docs/solutions/security/2026-05-supply-chain-hardening.md](docs/solutions/security/2026-05-supply-chain-hardening.md).
 
+## Go security floor
+
+`.go-version` is the single source for CI Go. Workflows install it with `go-version-file: .go-version` and then set `GOTOOLCHAIN=local`, so the go command cannot download a different toolchain. `verify-ordertogo-windows.yml` is the exception that points setup-go at that CLI's `go.mod`: the job sparse-checkouts one directory and `.go-version` is not in the checkout. It still sets `GOTOOLCHAIN=local`.
+
+The value must be greater than or equal to cli-printing-press `librarySafeGoDirective` (`internal/generator/go_version.go` on the latest release, and on `main`). Bump `.go-version` in this repo first. Raising it is safe for existing CLIs: a newer local toolchain still builds a module whose `go` directive is older.
+
+- Renovate (`renovate.json`) opens and automerges one patch PR that updates `.go-version`, `DEFAULT_GO_FLOOR`, and the root `README.md` `Go X or newer` line together, labeled `go-floor`. `enabledManagers` is `custom.regex`, so Renovate does not bump the catalog's `go.mod` files, per-CLI docs, or their dependencies. Minor and major Go releases stay disabled.
+- The `go-floor` CI job runs `scripts/verify-go-floor.py`. `DEFAULT_GO_FLOOR` and the root `README.md` `Go X or newer` line must equal `.go-version`. `npm/README.md` names `.go-version` instead of a patch number, so a floor bump does not edit the npm package; a hardcoded `Go X or newer` there must still equal the floor. The sweep-canonical minimum must stay derived from `.go-version`. Each `actions/setup-go` step must be followed, in that same job, by `GOTOOLCHAIN=local`, and must use `go-version-file: .go-version` (the ordertogo workflow excepted). Any library `toolchain` line older than the floor fails.
+- When the floor changes, set `MIN_PRESS_VERSION` in `.github/scripts/verify-press-version/verify_press_version.py` to the first press release that prints the new floor.
+- Do not bulk-bump per-CLI `go` directives. A module's `go` line is the language version that module claims, not the CI toolchain.
+- Supply-chain rule R7 blocks a library `go.mod` that is new, or whose head `go` directive is lower than base, when that directive is below the floor. An unchanged below-floor directive is an advise finding. R7 does not block leaving an untouched directive in place.
+- `.github/workflows/go-floor-watch.yml` compares `.go-version` with the latest press release and a govulncheck module scan of the grants CLI. Module mode rejects package patterns and a module root that has no Go files, so the scan directory is `library/health/grants/cmd/grants-pp-cli`. When the library is behind, it opens or updates one issue titled `Go floor: bump .go-version to X`.
+
 ## Repository layout
 
 ```
