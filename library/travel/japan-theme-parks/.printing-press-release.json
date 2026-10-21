@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "japan-theme-parks",
   "cli_name": "japan-theme-parks-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-10T08:56:54Z",
-  "source_commit": "6f1c0c6001a9e5e434be76965b52888e48c1e20d",
+  "version": "2026.10.2",
+  "released_at": "2026-10-21T22:55:07Z",
+  "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b",
   "printing_press_version": "4.33.2",
   "run_id": "20261009-095842-91c8dae6",
   "changes": [
     {
-      "title": "feat(japan-theme-parks): add japan-theme-parks",
-      "pr": 2291,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2291",
-      "commit": "6f1c0c6001a9e5e434be76965b52888e48c1e20d"
+      "title": "fix(ci): align leftover Go floors with 1.26.10",
+      "pr": 2349,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2349",
+      "commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
     }
   ]
 }

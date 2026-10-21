@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "japan-timed-tickets",
   "cli_name": "japan-timed-tickets-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-10T08:56:54Z",
-  "source_commit": "f84e442f9ca72536ec7de62eb0f7fc0df4898506",
+  "version": "2026.10.2",
+  "released_at": "2026-10-21T22:55:07Z",
+  "source_commit": "51e6be96c4f9f34cb98f562179770a47aa16005b",
   "printing_press_version": "4.33.2",
   "run_id": "20261009-095850-f6dfc042",
   "changes": [
     {
-      "title": "feat(japan-timed-tickets): add japan-timed-tickets",
-      "pr": 2292,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2292",
-      "commit": "f84e442f9ca72536ec7de62eb0f7fc0df4898506"
+      "title": "fix(ci): align leftover Go floors with 1.26.10",
+      "pr": 2349,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2349",
+      "commit": "51e6be96c4f9f34cb98f562179770a47aa16005b"
     }
   ]
 }
