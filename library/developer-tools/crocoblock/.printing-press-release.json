@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "crocoblock",
+  "cli_name": "crocoblock-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-21T08:52:22Z",
+  "source_commit": "1a5d6d48e3874268c96278dc25021c7fa28d09e4",
+  "printing_press_version": "4.33.8",
+  "run_id": "20261020-194142-3c7b326d",
+  "changes": [
+    {
+      "title": "feat(crocoblock): add crocoblock",
+      "pr": 2347,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2347",
+      "commit": "1a5d6d48e3874268c96278dc25021c7fa28d09e4"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "airtable",
+  "cli_name": "airtable-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-21T08:52:22Z",
+  "source_commit": "1927cc03aef67b9e3247b18a364d97c356d8fdab",
+  "printing_press_version": "4.33.8",
+  "run_id": "20261020-032053-d846692a",
+  "changes": [
+    {
+      "title": "feat(airtable): add airtable",
+      "pr": 2346,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2346",
+      "commit": "1927cc03aef67b9e3247b18a364d97c356d8fdab"
+    }
+  ]
+}

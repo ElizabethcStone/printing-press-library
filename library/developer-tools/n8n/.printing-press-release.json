@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "n8n",
+  "cli_name": "n8n-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-21T08:52:22Z",
+  "source_commit": "a792670458f827816f8d3b5942ea4bfc4f220c95",
+  "printing_press_version": "4.33.8",
+  "run_id": "20261020-022313-25b483ed",
+  "changes": [
+    {
+      "title": "feat(n8n): add n8n",
+      "pr": 2345,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2345",
+      "commit": "a792670458f827816f8d3b5942ea4bfc4f220c95"
+    }
+  ]
+}
