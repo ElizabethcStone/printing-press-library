@@ -10,7 +10,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/mvanhorn/printing-press-library/library/marketing/rankmath/internal/cliutil"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +24,7 @@ func newLinkGeniusExportCmd(flags *rootFlags) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:         "export",
 		Short:       "Rank Math link-genius: export",
-		Example:     "  rankmath-pp-cli link-genius export --type links --format csv",
+		Example:     "  rankmath-pp-cli link-genius export --type links --format csv --total 100 --columns '[{\"key\":\"url\",\"label\":\"URL\"},{\"key\":\"anchor_text\",\"label\":\"Anchor\"}]'",
 		Args:        cobra.NoArgs,
 		Annotations: map[string]string{"pp:endpoint": "link_genius.export", "pp:method": "POST", "pp:path": "/rankmath/v1/link-genius/export", "pp:requires-input": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -82,9 +81,10 @@ func newLinkGeniusExportCmd(flags *rootFlags) *cobra.Command {
 				bodyMap := map[string]any{}
 				body = bodyMap
 				if cmd.Flags().Changed("columns") {
-					parsedColumns, parseErr := cliutil.ParseStringList(bodyColumns)
-					if parseErr != nil {
-						return fmt.Errorf("parsing --columns list: %w", parseErr)
+					// Rank Math reads $column['key'] and $column['label']; strings export blank rows.
+					var parsedColumns []map[string]any
+					if err := json.Unmarshal([]byte(bodyColumns), &parsedColumns); err != nil {
+						return fmt.Errorf("--columns must be a JSON array of {\"key\",\"label\"} objects: %w", err)
 					}
 					bodyMap["columns"] = parsedColumns
 				}
@@ -266,7 +266,7 @@ func newLinkGeniusExportCmd(flags *rootFlags) *cobra.Command {
 			return printErr
 		},
 	}
-	cmd.Flags().StringVar(&bodyColumns, "columns", "", "Column definitions.")
+	cmd.Flags().StringVar(&bodyColumns, "columns", "", "Column definitions as a JSON array of {\"key\",\"label\"} objects.")
 	cmd.Flags().StringVar(&bodyFilters, "filters", "", "Filters to apply to the export.")
 	cmd.Flags().StringVar(&bodyFormat, "format", "", "Export format (csv, json, excel).")
 	cmd.Flags().IntVar(&bodyTotal, "total", 0, "Total number of records to export.")

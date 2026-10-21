@@ -1,0 +1,18 @@
+{
+  "schema_version": 2,
+  "id": "rankmath-link-genius-export-columns-objects",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261016-120833-4fa88c9a",
+  "base_printing_press_version": "4.33.5",
+  "summary": "link-genius export decodes --columns as a JSON array of {key,label} objects and ships a runnable Example with --columns/--total.",
+  "reason": "The sniffed spec types columns as an array of strings, but Rank Math Pro's Export_Processor reads $column['key'] and $column['label'], so string columns export a blank header and empty rows.",
+  "files": [
+    "internal/cli/link_genius_export.go",
+    "internal/cli/meta_update_test.go"
+  ],
+  "markers": [
+    "var parsedColumns []map[string]any"
+  ],
+  "validated_outcome": "Live on local Rank Math Pro 3.0.124 with a PRIVATE TEST internal link: job stored columns as objects and the CSV rendered header 'URL,Anchor' plus row 'http://localhost:8889/private-test-post-1,\"PRIVATE TEST anchor\"'. url/anchor_text are real wp_rank_math_internal_links columns.",
+  "notes": "tools-manifest.json still types columns as string_csv_array (metadata only; MCP mirrors the Cobra tree). Fix the spec type to array-of-object on regen or this patch is undone."
+}

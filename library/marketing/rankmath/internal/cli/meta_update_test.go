@@ -24,10 +24,12 @@ func TestObjectBodyFieldsSentAsJSONObjects(t *testing.T) {
 		cmd   func(*rootFlags) *cobra.Command
 		args  []string
 		field string
+		array bool // field is an array of objects rather than one object
 	}{
-		{"meta update", newMetaUpdateCmd, []string{"--object-id", "4", "--object-type", "post", "--meta", `{"rank_math_title":"T"}`}, "meta"},
-		{"schema update", newSchemaUpdateCmd, []string{"--object-id", "4", "--object-type", "post", "--schemas", `{"new-1":{"@type":"Article"}}`}, "schemas"},
-		{"meta update-bulk", newMetaUpdateBulkCmd, []string{"--rows", `{"4":{"title":"T"}}`}, "rows"},
+		{"meta update", newMetaUpdateCmd, []string{"--object-id", "4", "--object-type", "post", "--meta", `{"rank_math_title":"T"}`}, "meta", false},
+		{"schema update", newSchemaUpdateCmd, []string{"--object-id", "4", "--object-type", "post", "--schemas", `{"new-1":{"@type":"Article"}}`}, "schemas", false},
+		{"meta update-bulk", newMetaUpdateBulkCmd, []string{"--rows", `{"4":{"title":"T"}}`}, "rows", false},
+		{"link-genius export", newLinkGeniusExportCmd, []string{"--type", "links", "--format", "csv", "--total", "1", "--columns", `[{"key":"url","label":"URL"}]`}, "columns", true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -55,7 +57,15 @@ func TestObjectBodyFieldsSentAsJSONObjects(t *testing.T) {
 			if err := cmd.Execute(); err != nil {
 				t.Fatal(err)
 			}
-			if _, ok := body[tt.field].(map[string]any); !ok {
+			got := body[tt.field]
+			if tt.array {
+				list, ok := got.([]any)
+				if !ok || len(list) == 0 {
+					t.Fatalf("%s sent as %T, want non-empty array: %v", tt.field, got, body)
+				}
+				got = list[0]
+			}
+			if _, ok := got.(map[string]any); !ok {
 				t.Fatalf("%s sent as %T, want object: %v", tt.field, body[tt.field], body)
 			}
 		})
