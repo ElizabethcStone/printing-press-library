@@ -1,0 +1,270 @@
+{
+  "status": "PASS",
+  "feature_count": 6,
+  "proof": "crocoblock-local-analysis-lifecycle.md",
+  "sections": {
+    "schema": {
+      "status": "PASS",
+      "commands": 7,
+      "checks": [
+        {
+          "name": "new_live_form_detected",
+          "result": "PASS",
+          "total_changes": 1,
+          "fixture_id": "36"
+        },
+        {
+          "name": "schema_form_trashed",
+          "result": "PASS"
+        }
+      ],
+      "cleanup": [
+        {
+          "kind": "form",
+          "id": "36",
+          "result": "PASS"
+        }
+      ],
+      "raw": "crocoblock-local-analysis-schema.json"
+    },
+    "cct": {
+      "status": "PASS",
+      "commands": 9,
+      "checks": [
+        {
+          "name": "cct_update_preserved_omitted",
+          "result": "PASS"
+        },
+        {
+          "name": "one_changed_real_row",
+          "result": "PASS",
+          "counts": {
+            "ambiguous_keys": 0,
+            "changed": 1,
+            "created": 0,
+            "deleted": 0,
+            "unchanged": 0,
+            "unmatched_suppressed": 0
+          }
+        },
+        {
+          "name": "cct_fixture_removed",
+          "result": "PASS"
+        }
+      ],
+      "cleanup": [
+        {
+          "kind": "cct",
+          "id": "3",
+          "result": "PASS"
+        }
+      ],
+      "raw": "crocoblock-local-analysis-cct.json"
+    },
+    "relations": {
+      "status": "PASS",
+      "commands": 9,
+      "checks": [
+        {
+          "name": "relation_types_posts",
+          "result": "PASS"
+        },
+        {
+          "name": "child_is_draft",
+          "result": "PASS"
+        },
+        {
+          "name": "relation_write_verified",
+          "result": "PASS"
+        },
+        {
+          "name": "created_edge_readback",
+          "result": "PASS"
+        },
+        {
+          "name": "relation_disconnect_verified",
+          "result": "PASS"
+        },
+        {
+          "name": "temporary_edge_absent",
+          "result": "PASS"
+        },
+        {
+          "name": "temporary_child_trashed",
+          "result": "PASS"
+        },
+        {
+          "name": "real_edge_valid",
+          "result": "PASS",
+          "counts": {
+            "dangling_endpoints": 0,
+            "definitions": 1,
+            "duplicate_edges": 0,
+            "duplicate_inventory_ids": 0,
+            "edges": 1,
+            "inventory_rows": 3,
+            "relations": 1,
+            "unknown": 0,
+            "valid_edges": 1
+          }
+        }
+      ],
+      "cleanup": [
+        {
+          "kind": "relation+draft_post",
+          "id": "34",
+          "result": "PASS"
+        }
+      ],
+      "raw": "crocoblock-local-analysis-relations.json"
+    },
+    "field_usage": {
+      "status": "PASS",
+      "commands": 4,
+      "checks": [
+        {
+          "name": "live_persisted_record_metrics",
+          "result": "PASS",
+          "records_total": 1,
+          "fields_total": 3
+        }
+      ],
+      "cleanup": [],
+      "raw": "crocoblock-local-analysis-field_usage.json"
+    },
+    "reservations": {
+      "status": "PASS",
+      "commands": 16,
+      "checks": [
+        {
+          "name": "lab_outbound_mail_disabled",
+          "result": "PASS"
+        },
+        {
+          "name": "captured_real_reservations",
+          "result": "PASS",
+          "booking_ids": [
+            "3"
+          ],
+          "appointment_ids": [
+            "3"
+          ]
+        },
+        {
+          "name": "booking_deleted_3",
+          "result": "PASS"
+        },
+        {
+          "name": "appointment_deleted_3",
+          "result": "PASS"
+        },
+        {
+          "name": "all_owned_reservations_removed",
+          "result": "PASS"
+        }
+      ],
+      "cleanup": [
+        {
+          "kind": "reservations",
+          "booking_ids": [
+            "3"
+          ],
+          "appointment_ids": [
+            "3"
+          ],
+          "result": "PASS"
+        }
+      ],
+      "raw": "crocoblock-local-analysis-reservations.json"
+    },
+    "reservations_boundary": {
+      "status": "PASS",
+      "commands": 16,
+      "checks": [
+        {
+          "name": "lab_no_mail_precondition",
+          "result": "PASS"
+        },
+        {
+          "name": "captured_real_reservations",
+          "result": "PASS",
+          "booking_ids": [
+            "4",
+            "5"
+          ],
+          "appointment_ids": [
+            "4",
+            "5"
+          ]
+        },
+        {
+          "name": "real_touching_half_open_no_conflict",
+          "result": "PASS",
+          "booking_ids": [
+            "4",
+            "5"
+          ],
+          "appointment_ids": [
+            "4",
+            "5"
+          ]
+        },
+        {
+          "name": "real_closed_point_conflicts",
+          "result": "PASS",
+          "count": 2
+        },
+        {
+          "name": "real_limit_retains_total",
+          "result": "PASS"
+        },
+        {
+          "name": "booking_deleted_4",
+          "result": "PASS"
+        },
+        {
+          "name": "booking_deleted_5",
+          "result": "PASS"
+        },
+        {
+          "name": "appointment_deleted_4",
+          "result": "PASS"
+        },
+        {
+          "name": "appointment_deleted_5",
+          "result": "PASS"
+        },
+        {
+          "name": "all_owned_reservations_removed",
+          "result": "PASS"
+        }
+      ],
+      "cleanup": [
+        {
+          "kind": "reservations",
+          "booking_ids": [
+            "4",
+            "5"
+          ],
+          "appointment_ids": [
+            "4",
+            "5"
+          ],
+          "result": "PASS"
+        }
+      ],
+      "raw": "crocoblock-local-analysis-reservations_boundary.json"
+    },
+    "filters": {
+      "status": "PASS",
+      "commands": 9,
+      "raw": "crocoblock-filter-impact-live.json",
+      "events": [
+        17,
+        18
+      ],
+      "receipt": 19,
+      "cleanup": "temporary declaration removed; post13 field and filter12 title restored"
+    }
+  }
+}

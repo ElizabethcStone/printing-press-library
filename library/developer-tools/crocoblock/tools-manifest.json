@@ -1,0 +1,960 @@
+{
+  "api_name": "crocoblock",
+  "base_url": "https://wordpress.example/wp-json",
+  "description": "Operate Crocoblock data and review changes across your WordPress workflows.",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "mcp": {
+    "endpoint_tools": "hidden",
+    "orchestration": "endpoint-mirror"
+  },
+  "auth": {
+    "type": "api_key",
+    "header": "Authorization",
+    "format": "Basic {CROCOBLOCK_USERNAME}:{CROCOBLOCK_APPLICATION_PASSWORD}",
+    "in": "header",
+    "env_vars": [
+      "CROCOBLOCK_USERNAME",
+      "CROCOBLOCK_APPLICATION_PASSWORD"
+    ],
+    "env_var_specs": [
+      {
+        "name": "CROCOBLOCK_USERNAME",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      },
+      {
+        "name": "CROCOBLOCK_APPLICATION_PASSWORD",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ]
+  },
+  "required_headers": [
+    {
+      "name": "User-Agent",
+      "value": "crocoblock-pp-cli/0.1.0 (authorized WordPress API client)"
+    }
+  ],
+  "tools": [
+    {
+      "name": "appointments-api_create",
+      "description": "Verified upstream contract for appointments-api create; use curated Crocoblock commands for redaction and validation.",
+      "method": "POST",
+      "path": "/jet-engine/v2/appointment-add-appointment",
+      "params": []
+    },
+    {
+      "name": "appointments-api_delete",
+      "description": "Verified upstream contract for appointments-api delete; use curated Crocoblock commands for redaction and validation. Required: items. Optional: group_ID.",
+      "method": "POST",
+      "path": "/jet-engine/v2/delete-appointment",
+      "params": [
+        {
+          "name": "items",
+          "type": "array",
+          "location": "body",
+          "description": "Items parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "group_ID",
+          "type": "int",
+          "location": "body",
+          "description": "Group id parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "appointments-api_get",
+      "description": "Verified upstream contract for appointments-api get; use curated Crocoblock commands for redaction and validation. Required: id.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-appointment/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "appointments-api_list",
+      "description": "Verified upstream contract for appointments-api list; use curated Crocoblock commands for redaction and validation. Optional: per_page (default: 50), offset (default: 0), filter.",
+      "method": "GET",
+      "path": "/jet-engine/v2/appointments-list",
+      "params": [
+        {
+          "name": "per_page",
+          "type": "int",
+          "location": "query",
+          "description": "Per page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "location": "query",
+          "description": "Offset parameter in the verified WordPress contract."
+        },
+        {
+          "name": "filter",
+          "type": "string",
+          "location": "query",
+          "description": "Filter parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "appointments-api_providers",
+      "description": "Verified upstream contract for appointments-api providers; use curated Crocoblock commands for redaction and validation. Required: service.",
+      "method": "GET",
+      "path": "/jet-engine/v2/appointment-service-providers",
+      "params": [
+        {
+          "name": "service",
+          "type": "int",
+          "location": "query",
+          "description": "Service parameter in the verified WordPress contract.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "appointments-api_slots",
+      "description": "Verified upstream contract for appointments-api slots; use curated Crocoblock commands for redaction and validation. Required: service, date. Optional: provider, timezone.",
+      "method": "POST",
+      "path": "/jet-engine/v2/appointment-date-slots",
+      "params": [
+        {
+          "name": "service",
+          "type": "int",
+          "location": "body",
+          "description": "Service parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "date",
+          "type": "int",
+          "location": "body",
+          "description": "Date parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "provider",
+          "type": "int",
+          "location": "body",
+          "description": "Provider parameter in the verified WordPress contract."
+        },
+        {
+          "name": "timezone",
+          "type": "string",
+          "location": "body",
+          "description": "Timezone parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "appointments-api_update",
+      "description": "Verified upstream contract for appointments-api update; use curated Crocoblock commands for redaction and validation. Required: id, item.",
+      "method": "POST",
+      "path": "/jet-engine/v2/update-appointment/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "item",
+          "type": "object",
+          "location": "body",
+          "description": "Item parameter in the verified WordPress contract.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "bookings-api_config",
+      "description": "Verified upstream contract for bookings-api config; use curated Crocoblock commands for redaction and validation.",
+      "method": "POST",
+      "path": "/jet-booking/v2/booking-config",
+      "params": []
+    },
+    {
+      "name": "bookings-api_create",
+      "description": "Verified upstream contract for bookings-api create; use curated Crocoblock commands for redaction and validation. Required: item. Optional: createRelatedOrder (default: false).",
+      "method": "POST",
+      "path": "/jet-booking/v2/add-booking",
+      "params": [
+        {
+          "name": "item",
+          "type": "object",
+          "location": "body",
+          "description": "Item parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "createRelatedOrder",
+          "type": "bool",
+          "location": "body",
+          "description": "Createrelatedorder parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "bookings-api_delete",
+      "description": "Verified upstream contract for bookings-api delete; use curated Crocoblock commands for redaction and validation. Required: id. Destructive.",
+      "method": "DELETE",
+      "path": "/jet-booking/v2/delete-booking/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "bookings-api_list",
+      "description": "Verified upstream contract for bookings-api list; use curated Crocoblock commands for redaction and validation. Optional: per_page (default: 50), offset (default: 0), filters.",
+      "method": "GET",
+      "path": "/jet-booking/v2/bookings-list",
+      "params": [
+        {
+          "name": "per_page",
+          "type": "int",
+          "location": "query",
+          "description": "Per page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "offset",
+          "type": "int",
+          "location": "query",
+          "description": "Offset parameter in the verified WordPress contract."
+        },
+        {
+          "name": "filters",
+          "type": "object",
+          "location": "query",
+          "description": "Filters parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "bookings-api_update",
+      "description": "Verified upstream contract for bookings-api update; use curated Crocoblock commands for redaction and validation. Required: id, item. Optional: createRelatedOrder (default: false).",
+      "method": "POST",
+      "path": "/jet-booking/v2/update-booking/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "item",
+          "type": "object",
+          "location": "body",
+          "description": "Item parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "createRelatedOrder",
+          "type": "bool",
+          "location": "body",
+          "description": "Createrelatedorder parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "cct-api_create",
+      "description": "Verified upstream contract for cct-api create; use curated Crocoblock commands for redaction and validation. Required: type.",
+      "method": "POST",
+      "path": "/jet-cct/{type}",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "location": "path",
+          "description": "CCT slug discovered on the selected site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "cct-api_delete",
+      "description": "Verified upstream contract for cct-api delete; use curated Crocoblock commands for redaction and validation. Required: type, id. Destructive.",
+      "method": "DELETE",
+      "path": "/jet-cct/{type}/{id}",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "location": "path",
+          "description": "CCT slug discovered on the selected site.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "cct-api_get",
+      "description": "Verified upstream contract for cct-api get; use curated Crocoblock commands for redaction and validation. Required: type, id.",
+      "method": "GET",
+      "path": "/jet-cct/{type}/{id}",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "location": "path",
+          "description": "CCT slug discovered on the selected site.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "cct-api_list",
+      "description": "Verified upstream contract for cct-api list; use curated Crocoblock commands for redaction and validation. Required: type. Optional: limit (default: 50), offset (default: 0). Returns array.",
+      "method": "GET",
+      "path": "/jet-cct/{type}",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "location": "path",
+          "description": "CCT slug discovered on the selected site.",
+          "required": true
+        },
+        {
+          "name": "limit",
+          "wire_name": "_limit",
+          "type": "int",
+          "location": "query",
+          "description": "limit parameter in the verified WordPress contract."
+        },
+        {
+          "name": "offset",
+          "wire_name": "_offset",
+          "type": "int",
+          "location": "query",
+          "description": "offset parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "cct-api_update",
+      "description": "Verified upstream contract for cct-api update; use curated Crocoblock commands for redaction and validation. Required: type, id.",
+      "method": "PUT",
+      "path": "/jet-cct/{type}/{id}",
+      "params": [
+        {
+          "name": "type",
+          "type": "string",
+          "location": "path",
+          "description": "CCT slug discovered on the selected site.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "engine-api_ccts",
+      "description": "Verified upstream contract for engine-api ccts; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-content-types",
+      "params": []
+    },
+    {
+      "name": "engine-api_cpts",
+      "description": "Verified upstream contract for engine-api cpts; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-post-types",
+      "params": []
+    },
+    {
+      "name": "engine-api_mcp",
+      "description": "Verified upstream contract for engine-api mcp; use curated Crocoblock commands for redaction and validation. Required: method. Optional: jsonrpc (default: 2.0), id (default: 1), params.",
+      "method": "POST",
+      "path": "/jet-engine/v1/mcp",
+      "params": [
+        {
+          "name": "jsonrpc",
+          "type": "string",
+          "location": "body",
+          "description": "Jsonrpc parameter in the verified WordPress contract."
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "body",
+          "description": "Id parameter in the verified WordPress contract."
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "location": "body",
+          "description": "Method parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "location": "body",
+          "description": "Params parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "engine-api_meta-boxes",
+      "description": "Verified upstream contract for engine-api meta-boxes; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-meta-boxes",
+      "params": []
+    },
+    {
+      "name": "engine-api_queries",
+      "description": "Verified upstream contract for engine-api queries; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-queries",
+      "params": []
+    },
+    {
+      "name": "engine-api_relations",
+      "description": "Verified upstream contract for engine-api relations; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-relations",
+      "params": []
+    },
+    {
+      "name": "engine-api_taxonomies",
+      "description": "Verified upstream contract for engine-api taxonomies; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/jet-engine/v2/get-taxonomies",
+      "params": []
+    },
+    {
+      "name": "fields-api_get",
+      "description": "Verified upstream contract for fields-api get; use curated Crocoblock commands for redaction and validation. Required: rest_type, id. Optional: context (default: edit).",
+      "method": "GET",
+      "path": "/wp/v2/{rest_type}/{id}",
+      "params": [
+        {
+          "name": "rest_type",
+          "type": "string",
+          "location": "path",
+          "description": "Rest type parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "string",
+          "location": "query",
+          "description": "Context parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "fields-api_update",
+      "description": "Verified upstream contract for fields-api update; use curated Crocoblock commands for redaction and validation. Required: rest_type, id, meta.",
+      "method": "POST",
+      "path": "/wp/v2/{rest_type}/{id}",
+      "params": [
+        {
+          "name": "rest_type",
+          "type": "string",
+          "location": "path",
+          "description": "Rest type parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "meta",
+          "type": "object",
+          "location": "body",
+          "description": "Meta parameter in the verified WordPress contract.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "filters-api_get",
+      "description": "Verified upstream contract for filters-api get; use curated Crocoblock commands for redaction and validation. Required: id.",
+      "method": "POST",
+      "path": "/jet-smart-filters-api/v1/filter",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "body",
+          "description": "Id parameter in the verified WordPress contract.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "filters-api_list",
+      "description": "Verified upstream contract for filters-api list; use curated Crocoblock commands for redaction and validation. Optional: page (default: 1), per_page (default: 50), status (default: publish) (plus 1 more).",
+      "method": "POST",
+      "path": "/jet-smart-filters-api/v1/filters",
+      "params": [
+        {
+          "name": "page",
+          "type": "int",
+          "location": "body",
+          "description": "Page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "per_page",
+          "type": "int",
+          "location": "body",
+          "description": "Per page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "location": "body",
+          "description": "Status parameter in the verified WordPress contract."
+        },
+        {
+          "name": "search",
+          "type": "string",
+          "location": "body",
+          "description": "Search parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "filters-api_save",
+      "description": "Verified upstream contract for filters-api save; use curated Crocoblock commands for redaction and validation. Required: id. Optional: data, duplicate.",
+      "method": "POST",
+      "path": "/jet-smart-filters-api/v1/filter",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "body",
+          "description": "Id parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "data",
+          "type": "object",
+          "location": "body",
+          "description": "Data parameter in the verified WordPress contract."
+        },
+        {
+          "name": "duplicate",
+          "type": "bool",
+          "location": "body",
+          "description": "Duplicate parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "filters-api_status",
+      "description": "Verified upstream contract for filters-api status; use curated Crocoblock commands for redaction and validation. Optional: move_to_trash, restore.",
+      "method": "POST",
+      "path": "/jet-smart-filters-api/v1/filters",
+      "params": [
+        {
+          "name": "move_to_trash",
+          "type": "array",
+          "location": "body",
+          "description": "Move to trash parameter in the verified WordPress contract."
+        },
+        {
+          "name": "restore",
+          "type": "array",
+          "location": "body",
+          "description": "Restore parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "forms-api_create",
+      "description": "Verified upstream contract for forms-api create; use curated Crocoblock commands for redaction and validation. Optional: title, content, status (default: draft) (plus 1 more).",
+      "method": "POST",
+      "path": "/wp/v2/jet-form-builder",
+      "params": [
+        {
+          "name": "title",
+          "type": "string",
+          "location": "body",
+          "description": "Title parameter in the verified WordPress contract."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "location": "body",
+          "description": "Content parameter in the verified WordPress contract."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "location": "body",
+          "description": "Status parameter in the verified WordPress contract."
+        },
+        {
+          "name": "meta",
+          "type": "object",
+          "location": "body",
+          "description": "Meta parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "forms-api_fields",
+      "description": "Verified upstream contract for forms-api fields; use curated Crocoblock commands for redaction and validation. Required: id. Returns array.",
+      "method": "GET",
+      "path": "/jet-form-builder/v1/{id}/fields",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "forms-api_get",
+      "description": "Verified upstream contract for forms-api get; use curated Crocoblock commands for redaction and validation. Required: id. Optional: context (default: edit).",
+      "method": "GET",
+      "path": "/wp/v2/jet-form-builder/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "string",
+          "location": "query",
+          "description": "Context parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "forms-api_list",
+      "description": "Verified upstream contract for forms-api list; use curated Crocoblock commands for redaction and validation. Optional: context (default: edit), per_page (default: 50), page (default: 1). Returns array.",
+      "method": "GET",
+      "path": "/wp/v2/jet-form-builder",
+      "params": [
+        {
+          "name": "context",
+          "type": "string",
+          "location": "query",
+          "description": "Context parameter in the verified WordPress contract."
+        },
+        {
+          "name": "per_page",
+          "type": "int",
+          "location": "query",
+          "description": "Per page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "Page parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "forms-api_trash",
+      "description": "Verified upstream contract for forms-api trash; use curated Crocoblock commands for redaction and validation. Required: id. Destructive.",
+      "method": "DELETE",
+      "path": "/wp/v2/jet-form-builder/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "forms-api_update",
+      "description": "Verified upstream contract for forms-api update; use curated Crocoblock commands for redaction and validation. Required: id. Optional: title, content, status (default: draft) (plus 1 more).",
+      "method": "POST",
+      "path": "/wp/v2/jet-form-builder/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "location": "body",
+          "description": "Title parameter in the verified WordPress contract."
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "location": "body",
+          "description": "Content parameter in the verified WordPress contract."
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "location": "body",
+          "description": "Status parameter in the verified WordPress contract."
+        },
+        {
+          "name": "meta",
+          "type": "object",
+          "location": "body",
+          "description": "Meta parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "records-api_fields",
+      "description": "Verified upstream contract for records-api fields; use curated Crocoblock commands for redaction and validation. Required: id.",
+      "method": "GET",
+      "path": "/jet-form-builder/v1/records/fields-box/{id}",
+      "params": [
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "records-api_list",
+      "description": "Verified upstream contract for records-api list; use curated Crocoblock commands for redaction and validation. Optional: limit (default: 50), page (default: 1), filters.",
+      "method": "GET",
+      "path": "/jet-form-builder/v1/records/fetch-page",
+      "params": [
+        {
+          "name": "limit",
+          "type": "int",
+          "location": "query",
+          "description": "Limit parameter in the verified WordPress contract."
+        },
+        {
+          "name": "page",
+          "type": "int",
+          "location": "query",
+          "description": "Page parameter in the verified WordPress contract."
+        },
+        {
+          "name": "filters",
+          "type": "object",
+          "location": "query",
+          "description": "Filters parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "relations-api_children",
+      "description": "Verified upstream contract for relations-api children; use curated Crocoblock commands for redaction and validation. Required: relation, id.",
+      "method": "GET",
+      "path": "/jet-rel/{relation}/children/{id}",
+      "params": [
+        {
+          "name": "relation",
+          "type": "int",
+          "location": "path",
+          "description": "Relation parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "relations-api_list",
+      "description": "Verified upstream contract for relations-api list; use curated Crocoblock commands for redaction and validation. Required: relation.",
+      "method": "GET",
+      "path": "/jet-rel/{relation}",
+      "params": [
+        {
+          "name": "relation",
+          "type": "int",
+          "location": "path",
+          "description": "Relation parameter in the verified WordPress contract.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "relations-api_parents",
+      "description": "Verified upstream contract for relations-api parents; use curated Crocoblock commands for redaction and validation. Required: relation, id.",
+      "method": "GET",
+      "path": "/jet-rel/{relation}/parents/{id}",
+      "params": [
+        {
+          "name": "relation",
+          "type": "int",
+          "location": "path",
+          "description": "Relation parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "path",
+          "description": "Numeric record identifier within the selected WordPress site.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "relations-api_update",
+      "description": "Verified upstream contract for relations-api update; use curated Crocoblock commands for redaction and validation. Required: relation, parent_id, child_id, store_items_type. Optional: context (default: child), meta.",
+      "method": "PUT",
+      "path": "/jet-rel/{relation}",
+      "params": [
+        {
+          "name": "relation",
+          "type": "int",
+          "location": "path",
+          "description": "Relation parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "parent_id",
+          "type": "array",
+          "location": "body",
+          "description": "Parent id parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "child_id",
+          "type": "array",
+          "location": "body",
+          "description": "Child id parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "context",
+          "type": "string",
+          "location": "body",
+          "description": "Context parameter in the verified WordPress contract."
+        },
+        {
+          "name": "store_items_type",
+          "type": "string",
+          "location": "body",
+          "description": "Store items type parameter in the verified WordPress contract.",
+          "required": true
+        },
+        {
+          "name": "meta",
+          "type": "object",
+          "location": "body",
+          "description": "Meta parameter in the verified WordPress contract."
+        }
+      ]
+    },
+    {
+      "name": "transport_index",
+      "description": "Verified upstream contract for transport index; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/",
+      "params": []
+    },
+    {
+      "name": "transport_plugins",
+      "description": "Verified upstream contract for transport plugins; use curated Crocoblock commands for redaction and validation.",
+      "method": "GET",
+      "path": "/wp/v2/plugins",
+      "params": []
+    }
+  ],
+  "novel_features": [
+    {
+      "name": "Diferencias de estructura",
+      "command": "schema diff",
+      "description": "Muestra qué tipos, campos y definiciones cambiaron entre dos revisiones del sitio."
+    },
+    {
+      "name": "Uso observado de campos",
+      "command": "forms field-usage",
+      "description": "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados."
+    },
+    {
+      "name": "Solapamientos de reservas",
+      "command": "reservations overlaps",
+      "description": "Señala solapamientos por recurso y evalúa capacidad con una política explícita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. Sólo admite citas slot/range registradas; no expande recurrencias."
+    },
+    {
+      "name": "Efecto de cambios sobre filtros",
+      "command": "filters impact",
+      "description": "Identifica candidatos de reindexación por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field válidos; otros proveedores o versiones quedan unknown."
+    },
+    {
+      "name": "Conciliación de contenido CCT",
+      "command": "cct reconcile",
+      "description": "Compara registros entre instantáneas por una clave única y muestra diferencias en campos seleccionados."
+    },
+    {
+      "name": "Integridad de relaciones",
+      "command": "relations audit",
+      "description": "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos."
+    }
+  ]
+}

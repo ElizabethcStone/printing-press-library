@@ -1,0 +1,8 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/crocoblock-pp-cli
+/crocoblock-pp-cli.exe
+/crocoblock-pp-mcp
+/crocoblock-pp-mcp.exe
+/bin/
+/build/
+/dist/

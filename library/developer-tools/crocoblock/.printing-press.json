@@ -1,0 +1,110 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-21T04:36:29.987421Z",
+  "printing_press_version": "4.33.8",
+  "api_name": "crocoblock",
+  "display_name": "Crocoblock",
+  "cli_name": "crocoblock-pp-cli",
+  "creator": {
+    "handle": "bobeglz",
+    "name": "bobe"
+  },
+  "owner": "bobeglz",
+  "printer": "bobeglz",
+  "printer_name": "bobe",
+  "spec_path": "spec.json",
+  "spec_format": "internal",
+  "spec_source": "docs",
+  "spec_checksum": "sha256:ea434f0f7751178aa8051fd2edf3caf99c058d018c978a2761347790de42db47",
+  "run_id": "20261020-194142-3c7b326d",
+  "category": "developer-tools",
+  "description": "Operate Crocoblock data and review changes across your WordPress workflows.",
+  "mcp_binary": "crocoblock-pp-mcp",
+  "mcp_tool_count": 75,
+  "mcp_ready": "full",
+  "api_version": "0.1.0",
+  "auth_type": "api_key",
+  "auth_env_vars": [
+    "CROCOBLOCK_USERNAME",
+    "CROCOBLOCK_APPLICATION_PASSWORD"
+  ],
+  "novel_features": [
+    {
+      "name": "Diferencias de estructura",
+      "command": "schema diff",
+      "description": "Muestra qu\u00e9 tipos, campos y definiciones cambiaron entre dos revisiones del sitio."
+    },
+    {
+      "name": "Uso observado de campos",
+      "command": "forms field-usage",
+      "description": "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados."
+    },
+    {
+      "name": "Solapamientos de reservas",
+      "command": "reservations overlaps",
+      "description": "Se\u00f1ala solapamientos por recurso y eval\u00faa capacidad con una pol\u00edtica expl\u00edcita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. S\u00f3lo admite citas slot/range registradas; no expande recurrencias."
+    },
+    {
+      "name": "Efecto de cambios sobre filtros",
+      "command": "filters impact",
+      "description": "Identifica candidatos de reindexaci\u00f3n por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field v\u00e1lidos; otros proveedores o versiones quedan unknown."
+    },
+    {
+      "name": "Conciliaci\u00f3n de contenido CCT",
+      "command": "cct reconcile",
+      "description": "Compara registros entre instant\u00e1neas por una clave \u00fanica y muestra diferencias en campos seleccionados."
+    },
+    {
+      "name": "Integridad de relaciones",
+      "command": "relations audit",
+      "description": "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Diferencias de estructura",
+      "command": "schema diff",
+      "description": "Muestra qu\u00e9 tipos, campos y definiciones cambiaron entre dos revisiones del sitio."
+    },
+    {
+      "name": "Uso observado de campos",
+      "command": "forms field-usage",
+      "description": "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados."
+    },
+    {
+      "name": "Solapamientos de reservas",
+      "command": "reservations overlaps",
+      "description": "Se\u00f1ala solapamientos por recurso y eval\u00faa capacidad con una pol\u00edtica expl\u00edcita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. S\u00f3lo admite citas slot/range registradas; no expande recurrencias."
+    },
+    {
+      "name": "Efecto de cambios sobre filtros",
+      "command": "filters impact",
+      "description": "Identifica candidatos de reindexaci\u00f3n por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field v\u00e1lidos; otros proveedores o versiones quedan unknown."
+    },
+    {
+      "name": "Conciliaci\u00f3n de contenido CCT",
+      "command": "cct reconcile",
+      "description": "Compara registros entre instant\u00e1neas por una clave \u00fanica y muestra diferencias en campos seleccionados."
+    },
+    {
+      "name": "Integridad de relaciones",
+      "command": "relations audit",
+      "description": "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos."
+    }
+  ],
+  "verify": {
+    "mode": "live",
+    "pass_rate": 100,
+    "passed": 73,
+    "total": 73,
+    "data_pipeline": true,
+    "verdict": "PASS"
+  },
+  "scorecard": {
+    "steinberger": {
+      "percentage": 82,
+      "grade": "A",
+      "total": 82
+    }
+  }
+}

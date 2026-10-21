@@ -1,0 +1,236 @@
+{
+  "api_name": "crocoblock",
+  "novelty_score": 8,
+  "alternatives": [
+    {
+      "name": "wp-jetengine-skills",
+      "url": "https://github.com/EPEAKSTUDIO/wp-jetengine-skills",
+      "language": "PHP",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 11,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "JetFormBuilder",
+      "url": "https://github.com/Crocoblock/jetformbuilder",
+      "language": "PHP",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 8,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "WPMCP",
+      "url": "https://github.com/wpmcp/wpmcp",
+      "language": "PHP",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 3,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
+  ],
+  "gaps": [],
+  "patterns": [
+    "Capability discovery precedes dynamic routes.",
+    "Admin REST authentication is independent from the Crocoblock vendor account.",
+    "Local audits carry explicit completeness and version provenance."
+  ],
+  "recommendation": "proceed",
+  "researched_at": "2026-10-21T02:21:49.951581Z",
+  "novel_features": [
+    {
+      "name": "Diferencias de estructura",
+      "command": "schema diff",
+      "description": "Muestra qué tipos, campos y definiciones cambiaron entre dos revisiones del sitio.",
+      "rationale": "Compara instantáneas completas con identidades y cobertura por recurso, algo que una lectura aislada no conserva.",
+      "example": "crocoblock-pp-cli schema diff --before baseline.db --after candidate.db --agent",
+      "why_it_matters": "Úsalo antes de una entrega para revisar cambios estructurales comprobables.",
+      "group": "Revisión de entregas"
+    },
+    {
+      "name": "Uso observado de campos",
+      "command": "forms field-usage",
+      "description": "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados.",
+      "rationale": "Cruza esquema y observaciones locales sin almacenar los valores personales de los envíos.",
+      "example": "crocoblock-pp-cli forms field-usage 42 --db candidate.db --agent",
+      "why_it_matters": "Úsalo para encontrar nombres históricos o campos nunca observados en la muestra, sin inferir errores de validación.",
+      "group": "Mantenimiento de formularios y filtros"
+    },
+    {
+      "name": "Solapamientos de reservas",
+      "command": "reservations overlaps",
+      "description": "Señala solapamientos por recurso y evalúa capacidad con una política explícita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. Sólo admite citas slot/range registradas; no expande recurrencias.",
+      "rationale": "Calcula intersecciones locales con reglas explícitas de estado, zona horaria, límites de fecha y ocupación.",
+      "example": "crocoblock-pp-cli reservations overlaps --db candidate.db --policy policy.json --agent",
+      "why_it_matters": "Úsalo para revisar posibles choques sin confundir un solapamiento con una reserva inválida.",
+      "group": "Revisión de reservas"
+    },
+    {
+      "name": "Efecto de cambios sobre filtros",
+      "command": "filters impact",
+      "description": "Identifica candidatos de reindexación por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field válidos; otros proveedores o versiones quedan unknown.",
+      "rationale": "Une dependencias verificadas, un diario local acotado y recibos de reindexación; no presupone observar todos los cambios del sitio.",
+      "example": "crocoblock-pp-cli filters impact --db candidate.db --since-event 1 --agent",
+      "why_it_matters": "Úsalo después de una edición para decidir qué mantenimiento del índice requiere revisión.",
+      "group": "Mantenimiento de formularios y filtros"
+    },
+    {
+      "name": "Conciliación de contenido CCT",
+      "command": "cct reconcile",
+      "description": "Compara registros entre instantáneas por una clave única y muestra diferencias en campos seleccionados.",
+      "rationale": "Empareja conjuntos completos, valida unicidad y calcula diferencias de valores sin depender de IDs entre sitios.",
+      "example": "crocoblock-pp-cli cct reconcile rooms --before baseline.db --after candidate.db --key external_id --fields external_id,title --agent",
+      "why_it_matters": "Úsalo para comprobar que dos revisiones conservan los datos esperados.",
+      "group": "Revisión de entregas"
+    },
+    {
+      "name": "Integridad de relaciones",
+      "command": "relations audit",
+      "description": "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos.",
+      "rationale": "Cruza aristas con inventarios tipados locales y separa faltantes comprobados de extremos no verificables.",
+      "example": "crocoblock-pp-cli relations audit --db candidate.db --agent",
+      "why_it_matters": "Úsalo después de cambios de contenido para revisar relaciones, sin interpretar un permiso denegado como un huérfano.",
+      "group": "Revisión de entregas"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Diferencias de estructura",
+      "command": "schema diff",
+      "description": "Muestra qué tipos, campos y definiciones cambiaron entre dos revisiones del sitio.",
+      "rationale": "Compara instantáneas completas con identidades y cobertura por recurso, algo que una lectura aislada no conserva.",
+      "example": "crocoblock-pp-cli schema diff --before baseline.db --after candidate.db --agent",
+      "why_it_matters": "Úsalo antes de una entrega para revisar cambios estructurales comprobables.",
+      "group": "Revisión de entregas"
+    },
+    {
+      "name": "Uso observado de campos",
+      "command": "forms field-usage",
+      "description": "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados.",
+      "rationale": "Cruza esquema y observaciones locales sin almacenar los valores personales de los envíos.",
+      "example": "crocoblock-pp-cli forms field-usage 42 --db candidate.db --agent",
+      "why_it_matters": "Úsalo para encontrar nombres históricos o campos nunca observados en la muestra, sin inferir errores de validación.",
+      "group": "Mantenimiento de formularios y filtros"
+    },
+    {
+      "name": "Solapamientos de reservas",
+      "command": "reservations overlaps",
+      "description": "Señala solapamientos por recurso y evalúa capacidad con una política explícita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. Sólo admite citas slot/range registradas; no expande recurrencias.",
+      "rationale": "Calcula intersecciones locales con reglas explícitas de estado, zona horaria, límites de fecha y ocupación.",
+      "example": "crocoblock-pp-cli reservations overlaps --db candidate.db --policy policy.json --agent",
+      "why_it_matters": "Úsalo para revisar posibles choques sin confundir un solapamiento con una reserva inválida.",
+      "group": "Revisión de reservas"
+    },
+    {
+      "name": "Efecto de cambios sobre filtros",
+      "command": "filters impact",
+      "description": "Identifica candidatos de reindexación por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field válidos; otros proveedores o versiones quedan unknown.",
+      "rationale": "Une dependencias verificadas, un diario local acotado y recibos de reindexación; no presupone observar todos los cambios del sitio.",
+      "example": "crocoblock-pp-cli filters impact --db candidate.db --since-event 1 --agent",
+      "why_it_matters": "Úsalo después de una edición para decidir qué mantenimiento del índice requiere revisión.",
+      "group": "Mantenimiento de formularios y filtros"
+    },
+    {
+      "name": "Conciliación de contenido CCT",
+      "command": "cct reconcile",
+      "description": "Compara registros entre instantáneas por una clave única y muestra diferencias en campos seleccionados.",
+      "rationale": "Empareja conjuntos completos, valida unicidad y calcula diferencias de valores sin depender de IDs entre sitios.",
+      "example": "crocoblock-pp-cli cct reconcile rooms --before baseline.db --after candidate.db --key external_id --fields external_id,title --agent",
+      "why_it_matters": "Úsalo para comprobar que dos revisiones conservan los datos esperados.",
+      "group": "Revisión de entregas"
+    },
+    {
+      "name": "Integridad de relaciones",
+      "command": "relations audit",
+      "description": "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos.",
+      "rationale": "Cruza aristas con inventarios tipados locales y separa faltantes comprobados de extremos no verificables.",
+      "example": "crocoblock-pp-cli relations audit --db candidate.db --agent",
+      "why_it_matters": "Úsalo después de cambios de contenido para revisar relaciones, sin interpretar un permiso denegado como un huérfano.",
+      "group": "Revisión de entregas"
+    }
+  ],
+  "auth": {},
+  "narrative": {
+    "display_name": "Crocoblock",
+    "headline": "Operate Crocoblock data and review changes across your WordPress workflows.",
+    "value_prop": "Inspect the installed JetPlugins, edit supported data with request previews, and compare local snapshots before a site release. Keep schemas, form observations, reservations and filter maintenance evidence tied to the site and plugin versions that produced them.",
+    "auth_narrative": "Set CROCOBLOCK_BASE_URL to the authorized HTTPS WordPress REST URL ending in /wp-json, CROCOBLOCK_USERNAME to the WordPress user, and CROCOBLOCK_APPLICATION_PASSWORD to its Application Password. Keep credentials in private environment/configuration, never in scripts, reports or source. Run crocoblock-pp-cli doctor --json and crocoblock-pp-cli discover --agent to check connectivity, installed modules and permission gaps. Your Crocoblock account session is only for downloading entitled plugins. Filter reindexing additionally requires an explicit SSH host and WordPress installation path for the same site. The SSH identity file is optional; omit it to use the existing SSH configuration or agent. Use CROCOBLOCK_DB or the command-specific database option to choose a site-specific local snapshot.",
+    "quickstart": [
+      {
+        "command": "crocoblock-pp-cli doctor --dry-run",
+        "comment": "Inspect the health-check plan without credentials or network calls."
+      },
+      {
+        "command": "crocoblock-pp-cli discover --agent",
+        "comment": "After configuring the site credentials, inspect supported plugins and permissions."
+      },
+      {
+        "command": "crocoblock-pp-cli engine configuration --agent",
+        "comment": "Read the observable JetEngine structure with secret fields redacted."
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "A plugin route is absent or returns 403.",
+        "fix": "Run crocoblock-pp-cli discover --agent and check the installed module, REST exposure and WordPress capability; do not treat a denial as an empty collection."
+      },
+      {
+        "symptom": "The JetFormBuilder field endpoint returns 204 for a draft.",
+        "fix": "Use crocoblock-pp-cli forms fields 42 --agent; the draft adapter reads stored blocks without publishing the form."
+      },
+      {
+        "symptom": "Filter reindexing has no configured transport.",
+        "fix": "Configure SSH host, identity and the WordPress installation path for the selected site; the command verifies the site URL before using WP-CLI."
+      },
+      {
+        "symptom": "A local comparison reports incomplete coverage.",
+        "fix": "Capture the required resources with sync --full --strict into separate --db snapshots and resolve denied or missing resources before comparing."
+      }
+    ],
+    "when_to_use": "Use this CLI to inspect and operate supported JetEngine, JetFormBuilder, JetBooking, JetAppointment and JetSmartFilters contracts on an authorized WordPress site. Use local comparisons to review schema and data changes, relation integrity, observed form-field names, reservation overlaps and recorded filter maintenance needs. Check provenance and coverage before treating a local result as current.",
+    "anti_triggers": [
+      "Do not use this CLI to buy or activate Crocoblock licenses or manage the vendor account.",
+      "Do not use this CLI for universal WordPress administration, visual page design or unrelated JetPlugins.",
+      "Do not use this CLI to submit live payment or mail forms or to assume a reservation is commercially available.",
+      "Do not use a local audit with incomplete coverage to certify production integrity."
+    ],
+    "recipes": [
+      {
+        "title": "Review structure changes",
+        "command": "crocoblock-pp-cli schema diff --before baseline.db --after candidate.db --agent",
+        "explanation": "Compare complete snapshots captured before and after a site change."
+      },
+      {
+        "title": "Inspect form field names",
+        "command": "crocoblock-pp-cli forms fields 42 --agent --select fields",
+        "explanation": "Keep a field-schema inspection small while the adapter handles published forms and drafts."
+      },
+      {
+        "title": "Compare CCT content",
+        "command": "crocoblock-pp-cli cct reconcile rooms --before baseline.db --after candidate.db --key external_id --fields external_id,title --agent",
+        "explanation": "Use an explicit unique key and selected fields to compare data across revisions."
+      },
+      {
+        "title": "Review filter maintenance candidates",
+        "command": "crocoblock-pp-cli filters impact --db candidate.db --since-event 1 --agent",
+        "explanation": "Limit the report to recorded writes and verified dependencies rather than assuming all site changes were observed."
+      }
+    ],
+    "trigger_phrases": [
+      "revisa los campos de JetEngine",
+      "compara los datos de este CCT",
+      "revisa los registros de JetFormBuilder",
+      "busca solapamientos en las reservas",
+      "revisa qué filtros necesitan reindexarse",
+      "use crocoblock",
+      "run crocoblock"
+    ]
+  }
+}

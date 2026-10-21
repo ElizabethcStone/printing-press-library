@@ -1,0 +1,24 @@
+{
+  "schema_version": 2,
+  "id": "safe-backups-replay-and-ambiguous-field-writes",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-194142-3c7b326d",
+  "base_printing_press_version": "4.33.8",
+  "summary": "Backups must be complete and atomic; WordPress mutations must never replay automatically or disappear from impact history after ambiguous outcomes.",
+  "reason": "Plugin collection contracts differ from generic REST pagination. Preview and failure paths must preserve existing files, and field intents must survive transport, verification, and snapshot failures without storing values.",
+  "files": [
+    "internal/cli/croco_export.go",
+    "internal/cli/croco_export_output_test.go",
+    "internal/cli/croco_export_test.go",
+    "internal/cli/croco_fields.go",
+    "internal/cli/croco_fields_journal_test.go",
+    "internal/cli/croco_filter_impact_index_test.go",
+    "internal/cli/croco_journal.go",
+    "internal/cli/export.go",
+    "internal/cli/filters_impact.go",
+    "internal/cli/import.go",
+    "internal/cli/import_guard_test.go",
+    "internal/cli/resource_paths.go"
+  ],
+  "validated_outcome": "Regression coverage includes all four multi-page exports, backup preservation, committed HTTP 500 imports with configured idempotency keys, and field-intent impact after failed readback or snapshot finalization. Intent reconciliation indexes 10,000 completion pairs in linear journal passes while retaining strict linkage and unknown-outcome checks."
+}

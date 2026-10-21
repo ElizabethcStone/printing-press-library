@@ -1,0 +1,47 @@
+{
+  "manifest_version": "0.3",
+  "name": "crocoblock-pp-mcp",
+  "display_name": "Crocoblock",
+  "version": "0.1.0",
+  "description": "Operate Crocoblock data and review changes across your WordPress workflows.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/crocoblock-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/crocoblock-pp-mcp",
+      "args": [],
+      "env": {
+        "CROCOBLOCK_APPLICATION_PASSWORD": "${user_config.crocoblock_application_password}",
+        "CROCOBLOCK_USERNAME": "${user_config.crocoblock_username}"
+      }
+    }
+  },
+  "user_config": {
+    "crocoblock_application_password": {
+      "type": "string",
+      "title": "CROCOBLOCK_APPLICATION_PASSWORD",
+      "description": "Sets CROCOBLOCK_APPLICATION_PASSWORD for the Crocoblock MCP server.",
+      "sensitive": true,
+      "required": true
+    },
+    "crocoblock_username": {
+      "type": "string",
+      "title": "CROCOBLOCK_USERNAME",
+      "description": "Sets CROCOBLOCK_USERNAME for the Crocoblock MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

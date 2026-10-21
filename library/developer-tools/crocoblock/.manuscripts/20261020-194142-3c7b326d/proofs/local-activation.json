@@ -1,0 +1,61 @@
+{
+  "status": "PASS",
+  "target": "authorized disposable WP Engine development lab",
+  "surface": "current-host local CLI and MCP launchers with private persistent configuration",
+  "checks": [
+    {
+      "command": [
+        "doctor",
+        "--fail-on",
+        "error"
+      ],
+      "exit_code": 0,
+      "json_valid": true,
+      "evidence": "local-smoke-attempt2.txt; all four checks completed before MCP harness name lookup failed"
+    },
+    {
+      "command": [
+        "discover"
+      ],
+      "exit_code": 0,
+      "json_valid": true,
+      "evidence": "local-smoke-attempt2.txt; all four checks completed before MCP harness name lookup failed"
+    },
+    {
+      "command": [
+        "sync",
+        "--resources",
+        "schema,forms,filters,relations,bookings,appointments",
+        "--full",
+        "--strict",
+        "--timeout",
+        "3m"
+      ],
+      "exit_code": 0,
+      "json_valid": true,
+      "evidence": "local-smoke-attempt2.txt; all four checks completed before MCP harness name lookup failed"
+    },
+    {
+      "command": [
+        "forms",
+        "list",
+        "--status",
+        "draft",
+        "--limit",
+        "10"
+      ],
+      "exit_code": 0,
+      "json_valid": true,
+      "evidence": "local-smoke-attempt2.txt; all four checks completed before MCP harness name lookup failed"
+    },
+    {
+      "command": "MCP initialize/tools-list/discover",
+      "status": "PASS",
+      "tools_count": 75,
+      "discover_tool": "discover",
+      "live_read": true
+    }
+  ],
+  "global_codex_registration": "not_modified",
+  "credentials_in_deliverables": false
+}

@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "curated-wordpress-surface-and-site-config",
+  "applied_at": "2026-10-21",
+  "base_run_id": "20261020-194142-3c7b326d",
+  "base_printing_press_version": "4.33.8",
+  "summary": "Expose the reviewed Crocoblock command tree, implemented local analyses and target-site MCP configuration.",
+  "reason": "JetPlugins combine dynamic routes with public PHP and MCP contracts; raw generated mirrors do not provide the approved validation or mutation journaling. Runtime surface tests must validate the curated leaves. The root sync constructor must resolve to the Crocoblock capture adapter; generic endpoint sync is not a valid capture contract. CROCOBLOCK_DB must resolve identically for captures, journal, CLI search and MCP SQL to avoid reading a different site snapshot. Required positional IDs must remain visible to MCP clients. Preserve atomic private snapshot finalization, safe PHP string transport, the WordPress-specific no-replay guard, complete reservation array validation and form validation-schema projection. Parent help groups must retain pp:parent-group metadata so live matrices enumerate executable leaves without rerunning child examples as group operations.",
+  "files": [
+    "internal/cli/root_test.go",
+    "manifest.json",
+    "internal/cli/schema_diff.go",
+    "internal/cli/forms_field_usage.go",
+    "internal/cli/reservations_overlaps.go",
+    "internal/cli/filters_impact.go",
+    "internal/cli/cct_reconcile.go",
+    "internal/cli/relations_audit.go",
+    "internal/cli/sync.go",
+    "internal/cli/helpers.go",
+    "internal/cli/croco_store_path.go",
+    "internal/cli/croco_base.go",
+    "internal/cli/croco_reindex.go",
+    "internal/cli/croco_fields.go",
+    "internal/cli/croco_forms.go",
+    "internal/cli/croco_bookings.go",
+    "internal/cli/croco_appointments.go",
+    "internal/mcp/crocoblock_required_ids_test.go"
+  ],
+  "validated_outcome": "61 approved leaves; authenticated TLS and WP Engine lab checks."
+}

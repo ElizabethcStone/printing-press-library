@@ -1,0 +1,1123 @@
+{
+  "name": "crocoblock",
+  "description": "Operate supported Crocoblock WordPress data and compare verified local snapshots.",
+  "version": "0.1.0",
+  "category": "developer-tools",
+  "base_url": "https://wordpress.example/wp-json",
+  "health_check_path": "/wp/v2/users/me?context=edit",
+  "http_transport": "standard",
+  "required_headers": [
+    {
+      "name": "User-Agent",
+      "value": "crocoblock-pp-cli/0.1.0 (authorized WordPress API client)"
+    }
+  ],
+  "auth": {
+    "type": "api_key",
+    "header": "Authorization",
+    "format": "Basic {username}:{password}",
+    "in": "header",
+    "env_vars": [
+      "CROCOBLOCK_USERNAME",
+      "CROCOBLOCK_APPLICATION_PASSWORD"
+    ]
+  },
+  "config": {
+    "format": "toml",
+    "path": "~/.config/crocoblock-pp-cli/config.toml"
+  },
+  "cache": {
+    "enabled": false
+  },
+  "learn": {
+    "entity_lookup_seeds": {
+      "plugin": [
+        {
+          "canonical": "jet-engine",
+          "aliases": [
+            "jetengine",
+            "jet engine"
+          ]
+        },
+        {
+          "canonical": "jet-form-builder",
+          "aliases": [
+            "jetformbuilder",
+            "formularios"
+          ]
+        },
+        {
+          "canonical": "jet-booking",
+          "aliases": [
+            "jetbooking",
+            "reservas por noche"
+          ]
+        },
+        {
+          "canonical": "jet-appointments-booking",
+          "aliases": [
+            "jetappointment",
+            "citas"
+          ]
+        },
+        {
+          "canonical": "jet-smart-filters",
+          "aliases": [
+            "jetsmartfilters",
+            "filtros"
+          ]
+        }
+      ]
+    },
+    "synonyms": {
+      "m\u00e1s recientes": "latest",
+      "custom content type": "cct"
+    }
+  },
+  "mcp": {
+    "transport": [
+      "stdio"
+    ],
+    "orchestration": "endpoint-mirror",
+    "endpoint_tools": "hidden"
+  },
+  "resources": {
+    "transport": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "index": {
+          "method": "GET",
+          "path": "/",
+          "description": "Verified upstream contract for transport index; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "plugins": {
+          "method": "GET",
+          "path": "/wp/v2/plugins",
+          "description": "Verified upstream contract for transport plugins; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "engine-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "mcp": {
+          "method": "POST",
+          "path": "/jet-engine/v1/mcp",
+          "description": "Verified upstream contract for engine-api mcp; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "jsonrpc",
+              "type": "string",
+              "required": false,
+              "description": "Jsonrpc parameter in the verified WordPress contract.",
+              "default": "2.0"
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": false,
+              "description": "Id parameter in the verified WordPress contract.",
+              "default": 1
+            },
+            {
+              "name": "method",
+              "type": "string",
+              "required": true,
+              "description": "Method parameter in the verified WordPress contract."
+            },
+            {
+              "name": "params",
+              "type": "object",
+              "required": false,
+              "description": "Params parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "ccts": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-content-types",
+          "description": "Verified upstream contract for engine-api ccts; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "relations": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-relations",
+          "description": "Verified upstream contract for engine-api relations; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "cpts": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-post-types",
+          "description": "Verified upstream contract for engine-api cpts; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "taxonomies": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-taxonomies",
+          "description": "Verified upstream contract for engine-api taxonomies; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "meta-boxes": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-meta-boxes",
+          "description": "Verified upstream contract for engine-api meta-boxes; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "queries": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-queries",
+          "description": "Verified upstream contract for engine-api queries; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "cct-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/jet-cct/{type}",
+          "description": "Verified upstream contract for cct-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": true,
+              "description": "CCT slug discovered on the selected site."
+            },
+            {
+              "name": "_limit",
+              "type": "int",
+              "required": false,
+              "description": " limit parameter in the verified WordPress contract.",
+              "default": 50,
+              "flag_name": "limit"
+            },
+            {
+              "name": "_offset",
+              "type": "int",
+              "required": false,
+              "description": " offset parameter in the verified WordPress contract.",
+              "default": 0,
+              "flag_name": "offset"
+            }
+          ],
+          "response": {
+            "type": "array"
+          }
+        },
+        "get": {
+          "method": "GET",
+          "path": "/jet-cct/{type}/{id}",
+          "description": "Verified upstream contract for cct-api get; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": true,
+              "description": "CCT slug discovered on the selected site."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "create": {
+          "method": "POST",
+          "path": "/jet-cct/{type}",
+          "description": "Verified upstream contract for cct-api create; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": true,
+              "description": "CCT slug discovered on the selected site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/jet-cct/{type}/{id}",
+          "description": "Verified upstream contract for cct-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": true,
+              "description": "CCT slug discovered on the selected site."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/jet-cct/{type}/{id}",
+          "description": "Verified upstream contract for cct-api delete; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "type",
+              "type": "string",
+              "required": true,
+              "description": "CCT slug discovered on the selected site."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "relations-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/jet-rel/{relation}",
+          "description": "Verified upstream contract for relations-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "relation",
+              "type": "int",
+              "required": true,
+              "description": "Relation parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "parents": {
+          "method": "GET",
+          "path": "/jet-rel/{relation}/parents/{id}",
+          "description": "Verified upstream contract for relations-api parents; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "relation",
+              "type": "int",
+              "required": true,
+              "description": "Relation parameter in the verified WordPress contract."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "children": {
+          "method": "GET",
+          "path": "/jet-rel/{relation}/children/{id}",
+          "description": "Verified upstream contract for relations-api children; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "relation",
+              "type": "int",
+              "required": true,
+              "description": "Relation parameter in the verified WordPress contract."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "update": {
+          "method": "PUT",
+          "path": "/jet-rel/{relation}",
+          "description": "Verified upstream contract for relations-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "relation",
+              "type": "int",
+              "required": true,
+              "description": "Relation parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "parent_id",
+              "type": "array",
+              "required": true,
+              "description": "Parent id parameter in the verified WordPress contract."
+            },
+            {
+              "name": "child_id",
+              "type": "array",
+              "required": true,
+              "description": "Child id parameter in the verified WordPress contract."
+            },
+            {
+              "name": "context",
+              "type": "string",
+              "required": false,
+              "description": "Context parameter in the verified WordPress contract.",
+              "default": "child",
+              "enum": [
+                "child",
+                "parent"
+              ]
+            },
+            {
+              "name": "store_items_type",
+              "type": "string",
+              "required": true,
+              "description": "Store items type parameter in the verified WordPress contract.",
+              "enum": [
+                "append",
+                "replace",
+                "disconnect"
+              ]
+            },
+            {
+              "name": "meta",
+              "type": "object",
+              "required": false,
+              "description": "Meta parameter in the verified WordPress contract."
+            }
+          ]
+        }
+      }
+    },
+    "forms-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/wp/v2/jet-form-builder",
+          "description": "Verified upstream contract for forms-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "context",
+              "type": "string",
+              "required": false,
+              "description": "Context parameter in the verified WordPress contract.",
+              "default": "edit"
+            },
+            {
+              "name": "per_page",
+              "type": "int",
+              "required": false,
+              "description": "Per page parameter in the verified WordPress contract.",
+              "default": 50
+            },
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "description": "Page parameter in the verified WordPress contract.",
+              "default": 1
+            }
+          ],
+          "response": {
+            "type": "array"
+          }
+        },
+        "get": {
+          "method": "GET",
+          "path": "/wp/v2/jet-form-builder/{id}",
+          "description": "Verified upstream contract for forms-api get; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            },
+            {
+              "name": "context",
+              "type": "string",
+              "required": false,
+              "description": "Context parameter in the verified WordPress contract.",
+              "default": "edit"
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "create": {
+          "method": "POST",
+          "path": "/wp/v2/jet-form-builder",
+          "description": "Verified upstream contract for forms-api create; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "title",
+              "type": "string",
+              "required": false,
+              "description": "Title parameter in the verified WordPress contract."
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "required": false,
+              "description": "Content parameter in the verified WordPress contract."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": false,
+              "description": "Status parameter in the verified WordPress contract.",
+              "default": "draft"
+            },
+            {
+              "name": "meta",
+              "type": "object",
+              "required": false,
+              "description": "Meta parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "update": {
+          "method": "POST",
+          "path": "/wp/v2/jet-form-builder/{id}",
+          "description": "Verified upstream contract for forms-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "title",
+              "type": "string",
+              "required": false,
+              "description": "Title parameter in the verified WordPress contract."
+            },
+            {
+              "name": "content",
+              "type": "string",
+              "required": false,
+              "description": "Content parameter in the verified WordPress contract."
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": false,
+              "description": "Status parameter in the verified WordPress contract.",
+              "default": "draft"
+            },
+            {
+              "name": "meta",
+              "type": "object",
+              "required": false,
+              "description": "Meta parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "trash": {
+          "method": "DELETE",
+          "path": "/wp/v2/jet-form-builder/{id}",
+          "description": "Verified upstream contract for forms-api trash; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "fields": {
+          "method": "GET",
+          "path": "/jet-form-builder/v1/{id}/fields",
+          "description": "Verified upstream contract for forms-api fields; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "array"
+          }
+        }
+      }
+    },
+    "records-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/jet-form-builder/v1/records/fetch-page",
+          "description": "Verified upstream contract for records-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "limit",
+              "type": "int",
+              "required": false,
+              "description": "Limit parameter in the verified WordPress contract.",
+              "default": 50
+            },
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "description": "Page parameter in the verified WordPress contract.",
+              "default": 1
+            },
+            {
+              "name": "filters",
+              "type": "object",
+              "required": false,
+              "description": "Filters parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "response_path": "list"
+        },
+        "fields": {
+          "method": "GET",
+          "path": "/jet-form-builder/v1/records/fields-box/{id}",
+          "description": "Verified upstream contract for records-api fields; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "bookings-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/jet-booking/v2/bookings-list",
+          "description": "Verified upstream contract for bookings-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "per_page",
+              "type": "int",
+              "required": false,
+              "description": "Per page parameter in the verified WordPress contract.",
+              "default": 50
+            },
+            {
+              "name": "offset",
+              "type": "int",
+              "required": false,
+              "description": "Offset parameter in the verified WordPress contract.",
+              "default": 0
+            },
+            {
+              "name": "filters",
+              "type": "object",
+              "required": false,
+              "description": "Filters parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "response_path": "data"
+        },
+        "config": {
+          "method": "POST",
+          "path": "/jet-booking/v2/booking-config",
+          "description": "Verified upstream contract for bookings-api config; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "create": {
+          "method": "POST",
+          "path": "/jet-booking/v2/add-booking",
+          "description": "Verified upstream contract for bookings-api create; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "item",
+              "type": "object",
+              "required": true,
+              "description": "Item parameter in the verified WordPress contract."
+            },
+            {
+              "name": "createRelatedOrder",
+              "type": "bool",
+              "required": false,
+              "description": "Createrelatedorder parameter in the verified WordPress contract.",
+              "default": false
+            }
+          ]
+        },
+        "update": {
+          "method": "POST",
+          "path": "/jet-booking/v2/update-booking/{id}",
+          "description": "Verified upstream contract for bookings-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "item",
+              "type": "object",
+              "required": true,
+              "description": "Item parameter in the verified WordPress contract."
+            },
+            {
+              "name": "createRelatedOrder",
+              "type": "bool",
+              "required": false,
+              "description": "Createrelatedorder parameter in the verified WordPress contract.",
+              "default": false
+            }
+          ]
+        },
+        "delete": {
+          "method": "DELETE",
+          "path": "/jet-booking/v2/delete-booking/{id}",
+          "description": "Verified upstream contract for bookings-api delete; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "appointments-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "GET",
+          "path": "/jet-engine/v2/appointments-list",
+          "description": "Verified upstream contract for appointments-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "per_page",
+              "type": "int",
+              "required": false,
+              "description": "Per page parameter in the verified WordPress contract.",
+              "default": 50
+            },
+            {
+              "name": "offset",
+              "type": "int",
+              "required": false,
+              "description": "Offset parameter in the verified WordPress contract.",
+              "default": 0
+            },
+            {
+              "name": "filter",
+              "type": "string",
+              "required": false,
+              "description": "Filter parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "response_path": "data"
+        },
+        "get": {
+          "method": "GET",
+          "path": "/jet-engine/v2/get-appointment/{id}",
+          "description": "Verified upstream contract for appointments-api get; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "create": {
+          "method": "POST",
+          "path": "/jet-engine/v2/appointment-add-appointment",
+          "description": "Verified upstream contract for appointments-api create; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          }
+        },
+        "update": {
+          "method": "POST",
+          "path": "/jet-engine/v2/update-appointment/{id}",
+          "description": "Verified upstream contract for appointments-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "item",
+              "type": "object",
+              "required": true,
+              "description": "Item parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "delete": {
+          "method": "POST",
+          "path": "/jet-engine/v2/delete-appointment",
+          "description": "Verified upstream contract for appointments-api delete; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "items",
+              "type": "array",
+              "required": true,
+              "description": "Items parameter in the verified WordPress contract."
+            },
+            {
+              "name": "group_ID",
+              "type": "int",
+              "required": false,
+              "description": "Group id parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "slots": {
+          "method": "POST",
+          "path": "/jet-engine/v2/appointment-date-slots",
+          "description": "Verified upstream contract for appointments-api slots; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "service",
+              "type": "int",
+              "required": true,
+              "description": "Service parameter in the verified WordPress contract."
+            },
+            {
+              "name": "date",
+              "type": "int",
+              "required": true,
+              "description": "Date parameter in the verified WordPress contract."
+            },
+            {
+              "name": "provider",
+              "type": "int",
+              "required": false,
+              "description": "Provider parameter in the verified WordPress contract."
+            },
+            {
+              "name": "timezone",
+              "type": "string",
+              "required": false,
+              "description": "Timezone parameter in the verified WordPress contract."
+            }
+          ],
+          "mutation": false
+        },
+        "providers": {
+          "method": "GET",
+          "path": "/jet-engine/v2/appointment-service-providers",
+          "description": "Verified upstream contract for appointments-api providers; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "service",
+              "type": "int",
+              "required": true,
+              "description": "Service parameter in the verified WordPress contract."
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "filters-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "list": {
+          "method": "POST",
+          "path": "/jet-smart-filters-api/v1/filters",
+          "description": "Verified upstream contract for filters-api list; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "page",
+              "type": "int",
+              "required": false,
+              "description": "Page parameter in the verified WordPress contract.",
+              "default": 1
+            },
+            {
+              "name": "per_page",
+              "type": "int",
+              "required": false,
+              "description": "Per page parameter in the verified WordPress contract.",
+              "default": 50
+            },
+            {
+              "name": "status",
+              "type": "string",
+              "required": false,
+              "description": "Status parameter in the verified WordPress contract.",
+              "default": "publish"
+            },
+            {
+              "name": "search",
+              "type": "string",
+              "required": false,
+              "description": "Search parameter in the verified WordPress contract."
+            }
+          ],
+          "mutation": false
+        },
+        "get": {
+          "method": "POST",
+          "path": "/jet-smart-filters-api/v1/filter",
+          "description": "Verified upstream contract for filters-api get; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Id parameter in the verified WordPress contract."
+            }
+          ],
+          "mutation": false
+        },
+        "save": {
+          "method": "POST",
+          "path": "/jet-smart-filters-api/v1/filter",
+          "description": "Verified upstream contract for filters-api save; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "id",
+              "type": "string",
+              "required": true,
+              "description": "Id parameter in the verified WordPress contract."
+            },
+            {
+              "name": "data",
+              "type": "object",
+              "required": false,
+              "description": "Data parameter in the verified WordPress contract."
+            },
+            {
+              "name": "duplicate",
+              "type": "bool",
+              "required": false,
+              "description": "Duplicate parameter in the verified WordPress contract."
+            }
+          ]
+        },
+        "status": {
+          "method": "POST",
+          "path": "/jet-smart-filters-api/v1/filters",
+          "description": "Verified upstream contract for filters-api status; use curated Crocoblock commands for redaction and validation.",
+          "params": [],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "move_to_trash",
+              "type": "array",
+              "required": false,
+              "description": "Move to trash parameter in the verified WordPress contract."
+            },
+            {
+              "name": "restore",
+              "type": "array",
+              "required": false,
+              "description": "Restore parameter in the verified WordPress contract."
+            }
+          ]
+        }
+      }
+    },
+    "fields-api": {
+      "description": "Internal transport contracts; curated command adapters replace the raw surface.",
+      "endpoints": {
+        "get": {
+          "method": "GET",
+          "path": "/wp/v2/{rest_type}/{id}",
+          "description": "Verified upstream contract for fields-api get; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "rest_type",
+              "type": "string",
+              "required": true,
+              "description": "Rest type parameter in the verified WordPress contract."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            },
+            {
+              "name": "context",
+              "type": "string",
+              "required": false,
+              "description": "Context parameter in the verified WordPress contract.",
+              "default": "edit"
+            }
+          ],
+          "response": {
+            "type": "object"
+          }
+        },
+        "update": {
+          "method": "POST",
+          "path": "/wp/v2/{rest_type}/{id}",
+          "description": "Verified upstream contract for fields-api update; use curated Crocoblock commands for redaction and validation.",
+          "params": [
+            {
+              "name": "rest_type",
+              "type": "string",
+              "required": true,
+              "description": "Rest type parameter in the verified WordPress contract."
+            },
+            {
+              "name": "id",
+              "type": "int",
+              "required": true,
+              "description": "Numeric record identifier within the selected WordPress site."
+            }
+          ],
+          "response": {
+            "type": "object"
+          },
+          "body": [
+            {
+              "name": "meta",
+              "type": "object",
+              "required": true,
+              "description": "Meta parameter in the verified WordPress contract."
+            }
+          ]
+        }
+      }
+    }
+  }
+}

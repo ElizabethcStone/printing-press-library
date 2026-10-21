@@ -1,0 +1,17 @@
+# agentcookie.toml: secrets-bus adoption manifest v2
+# See docs/spec-agentcookie-secrets-bus-v2-adoption.md
+schema_version = 2
+name = "crocoblock-pp-cli"
+display_name = "Crocoblock"
+description = "Operate Crocoblock data and review changes across your WordPress workflows."
+project_kind = "cli"
+
+[secrets.file]
+path = "~/.config/crocoblock-pp-cli/config.toml"
+
+[sync]
+default = false
+
+[sync.keys]
+CROCOBLOCK_APPLICATION_PASSWORD = true
+CROCOBLOCK_USERNAME = true

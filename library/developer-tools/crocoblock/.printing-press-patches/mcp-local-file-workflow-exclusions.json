@@ -1,0 +1,17 @@
+{
+  "schema_version": 2,
+  "id": "mcp-local-file-workflow-exclusions",
+  "applied_at": "2026-10-20",
+  "base_run_id": "20261020-194142-3c7b326d",
+  "base_printing_press_version": "4.33.8",
+  "summary": "Keep all CLI capabilities while excluding file-dependent workflows that cannot receive required paths through MCP.",
+  "reason": "The generated cobratree contract deliberately removes and rejects mcp:read-flags and mcp:write-flags; required-file tools must not remain advertised without their required arguments. Curated crocoAttach and the initial registration hook exclude schema diff, cct reconcile, reservations overlaps, fields update, fields restore and framework import from MCP only. Snapshot update declares its write sink explicitly. Preserve the generated file-path guard; do not enable an args bypass.",
+  "files": [
+    "internal/cli/croco_base.go",
+    "internal/cli/croco_fields.go",
+    "internal/mcp/crocoblock_required_ids_test.go",
+    "README.md",
+    "SKILL.md"
+  ],
+  "validated_outcome": "75 MCP tools: 56 Crocoblock domain leaves plus 19 framework tools. All 61 Crocoblock CLI leaves remain available. Ten required-ID cases and six CLI-presence/MCP-exclusion cases pass; current-source live matrix 252/252 mandatory checks passes."
+}

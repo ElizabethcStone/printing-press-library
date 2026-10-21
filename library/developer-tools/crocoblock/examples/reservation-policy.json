@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "timezone": "America/Monterrey",
+  "bookings": {
+    "included_statuses": ["pending", "processing", "completed"],
+    "boundary": "half-open",
+    "capacity": 1,
+    "group_by": ["apartment_id", "apartment_unit"],
+    "date_encoding": "utc_calendar_date",
+    "check_in_adjustment": "subtract_one_second"
+  },
+  "appointments": {
+    "included_statuses": ["pending", "processing", "completed"],
+    "boundary": "half-open",
+    "capacity": 1,
+    "group_by": ["service", "provider"]
+  }
+}

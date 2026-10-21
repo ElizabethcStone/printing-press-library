@@ -1,0 +1,48 @@
+{
+  "workflows": [
+    {
+      "name": "Inspect the installed site and capture filter definitions",
+      "primary": true,
+      "steps": [
+        {
+          "command": "discover",
+          "mode": "live",
+          "args": {
+            "no-learn": "true"
+          },
+          "auth_required": true,
+          "expect_fields": [
+            "versions",
+            "capabilities"
+          ]
+        },
+        {
+          "command": "sync",
+          "mode": "live",
+          "args": {
+            "resources": "filters",
+            "full": "true",
+            "strict": "true",
+            "no-learn": "true"
+          },
+          "auth_required": true,
+          "expect_fields": [
+            "captures"
+          ]
+        },
+        {
+          "command": "filters impact",
+          "mode": "local",
+          "args": {
+            "no-learn": "true"
+          },
+          "expect_fields": [
+            "filters",
+            "journal",
+            "capture"
+          ]
+        }
+      ]
+    }
+  ]
+}

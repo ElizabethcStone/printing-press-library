@@ -1,0 +1,464 @@
+{
+  "raw_findings": 56,
+  "hand_authored_reviewed": 12,
+  "hand_authored_actionable": 0,
+  "generated_deferred": 44,
+  "notes": [
+    "G119 generated client uses same-origin guard before restoring Authorization; cross-origin redirects remove it.",
+    "G101 generated gate.go matches the enum invalid_credentials, not a hardcoded credential.",
+    "G302 reported 0700 directory modes are intentional private-directory permissions.",
+    "Generated SQL/ACL/unsafe/path findings remain upstream review material; no claim that every scanner finding is a confirmed vulnerability."
+  ],
+  "findings": [
+    {
+      "rule": "G115",
+      "file": "internal/cliutil/darwin_acl.go",
+      "line": "230",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "212",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "167",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "155",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cliutil/darwin_acl_darwin.go",
+      "line": "143",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cliutil/creds_perms_unix.go",
+      "line": "71",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G115",
+      "file": "internal/cliutil/creds_perms_unix.go",
+      "line": "53",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G119",
+      "file": "internal/client/client.go",
+      "line": "1049",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G101",
+      "file": "internal/platform/gate.go",
+      "line": "23",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G703",
+      "file": "internal/cli/teach.go",
+      "line": "211",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G201",
+      "file": "internal/store/store.go",
+      "line": "4086-4089",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G201",
+      "file": "internal/store/store.go",
+      "line": "3659-3662",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G201",
+      "file": "internal/store/store.go",
+      "line": "1545",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G201",
+      "file": "internal/store/store.go",
+      "line": "1521",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G202",
+      "file": "internal/store/store.go",
+      "line": "1072",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G202",
+      "file": "internal/store/learnings.go",
+      "line": "610",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G202",
+      "file": "internal/platform/migration.go",
+      "line": "158",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/store/store.go",
+      "line": "291",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/platform/ratelimit.go",
+      "line": "149",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/platform/profile.go",
+      "line": "511",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/learn/teach_log.go",
+      "line": "113",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/learn/playbooks.go",
+      "line": "74",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/config/config.go",
+      "line": "186",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/teach_playbook.go",
+      "line": "377",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/teach.go",
+      "line": "151",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/teach.go",
+      "line": "128",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "100",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/reservations_overlaps.go",
+      "line": "80",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Operator-selected policy file is an intentional CLI input, bounded to 1MiB; the MCP read-path argument is blocked and the file-dependent tool is now excluded."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/helpers.go",
+      "line": "4774",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/helpers.go",
+      "line": "4735",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/feedback.go",
+      "line": "209",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/feedback.go",
+      "line": "67",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/export.go",
+      "line": "220",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/croco_fields.go",
+      "line": "634",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Explicit private restore input; Lstat rejects symlinks, opened inode must match, mode must be private and size is capped at 4MiB."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/croco_fields.go",
+      "line": "534",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Explicit private snapshot destination created with O_EXCL and 0600, so existing files are never overwritten; the MCP tool is now excluded and write sink annotated."
+    },
+    {
+      "rule": "G304",
+      "file": "internal/cli/croco_base.go",
+      "line": "269",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Explicit operator-selected --input or stdin is the CLI contract; JSON is capped at 4MiB and MCP blocks this path flag."
+    },
+    {
+      "rule": "G117",
+      "file": "internal/learn/journal.go",
+      "line": "266",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G302",
+      "file": "internal/platform/profile.go",
+      "line": "303",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G302",
+      "file": "internal/cliutil/testenv/testenv.go",
+      "line": "79",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G302",
+      "file": "internal/cliutil/testenv/sandbox_unix.go",
+      "line": "16",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G302",
+      "file": "internal/client/client.go",
+      "line": "1485",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "212",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "197",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "179",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/store/store.go",
+      "line": "3750",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/store/store.go",
+      "line": "3386",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/store/crocoblock_snapshot.go",
+      "line": "50",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Close follows invalid stored JSON and returns the primary decode error; normal read completion checks both rows.Err and Close."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/store/crocoblock_snapshot.go",
+      "line": "46",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Close follows a failed row scan and preserves the primary error; normal read completion checks both rows.Err and Close."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/store/crocoblock.go",
+      "line": "140",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Close follows a failed row scan in a transaction; normal path checks iteration and close errors before replacement."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/learn/journal.go",
+      "line": "279",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/client/client.go",
+      "line": "2242",
+      "scope": "generated",
+      "disposition": "upstream-template-retro",
+      "rationale": "Generated framework source is not patched in this CLI; retain as upstream scanner/template review candidate rather than suppressing locally."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/cli/croco_journal.go",
+      "line": "30",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Cleanup close occurs after chmod failure; function returns the primary error before exposing the store or performing a write."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/cli/croco_fields.go",
+      "line": "600",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Deferred cleanup removes a private temporary filename after explicit write/sync/close/rename handling; cleanup does not alter reported persistence success."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/cli/croco_fields.go",
+      "line": "599",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Deferred close is best-effort cleanup; successful snapshot finalization already checks explicit Close before rename."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/cli/croco_fields.go",
+      "line": "539",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Cleanup close follows initial snapshot write failure, which is returned and prevents API mutation."
+    },
+    {
+      "rule": "G104",
+      "file": "internal/cli/croco_base.go",
+      "line": "107",
+      "scope": "hand-authored",
+      "disposition": "non-actionable-reviewed",
+      "rationale": "Close releases the site-check store after the explicit check result is captured; no mutation result is being acknowledged by that cleanup."
+    }
+  ],
+  "after_raw_findings": 56,
+  "after_hand_authored_actionable": 0
+}

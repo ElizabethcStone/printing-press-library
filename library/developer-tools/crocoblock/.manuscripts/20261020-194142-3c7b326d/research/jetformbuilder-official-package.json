@@ -1,0 +1,9 @@
+{
+  "slug": "jetformbuilder",
+  "version": "3.6.7",
+  "requires": "6.1",
+  "requires_php": "7.0",
+  "last_updated": "2026-10-14 11:07am GMT",
+  "download_link": "https://downloads.wordpress.org/plugin/jetformbuilder.3.6.7.zip",
+  "homepage": "https://jetformbuilder.com/"
+}

@@ -1,0 +1,4 @@
+# Live matrix fix loop 2
+After correcting parent metadata, 246 checks passed and two schema-diff checks were blocked by incomplete fixture scope: the prior lifecycle baseline intentionally captured only forms while the documentation example compares default resources. Re-captured both private test snapshots through real `sync --resources schema,forms,filters --full --strict` calls, each verified successful. No source change, fabricated record or acceptance-marker edit. Positive difference detection remains independently proven by the schema write lifecycle.
+
+Fixture completion: the default schema comparison also requires engine:relations, captured by the separate relations resource adapter. Added real relations sync to each snapshot and executed the exact schema-diff example successfully before rerunning the matrix. This completes the same fixture repair; no extra product code fix or narrowed scope.

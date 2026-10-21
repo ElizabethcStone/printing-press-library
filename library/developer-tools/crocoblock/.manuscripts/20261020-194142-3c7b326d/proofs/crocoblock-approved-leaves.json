@@ -1,0 +1,372 @@
+{
+  "commands": 61,
+  "pass": true,
+  "rows": [
+    {
+      "command": "discover",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli discover [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine configuration",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine configuration [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine website",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine website [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine macros",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine macros [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine modules",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine modules [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-cct",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-cct [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-cpt",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-cpt [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-taxonomy",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-taxonomy [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-meta-box",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-meta-box [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-query",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-query [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-listing",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-listing [flags]",
+      "pass": true
+    },
+    {
+      "command": "engine create-glossary",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli engine create-glossary [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct list <type> [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct get",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct get <type> <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct create",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct create <type> [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct update <type> <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct delete",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct delete <type> <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations definitions",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations definitions [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations list <relation-id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations parents",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations parents <relation-id> <object-id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations children",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations children <relation-id> <object-id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations update <relation-id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms list [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms get",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms get ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms create",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms create [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms update ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms trash",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms trash ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms fields",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms fields ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "records list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli records list [flags]",
+      "pass": true
+    },
+    {
+      "command": "records fields",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli records fields ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "bookings list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli bookings list [flags]",
+      "pass": true
+    },
+    {
+      "command": "bookings config",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli bookings config RESOURCE_ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "bookings create",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli bookings create [flags]",
+      "pass": true
+    },
+    {
+      "command": "bookings update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli bookings update ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "bookings delete",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli bookings delete ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments list [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments get",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments get ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments create",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments create [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments update ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments delete",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments delete ID [ID...] [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments slots",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments slots SERVICE_ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "appointments providers",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli appointments providers SERVICE_ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters list [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters get",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters get <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters create",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters create [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters update <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters duplicate",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters duplicate <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters trash",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters trash <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters restore",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters restore <id> [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters reindex",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters reindex [flags]",
+      "pass": true
+    },
+    {
+      "command": "fields list",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli fields list [flags]",
+      "pass": true
+    },
+    {
+      "command": "fields get",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli fields get ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "fields update",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli fields update ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "fields restore",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli fields restore [flags]",
+      "pass": true
+    },
+    {
+      "command": "sync",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli sync [flags]",
+      "pass": true
+    },
+    {
+      "command": "schema diff",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli schema diff [flags]",
+      "pass": true
+    },
+    {
+      "command": "forms field-usage",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli forms field-usage ID [flags]",
+      "pass": true
+    },
+    {
+      "command": "reservations overlaps",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli reservations overlaps [flags]",
+      "pass": true
+    },
+    {
+      "command": "filters impact",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli filters impact [flags]",
+      "pass": true
+    },
+    {
+      "command": "cct reconcile",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli cct reconcile <type> [flags]",
+      "pass": true
+    },
+    {
+      "command": "relations audit",
+      "exit_code": 0,
+      "usage": "crocoblock-pp-cli relations audit [relation-id] [flags]",
+      "pass": true
+    }
+  ]
+}
