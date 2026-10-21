@@ -1,0 +1,21 @@
+info: learn: defaulting self-learning loop on (opt out with learn.disabled: true)
+warning: novel feature command "bases" maps to generated command path; skipping novel stub
+warning: novel feature command "records" maps to generated command path; skipping novel stub
+warning: novel feature command "search" would shadow framework cobra command "search" at runtime (every printed CLI registers `<cli> search` as a built-in); skipping novel stub. Rename the feature — e.g. "airtable_search"
+Synthesizing same-version force-regen base from spec (this may take a moment)...
+info: learn: defaulting self-learning loop on (opt out with learn.disabled: true)
+Force regen merged 19 preserved files / 0 AddCommand calls
+PASS go mod tidy
+PASS ensure safe golang.org/x/net
+PASS ensure safe golang.org/x/text
+PASS ensure safe github.com/enetx/http
+PASS go test ./...
+PASS govulncheck ./...
+PASS go vet ./...
+PASS go build ./...
+PASS build runnable binary
+PASS airtable-pp-cli --help
+PASS airtable-pp-cli version
+PASS airtable-pp-cli doctor
+Generated airtable at <runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli
+Bundled <runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli/build/airtable-pp-mcp-darwin-arm64.mcpb

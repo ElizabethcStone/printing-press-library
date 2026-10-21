@@ -1,0 +1,16 @@
+# agentcookie.toml: secrets-bus adoption manifest v2
+# See docs/spec-agentcookie-secrets-bus-v2-adoption.md
+schema_version = 2
+name = "airtable-pp-cli"
+display_name = "Airtable"
+description = "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection."
+project_kind = "cli"
+
+[secrets.file]
+path = "~/.config/airtable-pp-cli/config.toml"
+
+[sync]
+default = false
+
+[sync.keys]
+AIRTABLE_API_KEY = true

@@ -1,0 +1,8 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/airtable-pp-cli
+/airtable-pp-cli.exe
+/airtable-pp-mcp
+/airtable-pp-mcp.exe
+/bin/
+/build/
+/dist/

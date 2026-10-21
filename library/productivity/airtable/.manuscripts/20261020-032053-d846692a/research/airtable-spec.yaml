@@ -1,0 +1,910 @@
+name: airtable
+description: "Airtable REST API CLI — records, bases, tables, fields, views, webhooks, comments, and attachments"
+version: "0.1.0"
+category: productivity
+base_url: "https://api.airtable.com"
+health_check_path: "/v0/meta/whoami"
+
+auth:
+  type: bearer_token
+  header: "Authorization"
+  format: "Bearer {token}"
+  env_vars:
+    - AIRTABLE_API_KEY
+
+config:
+  format: toml
+  path: "~/.config/airtable-pp-cli/config.toml"
+
+mcp:
+  transport: [stdio, http]
+  orchestration: code
+  endpoint_tools: hidden
+
+cache:
+  enabled: true
+  stale_after: 24h
+
+learn:
+  entity_lookup_seeds:
+    field_type:
+      - canonical: singleLineText
+        aliases: [text, "single line text", "short text"]
+      - canonical: multilineText
+        aliases: ["long text", "multi line text", "multiline text"]
+      - canonical: singleSelect
+        aliases: [select, "single select", dropdown]
+      - canonical: multipleSelects
+        aliases: [multiselect, "multiple select", "multi select"]
+      - canonical: multipleRecordLinks
+        aliases: ["linked record", "linked records", link, links]
+      - canonical: multipleAttachments
+        aliases: [attachment, attachments, files]
+      - canonical: dateTime
+        aliases: ["date time", timestamp]
+      - canonical: singleCollaborator
+        aliases: [collaborator, assignee]
+      - canonical: checkbox
+        aliases: [boolean, bool]
+  synonyms:
+    "record id": "record"
+    "base id": "base"
+
+resources:
+  records:
+    description: "Record CRUD in a table (records have no fixed schema — fields are user-defined per base)"
+    endpoints:
+      list:
+        method: GET
+        path: "/v0/{base_id}/{table}"
+        description: "List records in a table, with formula filtering, sorting, view scoping, and pagination"
+        example: "  airtable-pp-cli records list --base appLkNDICXNqxSDhG --table Shipments --filter-formula \"{Status}='Delayed'\""
+        happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID (starts with 'app')"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or table ID (starts with 'tbl')"
+          - name: timeZone
+            flag_name: timezone
+            type: string
+            description: "IANA time zone, required when cell-format=string"
+          - name: userLocale
+            flag_name: user-locale
+            type: string
+            description: "User locale, required when cell-format=string"
+          - name: pageSize
+            flag_name: page-size
+            type: int
+            default: 100
+            description: "Records per page, max 100"
+          - name: maxRecords
+            flag_name: max-records
+            type: int
+            description: "Maximum total records to return across pages"
+          - name: offset
+            type: string
+            description: "Pagination cursor from a previous response"
+          - name: view
+            type: string
+            description: "View name or ID; scopes and orders results to that view"
+          - name: sort_field
+            flag_name: sort-field
+            url_name: "sort[0][field]"
+            type: string
+            description: "Field name or ID to sort by (single-field sort; use --view for multi-field view-defined order)"
+          - name: sort_direction
+            flag_name: sort-direction
+            url_name: "sort[0][direction]"
+            type: string
+            enum: ["asc", "desc"]
+            description: "Sort direction for --sort-field"
+          - name: filterByFormula
+            flag_name: filter-formula
+            type: string
+            description: "Airtable formula expression; only matching records are returned"
+          - name: cellFormat
+            flag_name: cell-format
+            type: string
+            enum: ["json", "string"]
+            default: "json"
+            description: "json (typed cell values) or string (user-facing formatted strings; requires --timezone and --user-locale)"
+          - name: fields
+            flag_name: fields
+            url_name: "fields[]"
+            type: array
+            description: "Field names or IDs to include (JSON array, e.g. '[\"Name\",\"Status\"]'); omit to return all fields"
+          - name: returnFieldsByFieldId
+            flag_name: return-fields-by-field-id
+            type: bool
+            description: "Key returned fields objects by field ID instead of field name"
+          - name: recordMetadata
+            flag_name: record-metadata
+            url_name: "recordMetadata[]"
+            type: array
+            enum: ["commentCount"]
+            description: "Additional record metadata to include, e.g. '[\"commentCount\"]'"
+        pagination:
+          type: cursor
+          cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
+
+      get:
+        method: GET
+        example: "  airtable-pp-cli records get recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
+        path: "/v0/{base_id}/{table}/{record_id}"
+        description: "Retrieve a single record"
+        happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID (starts with 'rec')"
+          - name: returnFieldsByFieldId
+            flag_name: return-fields-by-field-id
+            type: bool
+            description: "Key returned fields objects by field ID instead of field name"
+
+      create:
+        method: POST
+        path: "/v0/{base_id}/{table}"
+        description: "Create one or more records"
+        example: "  airtable-pp-cli records create --base appLkNDICXNqxSDhG --table Shipments --fields '{\"Name\":\"Union Square\"}'"
+        happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments;--fields={\"Name\":\"Example\"}"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+        body:
+          properties:
+            fields:
+              type: object
+              description: "Cell values for a single new record, keyed by field name, e.g. {\"Name\":\"Union Square\"}. Omit when using --records for a batch create."
+            records:
+              type: array
+              description: "Array of {\"fields\": {...}} objects to create multiple records (max ~10) in one request. Omit when using --fields for a single record."
+            returnFieldsByFieldId:
+              type: bool
+              description: "Key returned fields objects by field ID instead of field name"
+            typecast:
+              type: bool
+              description: "Best-effort auto-conversion of string values into the correct cell type"
+
+      update:
+        method: PATCH
+        example: "  airtable-pp-cli records update recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --fields '{\"Status\":\"Delayed\"}'"
+        path: "/v0/{base_id}/{table}/{record_id}"
+        description: "Update a single record; only the fields you specify are changed (partial update)"
+        happy_args: "--base=appLkNDICXNqxSDhG;--table=Shipments;--fields={\"Status\":\"Delayed\"}"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID"
+        body:
+          properties:
+            fields:
+              type: object
+              required: true
+              description: "Cell values to update, keyed by field name"
+            returnFieldsByFieldId:
+              type: bool
+            typecast:
+              type: bool
+              description: "Best-effort auto-conversion of string values into the correct cell type"
+
+      replace:
+        method: PUT
+        example: "  airtable-pp-cli records replace recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --fields '{\"Status\":\"Delivered\"}'"
+        path: "/v0/{base_id}/{table}/{record_id}"
+        description: "Destructively replace a single record; unspecified cell values are cleared"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID"
+        body:
+          properties:
+            fields:
+              type: object
+              required: true
+              description: "Complete cell values for the record; any field not included is cleared"
+            returnFieldsByFieldId:
+              type: bool
+            typecast:
+              type: bool
+
+      update_multiple:
+        method: PATCH
+        path: "/v0/{base_id}/{table}"
+        description: "Update or upsert multiple records in one request (partial update per record)"
+        example: "  airtable-pp-cli records update-multiple --base appLkNDICXNqxSDhG --table Leads --records '[{\"id\":\"recXXXX\",\"fields\":{\"Status\":\"Active\"}}]'"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+        body:
+          properties:
+            records:
+              type: array
+              required: true
+              description: "Array of {\"id\": \"recXXX\" (optional if performUpsert set), \"fields\": {...}} objects, max ~10 per request"
+            performUpsert:
+              type: object
+              description: "Set to enable upsert: {\"fieldsToMergeOn\": [\"Email\"]} matches existing records by those field(s) instead of by id"
+            returnFieldsByFieldId:
+              type: bool
+            typecast:
+              type: bool
+
+      replace_multiple:
+        method: PUT
+        example: "  airtable-pp-cli records replace-multiple --base appLkNDICXNqxSDhG --table Shipments --records '[{\"id\":\"recA1b2C3d4E5f6G7\",\"fields\":{\"Status\":\"Delivered\"}}]'"
+        path: "/v0/{base_id}/{table}"
+        description: "Destructively replace multiple records in one request (or upsert, clearing unspecified fields)"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+        body:
+          properties:
+            records:
+              type: array
+              required: true
+              description: "Array of {\"id\": \"recXXX\", \"fields\": {...}} objects; any field not included is cleared"
+            performUpsert:
+              type: object
+              description: "Set to enable upsert: {\"fieldsToMergeOn\": [\"Email\"]}"
+            returnFieldsByFieldId:
+              type: bool
+            typecast:
+              type: bool
+
+      delete:
+        method: DELETE
+        example: "  airtable-pp-cli records delete recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
+        path: "/v0/{base_id}/{table}/{record_id}"
+        description: "Delete a single record"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID"
+
+      delete_multiple:
+        method: DELETE
+        example: "  airtable-pp-cli records delete-multiple --base appLkNDICXNqxSDhG --table Shipments --records '[\"recA1b2C3d4E5f6G7\",\"recB1b2C3d4E5f6G7\"]'"
+        path: "/v0/{base_id}/{table}"
+        description: "Delete multiple records by ID"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: records
+            flag_name: records
+            url_name: "records[]"
+            type: array
+            required: true
+            description: "Record IDs to delete, e.g. '[\"recAAA\",\"recBBB\"]'"
+
+  bases:
+    description: "Base-level metadata: list bases, get schema, collaborators, create bases"
+    endpoints:
+      list:
+        method: GET
+        path: "/v0/meta/bases"
+        response_path: "bases"
+        description: "List bases the token can access"
+        params:
+          - name: offset
+            type: string
+            description: "Pagination cursor from a previous response"
+        pagination:
+          type: cursor
+          cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
+
+      get_schema:
+        method: GET
+        example: "  airtable-pp-cli bases get-schema appLkNDICXNqxSDhG"
+        path: "/v0/meta/bases/{base_id}/tables"
+        description: "Return the schema (tables, fields, views) for a base"
+        happy_args: "id=appLkNDICXNqxSDhG"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+          - name: include
+            type: array
+            description: "Extra fields to include in view objects, only supports '[\"visibleFieldIds\"]'"
+
+      get_collaborators:
+        method: GET
+        example: "  airtable-pp-cli bases get-collaborators appLkNDICXNqxSDhG"
+        path: "/v0/meta/bases/{base_id}"
+        description: "Get basic base info: name, permission level, and outstanding invites"
+        happy_args: "id=appLkNDICXNqxSDhG"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+
+      create:
+        method: POST
+        example: "  airtable-pp-cli bases create --name \"Ops Tracker\" --workspace-id wspA1b2C3d4E5f6G7 --tables '[{\"name\":\"Tasks\",\"fields\":[{\"name\":\"Name\",\"type\":\"singleLineText\"}]}]'"
+        path: "/v0/meta/bases"
+        description: "Create a base with tables and return its schema"
+        body:
+          properties:
+            workspaceId:
+              type: string
+              required: true
+              description: "Workspace ID to create the base in (starts with 'wsp')"
+            name:
+              type: string
+              required: true
+              description: "Base name"
+            tables:
+              type: array
+              required: true
+              description: "Array of table definitions, e.g. '[{\"name\":\"Table 1\",\"fields\":[{\"name\":\"Name\",\"type\":\"singleLineText\"}]}]'"
+
+  tables:
+    description: "Table schema management within a base"
+    endpoints:
+      create:
+        method: POST
+        example: "  airtable-pp-cli tables create appLkNDICXNqxSDhG --name Carriers --fields '[{\"name\":\"Name\",\"type\":\"singleLineText\"}]'"
+        path: "/v0/meta/bases/{base_id}/tables"
+        description: "Create a table in a base"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+        body:
+          properties:
+            name:
+              type: string
+              required: true
+              description: "Table name"
+            description:
+              type: string
+              description: "Table description"
+            fields:
+              type: array
+              required: true
+              description: "Initial field definitions, e.g. '[{\"name\":\"Name\",\"type\":\"singleLineText\"}]'"
+
+      update:
+        method: PATCH
+        example: "  airtable-pp-cli tables update tblA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG --name \"Carrier Directory\""
+        path: "/v0/meta/bases/{base_id}/tables/{table_id}"
+        description: "Update a table's name, description, or date-dependency settings"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table_id
+            type: string
+            required: true
+            positional: true
+            description: "Table ID or name"
+        body:
+          properties:
+            name:
+              type: string
+              description: "New table name"
+            description:
+              type: string
+              description: "New table description"
+            dateDependencySettings:
+              type: object
+              description: "Date dependency configuration, e.g. '{\"isEnabled\":true}'"
+
+  fields:
+    description: "Field (column) schema management within a table"
+    endpoints:
+      create:
+        method: POST
+        example: "  airtable-pp-cli fields create --base-id appLkNDICXNqxSDhG --table-id tblA1b2C3d4E5f6G7 --name Priority --type singleSelect --options '{\"choices\":[{\"name\":\"High\"},{\"name\":\"Low\"}]}'"
+        path: "/v0/meta/bases/{base_id}/tables/{table_id}/fields"
+        description: "Create a field in a table"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table_id
+            type: string
+            required: true
+            positional: false
+            description: "Table ID or name"
+        body:
+          properties:
+            name:
+              type: string
+              required: true
+              description: "Field name"
+            type:
+              type: string
+              required: true
+              description: "Field type, e.g. singleLineText, singleSelect, multipleRecordLinks (see doctor/README for the full enum)"
+            description:
+              type: string
+              description: "Field description"
+            options:
+              type: object
+              description: "Type-specific field options as a JSON object, e.g. '{\"choices\":[{\"name\":\"Todo\"}]}' for singleSelect"
+
+      update:
+        method: PATCH
+        example: "  airtable-pp-cli fields update fldAbC123dEf456Gh --base-id appLkNDICXNqxSDhG --table-id tblA1b2C3d4E5f6G7 --name \"Priority Level\""
+        path: "/v0/meta/bases/{base_id}/tables/{table_id}/fields/{field_id}"
+        description: "Update a field's name, description, or options"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table_id
+            type: string
+            required: true
+            positional: false
+            description: "Table ID or name"
+          - name: field_id
+            type: string
+            required: true
+            positional: true
+            description: "Field ID"
+        body:
+          properties:
+            name:
+              type: string
+              description: "New field name"
+            description:
+              type: string
+              description: "New field description"
+            options:
+              type: object
+              description: "New type-specific field options as a JSON object"
+
+  views:
+    description: "View metadata within a base"
+    endpoints:
+      list:
+        method: GET
+        example: "  airtable-pp-cli views list appLkNDICXNqxSDhG"
+        path: "/v0/meta/bases/{base_id}/views"
+        response_path: "views"
+        description: "List views in a base"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+
+      get:
+        method: GET
+        example: "  airtable-pp-cli views get viwA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
+        path: "/v0/meta/bases/{base_id}/views/{view_id}"
+        description: "Get metadata for a view"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: view_id
+            type: string
+            required: true
+            positional: true
+            description: "View ID"
+
+      delete:
+        method: DELETE
+        example: "  airtable-pp-cli views delete viwA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
+        path: "/v0/meta/bases/{base_id}/views/{view_id}"
+        description: "Delete a view"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: view_id
+            type: string
+            required: true
+            positional: true
+            description: "View ID"
+
+  webhooks:
+    description: "Webhook subscriptions for base change notifications"
+    endpoints:
+      list:
+        method: GET
+        example: "  airtable-pp-cli webhooks list appLkNDICXNqxSDhG"
+        path: "/v0/bases/{base_id}/webhooks"
+        response_path: "webhooks"
+        description: "List webhooks registered on a base"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+
+      create:
+        method: POST
+        example: "  airtable-pp-cli webhooks create appLkNDICXNqxSDhG --notification-url https://example.com/airtable-hook --specification '{\"options\":{\"filters\":{\"dataTypes\":[\"tableData\"]}}}'"
+        path: "/v0/bases/{base_id}/webhooks"
+        description: "Create a webhook on a base (max 10 per base)"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: true
+            description: "Base ID"
+        body:
+          properties:
+            notificationUrl:
+              type: string
+              description: "URL to ping when the webhook fires; omit for a specification-only webhook you poll for payloads"
+            specification:
+              type: object
+              required: true
+              description: "Webhook specification as JSON, e.g. '{\"options\":{\"filters\":{\"dataTypes\":[\"tableData\"]}}}'"
+
+      delete:
+        method: DELETE
+        example: "  airtable-pp-cli webhooks delete achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
+        path: "/v0/bases/{base_id}/webhooks/{webhook_id}"
+        description: "Delete a webhook"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: webhook_id
+            type: string
+            required: true
+            positional: true
+            description: "Webhook ID"
+
+      refresh:
+        method: POST
+        path: "/v0/bases/{base_id}/webhooks/{webhook_id}/refresh"
+        description: "Extend a webhook's expiration by 7 days"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: webhook_id
+            type: string
+            required: true
+            positional: true
+            description: "Webhook ID"
+
+      set_notifications:
+        method: POST
+        example: "  airtable-pp-cli webhooks set-notifications achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG --enable"
+        path: "/v0/bases/{base_id}/webhooks/{webhook_id}/enableNotifications"
+        description: "Enable or disable notification pings for a webhook"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: webhook_id
+            type: string
+            required: true
+            positional: true
+            description: "Webhook ID"
+        body:
+          properties:
+            enable:
+              type: bool
+              required: true
+              description: "true to enable notification pings, false to disable"
+
+      list_payloads:
+        method: GET
+        example: "  airtable-pp-cli webhooks list-payloads achA1b2C3d4E5f6G7 --base-id appLkNDICXNqxSDhG"
+        path: "/v0/bases/{base_id}/webhooks/{webhook_id}/payloads"
+        description: "Retrieve queued change payloads for a webhook (call after receiving a ping)"
+        params:
+          - name: base_id
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: webhook_id
+            type: string
+            required: true
+            positional: true
+            description: "Webhook ID"
+          - name: cursor
+            type: int
+            description: "Payload cursor from a previous response's cursor field"
+
+  comments:
+    description: "Threaded comments on records"
+    endpoints:
+      list:
+        method: GET
+        example: "  airtable-pp-cli comments list recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments"
+        path: "/v0/{base_id}/{table}/{record_id}/comments"
+        response_path: "comments"
+        description: "List comments on a record, newest first"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID"
+          - name: pageSize
+            flag_name: page-size
+            type: int
+            description: "Comments per page"
+          - name: offset
+            type: string
+            description: "Pagination cursor"
+        pagination:
+          type: cursor
+          cursor_field: offset
+          cursor_param: offset
+          next_cursor_path: offset
+
+      create:
+        method: POST
+        example: "  airtable-pp-cli comments create recA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --text \"Carrier confirmed pickup\""
+        path: "/v0/{base_id}/{table}/{record_id}/comments"
+        description: "Create a comment on a record"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: true
+            description: "Record ID"
+        body:
+          properties:
+            text:
+              type: string
+              required: true
+              description: "Comment text; supports @mention syntax, see field-model docs"
+
+      update:
+        method: PATCH
+        example: "  airtable-pp-cli comments update comA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --record-id recA1b2C3d4E5f6G7 --text \"Pickup moved to Friday\""
+        path: "/v0/{base_id}/{table}/{record_id}/comments/{comment_id}"
+        description: "Update a comment you created"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: false
+            description: "Record ID"
+          - name: comment_id
+            type: string
+            required: true
+            positional: true
+            description: "Comment ID"
+        body:
+          properties:
+            text:
+              type: string
+              required: true
+              description: "New comment text"
+
+      delete:
+        method: DELETE
+        example: "  airtable-pp-cli comments delete comA1b2C3d4E5f6G7 --base appLkNDICXNqxSDhG --table Shipments --record-id recA1b2C3d4E5f6G7"
+        path: "/v0/{base_id}/{table}/{record_id}/comments/{comment_id}"
+        description: "Delete a comment you created (Enterprise Admins can delete any)"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: table
+            type: string
+            required: true
+            positional: false
+            description: "Table name or ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: false
+            description: "Record ID"
+          - name: comment_id
+            type: string
+            required: true
+            positional: true
+            description: "Comment ID"
+
+  attachments:
+    description: "Direct attachment upload to a cell"
+    endpoints:
+      upload:
+        method: POST
+        example: "  airtable-pp-cli attachments fldAbC123dEf456Gh --base appLkNDICXNqxSDhG --record-id recA1b2C3d4E5f6G7 --file photo.jpg --filename photo.jpg --content-type image/jpeg"
+        path: "/v0/{base_id}/{record_id}/{field_id}/uploadAttachment"
+        base_url: "https://content.airtable.com"
+        description: "Upload a file (up to 5MB) directly to an attachment cell"
+        params:
+          - name: base_id
+            flag_name: base
+            type: string
+            required: true
+            positional: false
+            description: "Base ID"
+          - name: record_id
+            type: string
+            required: true
+            positional: false
+            description: "Record ID"
+          - name: field_id
+            type: string
+            required: true
+            positional: true
+            description: "Attachment field name or ID"
+        body:
+          - name: contentType
+            flag_name: content-type
+            type: string
+            required: true
+            description: "MIME type, e.g. image/jpeg"
+          - name: file
+            type: string
+            required: true
+            description: "Base64-encoded file bytes"
+          - name: filename
+            type: string
+            required: true
+            description: "Filename, e.g. photo.jpg"
+
+  user:
+    description: "Authenticated user identity and token scopes"
+    endpoints:
+      get:
+        method: GET
+        path: "/v0/meta/whoami"
+        description: "Get the authenticated user's ID, and token scopes/email if the token has those scopes"

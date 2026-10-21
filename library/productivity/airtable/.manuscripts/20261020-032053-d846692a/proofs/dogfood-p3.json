@@ -1,0 +1,173 @@
+{
+  "dir": "<runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli",
+  "spec_path": "<runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli/spec.yaml",
+  "spec_source": "bundled",
+  "verdict": "FAIL",
+  "path_check": {
+    "tested": 0,
+    "valid": 0,
+    "valid_pct": 0,
+    "skipped": true,
+    "detail": "internal-yaml spec: paths validated at parse time"
+  },
+  "auth_check": {
+    "spec_scheme": "bearer token format (expects \"Bearer \" prefix)",
+    "generated_format": "Bearer ",
+    "match": true,
+    "detail": "spec and generated client both use \"Bearer\""
+  },
+  "browser_session_check": {
+    "required": false,
+    "pass": true,
+    "detail": "browser-session auth not required"
+  },
+  "oauth_scope_coverage_check": {
+    "checked": 0,
+    "covered": 0,
+    "skipped": true,
+    "detail": "no OAuth-scoped endpoints in spec"
+  },
+  "dead_flags": {
+    "total": 27,
+    "dead": 0
+  },
+  "dead_functions": {
+    "total": 170,
+    "dead": 1,
+    "items": [
+      "printStampedDryRunOutput"
+    ]
+  },
+  "pipeline_check": {
+    "sync_calls_domain": true,
+    "search_calls_domain": false,
+    "domain_tables": 4,
+    "sync_file_emitted": true,
+    "sync_resources_present": true,
+    "detail": "sync uses domain-specific Upsert methods; search uses generic Search only; 4 domain tables found"
+  },
+  "example_check": {
+    "tested": 10,
+    "with_examples": 6,
+    "valid_examples": 6,
+    "missing": [
+      "attachments",
+      "fields create",
+      "tables update",
+      "webhooks delete"
+    ],
+    "detail": "6/10 commands have examples"
+  },
+  "wiring_check": {
+    "command_tree": {
+      "defined": 97,
+      "registered": 97
+    },
+    "config_consistency": {
+      "write_fields": [
+        ", token, "
+      ],
+      "consistent": true
+    },
+    "workflow_completeness": {
+      "skipped": true,
+      "total_steps": 0,
+      "mapped_steps": 0,
+      "detail": "no workflow_verify.yaml found"
+    }
+  },
+  "novel_features_check": {
+    "planned": 5,
+    "found": 5
+  },
+  "mcp_surface_parity": {
+    "state": "runtime_walking",
+    "pass": true,
+    "detail": "MCP surface mirrors the Cobra tree at runtime"
+  },
+  "reimplementation_check": {
+    "checked": 5,
+    "exempted_via_store": 3,
+    "unverified_hosts": [
+      {
+        "command": "records list",
+        "file": "bases_list.go",
+        "reason": "unverified host \"bases.list\" is not in research artifacts",
+        "line": 24,
+        "host": "bases.list"
+      },
+      {
+        "command": "records list",
+        "file": "comments_list.go",
+        "reason": "unverified host \"comments.list\" is not in research artifacts",
+        "line": 28,
+        "host": "comments.list"
+      },
+      {
+        "command": "records list",
+        "file": "feedback.go",
+        "reason": "unverified host \"feedback.jsonl\" is not in research artifacts",
+        "line": 43,
+        "host": "feedback.jsonl"
+      },
+      {
+        "command": "records list",
+        "file": "records_list.go",
+        "reason": "unverified host \"records.list\" is not in research artifacts",
+        "line": 39,
+        "host": "records.list"
+      },
+      {
+        "command": "records list",
+        "file": "teach.go",
+        "reason": "unverified host \"learnings.jsonl\" is not in research artifacts",
+        "line": 46,
+        "host": "learnings.jsonl"
+      },
+      {
+        "command": "records list",
+        "file": "teach.go",
+        "reason": "unverified host \"teach.log\" is not in research artifacts",
+        "line": 51,
+        "host": "teach.log"
+      },
+      {
+        "command": "records list",
+        "file": "views_list.go",
+        "reason": "unverified host \"views.list\" is not in research artifacts",
+        "line": 23,
+        "host": "views.list"
+      },
+      {
+        "command": "records list",
+        "file": "webhooks_list.go",
+        "reason": "unverified host \"webhooks.list\" is not in research artifacts",
+        "line": 23,
+        "host": "webhooks.list"
+      }
+    ]
+  },
+  "description_drift_check": {
+    "expected": "Every Airtable REST API feature, plus offline cross-base search, CSV merge-upserts, and schema drift detection nothing else offers."
+  },
+  "source_client_check": {
+    "checked": 9
+  },
+  "print_json_filtered_check": {
+    "checked": 79
+  },
+  "test_presence": {
+    "checked": 2
+  },
+  "naming_check": {
+    "checked": 79
+  },
+  "sync_param_drop_check": {
+    "checked": 0,
+    "skipped": true
+  },
+  "issues": [
+    "1 dead helper functions found",
+    "8 novel feature host(s) are not in research artifacts: records list (bases_list.go:24) — unverified host \"bases.list\" is not in research artifacts; records list (comments_list.go:28) — unverified host \"comments.list\" is not in research artifacts; records list (feedback.go:43) — unverified host \"feedback.jsonl\" is not in research artifacts; records list (records_list.go:39) — unverified host \"records.list\" is not in research artifacts; records list (teach.go:46) — unverified host \"learnings.jsonl\" is not in research artifacts; records list (teach.go:51) — unverified host \"teach.log\" is not in research artifacts; records list (views_list.go:23) — unverified host \"views.list\" is not in research artifacts; records list (webhooks_list.go:23) — unverified host \"webhooks.list\" is not in research artifacts"
+  ]
+}

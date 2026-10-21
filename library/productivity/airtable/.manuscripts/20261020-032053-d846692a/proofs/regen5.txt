@@ -1,0 +1,109 @@
+info: learn: defaulting self-learning loop on (opt out with learn.disabled: true)
+warning: novel feature command "bases" maps to generated command path; skipping novel stub
+warning: novel feature command "records" maps to generated command path; skipping novel stub
+warning: novel feature command "search" would shadow framework cobra command "search" at runtime (every printed CLI registers `<cli> search` as a built-in); skipping novel stub. Rename the feature — e.g. "airtable_search"
+Force regen merged 15 preserved files / 0 AddCommand calls (cross-spec: novel-only preservation)
+warning: cross-spec --force dropped hand-edits in generated files:
+  internal/cli/agent_context.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/bases_create.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/bases_get_collaborators.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/bases_get_schema.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/comments_create.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/comments_delete.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/comments_list.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/comments_update.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/fields_create.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/fields_update.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/promoted_attachments.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/records_delete.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/records_delete_multiple.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/records_get.go (TEMPLATED-BODY-DRIFT)
+  internal/cli/records_list.go (TEMPLATED-BODY-DRIFT)
+  internal/cli/records_replace.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/records_replace_multiple.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/records_update.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/root.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/tables_create.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/tables_update.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/views_delete.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/views_get.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/views_list.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/webhooks_create.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/webhooks_delete.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/webhooks_list.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/webhooks_list_payloads.go (TEMPLATED-VALUE-DRIFT)
+  internal/cli/webhooks_set_notifications.go (TEMPLATED-VALUE-DRIFT)
+  internal/mcp/code_orch.go (TEMPLATED-VALUE-DRIFT)
+PASS go mod tidy
+PASS ensure safe golang.org/x/net
+PASS ensure safe golang.org/x/text
+PASS ensure safe github.com/enetx/http
+FAIL go test ./...
+Error: validating post-merge generated project: gate "go test ./..." failed: exit status 1
+?   	airtable-pp-cli/cmd/airtable-pp-cli	[no test files]
+ok  	airtable-pp-cli/cmd/airtable-pp-mcp	0.732s
+?   	airtable-pp-cli/internal/cache	[no test files]
+--- FAIL: TestRecordsExpandLinksAcceptance (0.00s)
+    novel_acceptance_test.go:159: command ["records" "list" "--base" "app1" "--table" "Contacts" "--json" "--expand-links"]: unknown flag: --expand-links
+        Error: unknown flag: --expand-links
+Error: MCP tool arguments may not switch the server-bound client profile
+Error: existing source differs from the requested migration; refusing to overwrite trusted identity configuration
+{"event":"output_metadata","meta":{"truncated":false}}
+warning: airtable-pp-cli: playbook init: empty_examples.json has no query_family_examples; skipping (would be unreachable at recall time)
+warning: airtable-pp-cli: playbook init: parse broken.json: parse playbook broken.json: invalid character 't' looking for beginning of object key string
+airtable-pp-cli 0.0.0-dev
+warning: --select "missing" matched no fields; valid fields: items
+warning: --select "c" matched no fields; valid fields: a, b
+warning: --select "c" matched no fields; valid fields: a, b
+FAIL
+FAIL	airtable-pp-cli/internal/cli	1.581s
+?   	airtable-pp-cli/internal/cli/playbooks	[no test files]
+ok  	airtable-pp-cli/internal/client	1.107s
+ok  	airtable-pp-cli/internal/cliutil	12.040s
+?   	airtable-pp-cli/internal/cliutil/testenv	[no test files]
+ok  	airtable-pp-cli/internal/config	0.018s
+ok  	airtable-pp-cli/internal/learn	0.718s
+ok  	airtable-pp-cli/internal/learn/entities	0.010s
+ok  	airtable-pp-cli/internal/learn/lookups	0.396s
+ok  	airtable-pp-cli/internal/learn/patterns	0.125s
+ok  	airtable-pp-cli/internal/mcp	0.342s
+ok  	airtable-pp-cli/internal/mcp/bound	0.050s
+ok  	airtable-pp-cli/internal/mcp/cobratree	2.142s
+ok  	airtable-pp-cli/internal/platform	0.185s
+ok  	airtable-pp-cli/internal/store	0.943s
+?   	airtable-pp-cli/internal/types	[no test files]
+FAIL; snapshot preserved at <runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli.preserve-1792513182111279000
+validating post-merge generated project: gate "go test ./..." failed: exit status 1
+?   	airtable-pp-cli/cmd/airtable-pp-cli	[no test files]
+ok  	airtable-pp-cli/cmd/airtable-pp-mcp	0.732s
+?   	airtable-pp-cli/internal/cache	[no test files]
+--- FAIL: TestRecordsExpandLinksAcceptance (0.00s)
+    novel_acceptance_test.go:159: command ["records" "list" "--base" "app1" "--table" "Contacts" "--json" "--expand-links"]: unknown flag: --expand-links
+        Error: unknown flag: --expand-links
+Error: MCP tool arguments may not switch the server-bound client profile
+Error: existing source differs from the requested migration; refusing to overwrite trusted identity configuration
+{"event":"output_metadata","meta":{"truncated":false}}
+warning: airtable-pp-cli: playbook init: empty_examples.json has no query_family_examples; skipping (would be unreachable at recall time)
+warning: airtable-pp-cli: playbook init: parse broken.json: parse playbook broken.json: invalid character 't' looking for beginning of object key string
+airtable-pp-cli 0.0.0-dev
+warning: --select "missing" matched no fields; valid fields: items
+warning: --select "c" matched no fields; valid fields: a, b
+warning: --select "c" matched no fields; valid fields: a, b
+FAIL
+FAIL	airtable-pp-cli/internal/cli	1.581s
+?   	airtable-pp-cli/internal/cli/playbooks	[no test files]
+ok  	airtable-pp-cli/internal/client	1.107s
+ok  	airtable-pp-cli/internal/cliutil	12.040s
+?   	airtable-pp-cli/internal/cliutil/testenv	[no test files]
+ok  	airtable-pp-cli/internal/config	0.018s
+ok  	airtable-pp-cli/internal/learn	0.718s
+ok  	airtable-pp-cli/internal/learn/entities	0.010s
+ok  	airtable-pp-cli/internal/learn/lookups	0.396s
+ok  	airtable-pp-cli/internal/learn/patterns	0.125s
+ok  	airtable-pp-cli/internal/mcp	0.342s
+ok  	airtable-pp-cli/internal/mcp/bound	0.050s
+ok  	airtable-pp-cli/internal/mcp/cobratree	2.142s
+ok  	airtable-pp-cli/internal/platform	0.185s
+ok  	airtable-pp-cli/internal/store	0.943s
+?   	airtable-pp-cli/internal/types	[no test files]
+FAIL; snapshot preserved at <runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli.preserve-1792513182111279000

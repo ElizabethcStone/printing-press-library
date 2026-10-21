@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-20T19:23:15.469762Z",
+  "printing_press_version": "4.33.8",
+  "api_name": "airtable",
+  "display_name": "Airtable",
+  "cli_name": "airtable-pp-cli",
+  "creator": {
+    "handle": "ElizabethcStone",
+    "name": "Elizabeth Stone"
+  },
+  "owner": "elizabethcstone",
+  "printer": "ElizabethcStone",
+  "printer_name": "Elizabeth Stone",
+  "spec_path": "spec.yaml",
+  "spec_format": "internal",
+  "spec_checksum": "sha256:de2855f5596eda09e51ad564a15474b9499542d2319739d1c17170ab6eddbcb8",
+  "run_id": "20261020-032053-d846692a",
+  "category": "productivity",
+  "description": "Airtable REST API CLI with offline cross-base search, CSV merge-upserts, field-level diffs before bulk writes, and schema drift detection.",
+  "mcp_binary": "airtable-pp-mcp",
+  "mcp_tool_count": 32,
+  "mcp_ready": "full",
+  "api_version": "0.1.0",
+  "auth_type": "bearer_token",
+  "auth_env_vars": [
+    "AIRTABLE_API_KEY"
+  ],
+  "novel_features": [
+    {
+      "name": "Merge-field upsert from CSV",
+      "command": "records upsert-csv",
+      "description": "Take a raw CSV export and merge-upsert it straight into an Airtable table, matched on the field you choose."
+    },
+    {
+      "name": "Local diff before bulk write",
+      "command": "records diff",
+      "description": "See exactly which fields on which existing records would change before a bulk update or upsert actually runs."
+    },
+    {
+      "name": "Cross-base full-text search",
+      "command": "search",
+      "description": "Search text across every synced base and table at once from one local index."
+    },
+    {
+      "name": "Schema drift detection",
+      "command": "bases schema-diff",
+      "description": "Show exactly what changed in a base's schema since the last time this command ran for that base."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Merge-field upsert from CSV",
+      "command": "records upsert-csv",
+      "description": "Take a raw CSV export and merge-upsert it straight into an Airtable table, matched on the field you choose."
+    },
+    {
+      "name": "Local diff before bulk write",
+      "command": "records diff",
+      "description": "See exactly which fields on which existing records would change before a bulk update or upsert actually runs."
+    },
+    {
+      "name": "Cross-base full-text search",
+      "command": "search",
+      "description": "Search text across every synced base and table at once from one local index."
+    },
+    {
+      "name": "Schema drift detection",
+      "command": "bases schema-diff",
+      "description": "Show exactly what changed in a base's schema since the last time this command ran for that base."
+    }
+  ],
+  "verify": {
+    "mode": "mock",
+    "pass_rate": 100,
+    "passed": 63,
+    "total": 63,
+    "data_pipeline": true,
+    "verdict": "PASS"
+  },
+  "scorecard": {
+    "steinberger": {
+      "percentage": 93,
+      "grade": "A",
+      "total": 93
+    }
+  }
+}

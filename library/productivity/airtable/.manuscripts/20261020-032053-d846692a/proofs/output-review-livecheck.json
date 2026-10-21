@@ -1,0 +1,97 @@
+{
+  "live_check": {
+    "passed": 2,
+    "failed": 1,
+    "skipped": 1,
+    "features": [
+      {
+        "name": "Merge-field upsert from CSV",
+        "command": "records upsert-csv",
+        "example": "airtable-pp-cli records upsert-csv --base appLkNDICXNqxSDhG --table Leads --file leads.csv --merge-on Email",
+        "status": "skip",
+        "reason": "mutating example requires --allow-destructive"
+      },
+      {
+        "name": "Local diff before bulk write",
+        "command": "records diff",
+        "example": "airtable-pp-cli records diff --base appLkNDICXNqxSDhG --table Shipments --stdin \u003c changes.json",
+        "status": "pass",
+        "output_sample": "[]\n"
+      },
+      {
+        "name": "Cross-base full-text search",
+        "command": "search",
+        "example": "airtable-pp-cli search \"union square\" --type records --agent --limit 10",
+        "status": "fail",
+        "reason": "output does not contain any token from query \"union square\""
+      },
+      {
+        "name": "Schema drift detection",
+        "command": "bases schema-diff",
+        "example": "airtable-pp-cli bases schema-diff appLkNDICXNqxSDhG",
+        "status": "pass",
+        "reason": "graceful empty: Error: GET /v0/meta/bases/appLkNDICXNqxSDhG/tables returned HTTP 403: {\"error\":{\"type\":\"INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND\",\"message\":\"Invalid permissions, or the requested model was not found. Check that both your user and your token have the required permissions, and that the model names and/o...",
+        "output_sample": "Error: GET /v0/meta/bases/appLkNDICXNqxSDhG/tables returned HTTP 403: {\"error\":{\"type\":\"INVALID_PERMISSIONS_OR_MODEL_NOT_FOUND\",\"message\":\"Invalid permissions, or the requested model was not found. Check that both your user and your token have the required permissions, and that the model names and/or ids are correct.\"}}\nhint: permission denied. Your credentials are valid but lack access to this resource.\n      Check that your credentials have the required permissions and match the API's expected auth scheme.\n      Set it with: echo \"$TOKEN\" | airtable-pp-cli auth set-token or export AIRTABLE_API_KEY=\"your-token-here\"\n      Run 'airtable-pp-cli doctor' to check auth status.\n"
+      }
+    ],
+    "binary_refresh": {
+      "action": "rebuilt",
+      "stage_path": "<runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli/build/stage/bin/airtable-pp-cli",
+      "binary_path": "<runstate>/headaideveloper-ca938232/runs/20261020-032053-d846692a/working/airtable-pp-cli/build/stage/bin/airtable-pp-cli",
+      "reason": "staged binary was older than Go sources"
+    },
+    "ran_at": "2026-10-20T16:07:40.857779Z",
+    "status": "available",
+    "checked": 4,
+    "evaluated": 3,
+    "pass_rate_pct": 67
+  },
+  "scorecard": {
+    "api_name": "airtable",
+    "steinberger": {
+      "output_modes": 10,
+      "auth": 10,
+      "error_handling": 10,
+      "terminal_ux": 9,
+      "readme": 10,
+      "doctor": 10,
+      "agent_native": 10,
+      "mcp_quality": 8,
+      "mcp_description_quality": 0,
+      "mcp_token_efficiency": 0,
+      "mcp_remote_transport": 10,
+      "mcp_tool_design": 10,
+      "mcp_surface_strategy": 10,
+      "local_cache": 10,
+      "cache_freshness": 10,
+      "breadth": 10,
+      "vision": 10,
+      "workflows": 10,
+      "insight": 7,
+      "agent_workflow_readiness": 9,
+      "path_validity": 0,
+      "auth_protocol": 0,
+      "data_pipeline_integrity": 7,
+      "sync_correctness": 10,
+      "type_fidelity": 5,
+      "dead_code": 4,
+      "live_api_verification": 0,
+      "total": 91,
+      "percentage": 91
+    },
+    "competitor_scores": null,
+    "overall_grade": "A (2 of 24 dimensions unverified: path_validity, auth_protocol)",
+    "gap_report": null,
+    "unscored_dimensions": [
+      "mcp_description_quality",
+      "mcp_token_efficiency",
+      "path_validity",
+      "auth_protocol",
+      "live_api_verification"
+    ],
+    "unverified_dimensions": [
+      "path_validity",
+      "auth_protocol"
+    ]
+  }
+}
