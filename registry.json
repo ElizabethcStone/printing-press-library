@@ -6423,6 +6423,57 @@
       }
     },
     {
+      "name": "crocoblock",
+      "category": "developer-tools",
+      "api": "Crocoblock",
+      "description": "Operate Crocoblock data and review changes across your WordPress workflows.",
+      "search_terms": [
+        "crocoblock",
+        "crocoblock-pp-cli",
+        "Operate Crocoblock data and review changes across your WordPress workflows.",
+        "Diferencias de estructura",
+        "schema diff",
+        "Muestra qué tipos, campos y definiciones cambiaron entre dos revisiones del sitio.",
+        "Uso observado de campos",
+        "forms field-usage",
+        "Compara los campos actuales de un formulario con los nombres presentes en registros seleccionados.",
+        "Solapamientos de reservas",
+        "reservations overlaps",
+        "Señala solapamientos por recurso y evalúa capacidad con una política explícita y ambas capturas completas de JetBooking 4.1.3.1 y JetAppointment 2.5.3. Sólo admite citas slot/range registradas; no expande recurrencias.",
+        "Efecto de cambios sobre filtros",
+        "filters impact",
+        "Identifica candidatos de reindexación por cambios registrados para filtros custom_fields de JetSmartFilters 3.8.6.2 con _query_var y _source_custom_field válidos; otros proveedores o versiones quedan unknown.",
+        "Conciliación de contenido CCT",
+        "cct reconcile",
+        "Compara registros entre instantáneas por una clave única y muestra diferencias en campos seleccionados.",
+        "Integridad de relaciones",
+        "relations audit",
+        "Detecta aristas duplicadas y ausencias comprobables en inventarios CCT completos sin filtros. Los extremos WordPress ausentes quedan unknown porque el inventario excluye papelera y puede omitir objetos restringidos."
+      ],
+      "path": "library/developer-tools/crocoblock",
+      "printer": "bobeglz",
+      "printer_name": "bobe",
+      "creator": {
+        "handle": "bobeglz",
+        "name": "bobe"
+      },
+      "mcp": {
+        "binary": "crocoblock-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 75,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "CROCOBLOCK_USERNAME",
+          "CROCOBLOCK_APPLICATION_PASSWORD"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "customer-io",
       "category": "marketing",
       "api": "Customer.io",
@@ -11544,9 +11595,9 @@
       "path": "library/marketing/google-ads",
       "release": {
         "cli_name": "google-ads-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-20T08:55:25Z",
+        "source_commit": "833637bd09b305963e8bd437869f1944b37ec914"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
