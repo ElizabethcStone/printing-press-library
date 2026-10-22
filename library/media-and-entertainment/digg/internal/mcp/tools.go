@@ -42,15 +42,6 @@ func RegisterTools(s *server.MCPServer) {
 		),
 		makeAPIHandler("GET", "/ai/{cluster_url_id}", []mcpParamBinding{{PublicName: "cluster_url_id", WireName: "cluster_url_id", Location: "path"}}, []string{"cluster_url_id"}),
 	)
-	s.AddTool(
-		mcplib.NewTool("trending_status",
-			mcplib.WithDescription("Read the current pipeline status: storiesToday, clustersToday, isFetching, nextFetchAt, and the recent event stream (cluster_detected, fast_climb, post_understanding, batch_started, batch_breakdown, posts_stored, embedding_progress). Returns the TrendingStatus."),
-			mcplib.WithReadOnlyHintAnnotation(true),
-			mcplib.WithDestructiveHintAnnotation(false),
-			mcplib.WithOpenWorldHintAnnotation(true),
-		),
-		makeAPIHandler("GET", "/api/trending/status", []mcpParamBinding{}, []string{}),
-	)
 	// SQL tool — ad-hoc analysis on synced data without API calls
 	s.AddTool(
 		mcplib.NewTool("sql",
@@ -352,11 +343,6 @@ func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToo
 				"endpoints":   []string{"stars", "new", "activity", "recent"},
 				"searchable":  true,
 			},
-			{
-				"name":        "trending",
-				"description": "Public ingestion-pipeline status and event stream",
-				"endpoints":   []string{"status"},
-			},
 		},
 		"query_tips": []string{
 			"Pagination uses cursor-based paging. Pass after parameter for subsequent pages.",
@@ -368,33 +354,31 @@ func handleContext(_ context.Context, _ mcplib.CallToolRequest) (*mcplib.CallToo
 		// Command-mirror capabilities are exposed through MCP by shelling out
 		// to the companion CLI binary.
 		"command_mirror_capabilities": []map[string]string{
-			{"name": "Live pipeline event tail", "command": "events", "description": "Tail Digg's ingestion pipeline in real time — see clusters as they're detected, stories fast-climbing the...", "rationale": "Requires reading the public /api/trending/status JSON endpoint that the web UI consumes silently. The web UI shows...", "via": "mcp-command-mirror"},
+			{"name": "Stored pipeline events", "command": "events", "description": "List pipeline events (cluster_detected, fast_climb) that sync captured from section pages, filtered by type and time.", "rationale": "Section pages embed recent pipeline events in their RSC stream; sync stores them so they survive the next page refresh.", "via": "mcp-command-mirror"},
 			{"name": "Replacement archaeology", "command": "replaced", "description": "Show stories that were knocked out of the rankings since the last sync, with Digg's own published replacement rationale.", "rationale": "Digg explicitly publishes a replacementRationale field per cluster. The web UI shows current rankings only — once...", "via": "mcp-command-mirror"},
 			{"name": "Score component breakdown", "command": "evidence", "description": "Print the full ranking transparency record for one cluster — scoreComponents, evidence array, numeratorLabel,...", "rationale": "Digg ships gravity-score components and evidence in the page payload. The web UI shows only the final gravity score.", "via": "mcp-command-mirror"},
 			{"name": "Time-windowed sentiment", "command": "sentiment", "description": "Read per-time-window positivity ratios (pos6h, pos12h, pos24h, posLast) for a cluster.", "rationale": "Each cluster carries pos6h/12h/24h fields. No web UI surfaces them.", "via": "mcp-command-mirror"},
 			{"name": "Cross-aggregator references", "command": "crossref", "description": "Show this cluster's Hacker News and Techmeme mirrors when Digg has detected the story is being discussed there.", "rationale": "Each cluster carries hackerNews and techmeme cross-reference fields populated by Digg's own pipeline.", "via": "mcp-command-mirror"},
 			{"name": "Influence-ranked author leaderboard", "command": "authors top", "description": "Top accounts Digg tracks, ranked by Digg's influence score, story count, or reach.", "rationale": "Digg's product premise is a ranked leaderboard of AI-news accounts on X. The /ai/influencers page is currently 404; the data is embedded in every feed response.", "via": "mcp-command-mirror"},
-			{"name": "GitHub: top starred AI repos", "command": "github stars", "description": "Top AI repos ranked by starring activity from Digg-tracked accounts: stargazers, recent starrers, breakout/novel/ai_related scores, language, one-sentence classification.", "rationale": "Digg's /ai/github/stars page embeds the full repo + scoring JSON in its RSC payload. CLI extracts and exposes as structured records.", "via": "mcp-command-mirror"},
-			{"name": "GitHub: newly first-seen repos", "command": "github new", "description": "Recently first-seen GitHub repos with the Digg-tracked creator/starrer who first put them on Digg's radar (event_id, event_created_at, repo_full_name, creator).", "rationale": "Digg's /ai/github/new page exposes per-event flat records; CLI parses them.", "via": "mcp-command-mirror"},
-			{"name": "GitHub: contributor leaderboard", "command": "github activity", "description": "Top GitHub contributor leaderboard: per-author rank, contribution count, and distinct repos count over Digg's tracking window.", "rationale": "Digg's /ai/github/activity page lists contributors with rank + contribution + repos counts; CLI scrapes the rendered table.", "via": "mcp-command-mirror"},
-			{"name": "GitHub: live activity feed", "command": "github recent", "description": "Live GitHub activity feed: per-event entries with the GitHub URL (issue/PR/commit/repo), the user who acted, and a short description of the target.", "rationale": "Digg's /ai/github/recent page is a real-time event stream; CLI extracts the github.com URL + actor user JSON per entry.", "via": "mcp-command-mirror"},
+			{"name": "GitHub: top starred AI repos", "command": "github stars", "description": "Top AI repos ranked by starring activity from Digg-tracked accounts: stargazers, recent starrers, breakout/novel/ai_related scores, language, one-sentence classification.", "rationale": "Digg's /tech/github/stars page embeds the full repo + scoring JSON in its RSC payload. CLI extracts and exposes as structured records.", "via": "mcp-command-mirror"},
+			{"name": "GitHub: newly first-seen repos", "command": "github new", "description": "Recently first-seen GitHub repos with the Digg-tracked creator/starrer who first put them on Digg's radar (event_id, event_created_at, repo_full_name, creator).", "rationale": "Digg's /tech/github/new page exposes per-event flat records; CLI parses them.", "via": "mcp-command-mirror"},
+			{"name": "GitHub: contributor leaderboard", "command": "github activity", "description": "Top GitHub contributor leaderboard: per-author rank, contribution count, and distinct repos count over Digg's tracking window.", "rationale": "Digg's /tech/github/activity page lists contributors with rank + contribution + repos counts; CLI scrapes the rendered table.", "via": "mcp-command-mirror"},
+			{"name": "GitHub: live activity feed", "command": "github recent", "description": "Live GitHub activity feed: per-event entries with the GitHub URL (issue/PR/commit/repo), the user who acted, and a short description of the target.", "rationale": "Digg's /tech/github/recent page is a real-time event stream; CLI extracts the github.com URL + actor user JSON per entry.", "via": "mcp-command-mirror"},
 			{"name": "Rank history per cluster", "command": "history", "description": "Full trajectory of one cluster's currentRank, peakRank, and delta over local snapshot history.", "rationale": "Local snapshots persist what the web UI overwrites every fetch.", "via": "mcp-command-mirror"},
 			{"name": "Author surfacing record", "command": "author", "description": "Every cluster a given X account contributed to, with post type (original, retweet, quote, reply).", "rationale": "Cluster payloads list all contributing X posts with username, xId, displayName, and postType. Local store joins them...", "via": "mcp-command-mirror"},
 			{"name": "Rank-movement watcher", "command": "watch", "description": "Poll /ai, diff against last snapshot, alert when any cluster moves N+ ranks.", "rationale": "Read-only polling combined with the local snapshot store and AdaptiveLimiter.", "via": "mcp-command-mirror"},
-			{"name": "Pipeline status dashboard", "command": "pipeline status", "description": "One-screen view of /api/trending/status: isFetching, nextFetchAt, storiesToday, clustersToday, last 5 events.", "rationale": "Operational telemetry endpoint exposed publicly; CLI presents it as a dashboard.", "via": "mcp-command-mirror"},
 		},
 		"playbook": []map[string]string{
-			{"topic": "Live pipeline event tail", "insight": "Requires reading the public /api/trending/status JSON endpoint that the web UI consumes silently. The web UI shows nothing about pipeline state; this surfaces it."},
+			{"topic": "Stored pipeline events", "insight": "Section pages embed recent pipeline events in their RSC stream; sync stores them so they survive the next page refresh. Digg removed its separate pipeline-status endpoint in October 2026."},
 			{"topic": "Replacement archaeology", "insight": "Digg explicitly publishes a replacementRationale field per cluster. The web UI shows current rankings only — once a story drops, the rationale is gone. The local snapshot store keeps it."},
 			{"topic": "Score component breakdown", "insight": "Digg ships gravity-score components and evidence in the page payload. The web UI shows only the final gravity score."},
 			{"topic": "Time-windowed sentiment", "insight": "Each cluster carries pos6h/12h/24h fields. No web UI surfaces them."},
 			{"topic": "Cross-aggregator references", "insight": "Each cluster carries hackerNews and techmeme cross-reference fields populated by Digg's own pipeline."},
 			{"topic": "Influence-ranked author leaderboard", "insight": "Digg's product premise is a ranked leaderboard of AI-news accounts on X. The /ai/influencers page is currently 404; the data is embedded in every feed response."},
-			{"topic": "GitHub feeds", "insight": "Digg surfaces four parallel GitHub views — /ai/github/{stars,new,activity,recent}. Stars and New embed rich JSON records (repo_full_name, stargazers_count, breakout_score, novel_score, ai_related_score, classification_tldr). Activity is a contributor leaderboard table. Recent is a live event stream with github.com URLs in href."},
+			{"topic": "GitHub feeds", "insight": "Digg surfaces four parallel GitHub views — /tech/github/{stars,new,activity,recent}. Stars and New embed rich JSON records (repo_full_name, stargazers_count, breakout_score, novel_score, ai_related_score, classification_tldr). Activity is a contributor leaderboard table. Recent is a live event stream with github.com URLs in href."},
 			{"topic": "Rank history per cluster", "insight": "Local snapshots persist what the web UI overwrites every fetch."},
 			{"topic": "Author surfacing record", "insight": "Cluster payloads list all contributing X posts with username, xId, displayName, and postType. Local store joins them per author."},
 			{"topic": "Rank-movement watcher", "insight": "Read-only polling combined with the local snapshot store and AdaptiveLimiter."},
-			{"topic": "Pipeline status dashboard", "insight": "Operational telemetry endpoint exposed publicly; CLI presents it as a dashboard."},
 		},
 	}
 	data, _ := json.MarshalIndent(ctx, "", "  ")

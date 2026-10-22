@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -40,7 +41,6 @@ func registerDiggCommands(root *cobra.Command, flags *rootFlags) {
 	root.AddCommand(newAuthorsCmd(flags))
 	root.AddCommand(newAuthorCmd(flags))
 	root.AddCommand(newWatchCmd(flags))
-	root.AddCommand(newPipelineCmd(flags))
 	root.AddCommand(newOpenCmd(flags))
 	root.AddCommand(newStatsCmd(flags))
 }
@@ -497,7 +497,7 @@ func clusterPostsURLBaseFromOverride() string {
 	if clusterPostsURLOverride != "" {
 		return clusterPostsURLOverride
 	}
-	return "https://di.gg/ai"
+	return "https://digg.com/ai"
 }
 
 // promotePostsToRows converts diggparse.ClusterPost values into the
@@ -707,29 +707,23 @@ Sort options:
 
 // ============== search ==============
 //
-// `search` hits Digg's undocumented /api/search/stories endpoint by
-// default and falls back to the local FTS5 store on network error.
-// `--data-source live` forces live (errors propagate); `--data-source
-// local` forces FTS5 (no network call). The output envelope is shared
-// across both branches so existing --select flags keep working — the
-// live branch maps `description` → `tldr` and pulls through `rank`,
-// `postCount`, `uniqueAuthors`, `firstPostAge` (which U3 will filter on).
+// PATCH(digg-feed-continuous-replaces-removed-search-and-trending): Digg
+// removed /api/search/stories in October 2026 and its feed API has no
+// query parameter, so `search` matches against the local copy of the
+// story feed that `sync` builds. When a requested topic has no recent
+// completed sync, search first fetches a few live feed pages (a top-up)
+// so new stories still show up, and reports the copy as stale.
 
-// searchResult is the unified envelope row produced by both the live
-// (/api/search/stories) and local (FTS5) branches. JSON tags match the
-// upstream documented shape so agents can rely on a stable contract
-// regardless of source. Source-specific fields (PostCount, FirstPostAge)
-// stay zero/empty on the local path; rank lives on `rank` for live
-// (relevance rank) and `currentRank` for local (today's leaderboard
-// rank) so callers can tell them apart.
+// searchResult is one search row. JSON tags keep the shape the removed
+// /api/search/stories returned, so existing consumers (last30days reads
+// clusterUrlId, title, tldr, rank, postCount, uniqueAuthors, firstPostAge)
+// keep working.
 type searchResult struct {
 	ClusterID     string `json:"clusterId"`
 	ClusterURLID  string `json:"clusterUrlId"`
 	Title         string `json:"title,omitempty"`
-	Label         string `json:"label,omitempty"`
 	TLDR          string `json:"tldr,omitempty"`
 	Rank          int    `json:"rank,omitempty"`
-	CurrentRank   int    `json:"currentRank,omitempty"`
 	PostCount     int    `json:"postCount,omitempty"`
 	UniqueAuthors int    `json:"uniqueAuthors,omitempty"`
 	FirstPostAge  string `json:"firstPostAge,omitempty"`
@@ -742,49 +736,108 @@ type searchEnvelope struct {
 	Results []searchResult `json:"results"`
 }
 
+const (
+	// searchFreshFor is how old a completed sync may be before search
+	// treats the topic as stale. Matches doctor's stale_after.
+	searchFreshFor = 6 * time.Hour
+	// searchTopUpPages caps live feed pages per search across all topics,
+	// keeping a stale search to roughly 20 seconds.
+	searchTopUpPages = 8
+)
+
+// feedRangeFor maps a --since window to the smallest feed range that
+// covers it. No window uses the range sync defaults to.
+func feedRangeFor(since time.Duration) string {
+	switch {
+	case since <= 0:
+		return defaultFeedRange
+	case since <= 24*time.Hour:
+		return "24h"
+	case since <= 7*24*time.Hour:
+		return "7d"
+	case since <= 30*24*time.Hour:
+		return "30d"
+	default:
+		return "all"
+	}
+}
+
+// coveringRanges lists the feed ranges whose completed sync covers r.
+func coveringRanges(r string) []string {
+	i := slices.Index(feedRanges, r)
+	if i < 0 {
+		return []string{r}
+	}
+	return feedRanges[i:]
+}
+
+// topicSyncedAt returns the newest completed sync of topic at any range
+// covering r, or false when there is none.
+func topicSyncedAt(db *sql.DB, topic, r string) (time.Time, bool, error) {
+	var newest time.Time
+	for _, cr := range coveringRanges(r) {
+		at, ok, err := diggstore.FeedSyncedAt(db, topic, cr)
+		if err != nil {
+			return time.Time{}, false, err
+		}
+		if ok && at.After(newest) {
+			newest = at
+		}
+	}
+	return newest, !newest.IsZero(), nil
+}
+
+// formatStoryAge renders an age the way Digg's removed search did: whole
+// hours under a day, whole days otherwise.
+func formatStoryAge(d time.Duration) string {
+	if d < 0 {
+		d = 0
+	}
+	if d < 24*time.Hour {
+		return fmt.Sprintf("%dh", int(d/time.Hour))
+	}
+	return fmt.Sprintf("%dd", int(d/(24*time.Hour)))
+}
+
 func newSearchCmd(flags *rootFlags) *cobra.Command {
 	var limit int
 	var sinceStr string
+	var topics []string
 	cmd := &cobra.Command{
 		Use:   "search [query]",
-		Short: "Cluster search: live /api/search/stories by default, local FTS5 fallback",
-		Long: `Search Digg's full cluster surface for matching stories.
+		Short: "Search Digg stories by title and summary across one or more sections",
+		Long: `Search Digg stories by title and summary.
 
-Live by default (--data-source auto): hits /api/search/stories — Digg's
-own server-side search backing the di.gg/ai Cmd+K modal. Returns rich
-fields (postCount, uniqueAuthors, firstPostAge) covering Digg's full
-window, not just the locally-synced snapshot.
+Search reads the local copy of each section's story feed that ` + "`sync`" + ` builds.
+Every query word must appear in a story's headline or summary. --topic picks
+the sections (default ai; valid: ` + strings.Join(validTopicSlugs(), ", ") + `).
 
-Falls back to the local FTS5 store (digg_clusters_fts) on network error,
-or when --data-source local is passed. The local path searches today's
-synced clusters by title/label/TLDR.
+When a requested section has no completed sync in the last 6 hours, search
+first fetches a few live feed pages so new stories still appear, and marks
+the result meta.stale=true. Run ` + "`digg-pp-cli sync --topics <sections>`" + ` for full
+coverage. --data-source local never fetches; --data-source live always does.
 
-The --since flag filters by how recently each cluster was first posted.
-Live mode parses Digg's own firstPostAge ("2d", "26d", "5h"); local
-mode filters by the digg_clusters.first_post_at column. Accepts the
-formats Digg returns (Nh, Nd, Nw) plus Nm for months (~30 days).`,
+The --since flag filters by when each story started (Nh, Nd, Nw, or Nm for
+months of about 30 days). firstPostAge is measured from now.`,
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		Example: `  digg-pp-cli search "openai gpt-5"
   digg-pp-cli search "<topic>" --since 30d --agent
-  digg-pp-cli search "claude" --since 7d --json
+  digg-pp-cli search "claude" --topic ai,tech --since 7d --json
   digg-pp-cli search "robotics" --json --select clusterUrlId,title,rank,postCount
   digg-pp-cli search "claude" --data-source local`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
 			}
-			if dryRunOK(flags) {
-				return nil
-			}
 			query := strings.TrimSpace(strings.Join(args, " "))
 			if query == "" {
 				return usageErr(fmt.Errorf("query is required (e.g. `digg-pp-cli search \"openai\"`)"))
 			}
-			ctx := cmd.Context()
-
-			// Parse --since once up front so a malformed value is surfaced
-			// as a usage error before we hit the network or the store. A
-			// zero `since` (when the flag is empty) signals "no filter."
+			if err := validateTopics(topics); err != nil {
+				return err
+			}
+			// Parse --since up front so a malformed value is a usage error
+			// before any network or store work. Zero means no window.
 			var since time.Duration
 			if s := strings.TrimSpace(sinceStr); s != "" {
 				d, err := cliutil.ParseDiggAge(s)
@@ -793,75 +846,103 @@ formats Digg returns (Nh, Nd, Nw) plus Nm for months (~30 days).`,
 				}
 				since = d
 			}
+			if dryRunOK(flags) {
+				return nil
+			}
+			ctx := cmd.Context()
+			feedRange := feedRangeFor(since)
 
-			// Branch on --data-source.
+			_, db, closeFn, err := openStore(ctx)
+			if err != nil {
+				return err
+			}
+			defer closeFn()
+
+			// Freshness per topic.
+			var staleTopics []string
+			var oldestSync time.Time
+			for _, t := range topics {
+				at, ok, err := topicSyncedAt(db, t, feedRange)
+				if err != nil {
+					return err
+				}
+				if !ok || time.Since(at) > searchFreshFor {
+					staleTopics = append(staleTopics, t)
+				}
+				if ok && (oldestSync.IsZero() || at.Before(oldestSync)) {
+					oldestSync = at
+				}
+			}
+
+			fresh := len(staleTopics) == 0
 			ds := flags.dataSource
 			if ds == "" {
 				ds = "auto"
 			}
+			topUp := ds == "live" || (ds == "auto" && !fresh)
 
-			var (
-				results []searchResult
-				source  string
-			)
-
-			// Filter must run BEFORE limit so callers don't end up with
-			// fewer than --limit results when the upstream returned more.
-			// We pass `since` into both branches; live filters in-memory
-			// on `firstPostAge`, local filters in-SQL on first_post_at.
-			switch ds {
-			case "local":
-				lr, err := localSearch(ctx, query, limit, since)
-				if err != nil {
-					return err
-				}
-				results = lr
-				source = "local"
-
-			case "live":
-				lr, err := liveSearch(ctx, flags, query, limit, since)
-				if err != nil {
-					return err
-				}
-				results = lr
-				source = "live"
-
-			default: // "auto"
-				lr, err := liveSearch(ctx, flags, query, limit, since)
-				if err == nil {
-					results = lr
-					source = "live"
-				} else {
-					fmt.Fprintf(cmd.ErrOrStderr(), "falling back to local FTS5: %v\n", err)
-					fallback, ferr := localSearch(ctx, query, limit, since)
-					if ferr != nil {
-						// Live failed and local failed too; surface the live error
-						// (more actionable than a "no synced data" hint when network
-						// is the actual problem) but include the local error context.
-						return fmt.Errorf("live search failed (%v) and local fallback failed: %w", err, ferr)
-					}
-					results = fallback
-					source = "local"
-				}
+			var window time.Time
+			if since > 0 {
+				window = time.Now().Add(-since)
+			}
+			storedBefore, err := diggstore.CountTopicStories(db, topics, window)
+			if err != nil {
+				return err
 			}
 
-			if len(results) == 0 {
-				if flags.asJSON {
-					meta := map[string]any{
-						"source": source,
-						"query":  query,
-						"count":  0,
-					}
-					if sinceStr != "" {
-						meta["since"] = sinceStr
-					}
-					env := searchEnvelope{
-						Meta:    meta,
-						Results: []searchResult{},
-					}
-					return printJSONFiltered(cmd.OutOrStdout(), env, flags)
+			source := "local"
+			pages := 0
+			var topUpErr error
+			if topUp {
+				pages, topUpErr = searchTopUp(ctx, flags, db, topics, feedRange)
+				switch {
+				case pages > 0 && storedBefore == 0:
+					source = "live"
+				case pages > 0:
+					source = "local+live"
 				}
-				return emptyHint(cmd, fmt.Sprintf("no matches for %q (source=%s). Try a different query, or `digg-pp-cli sync` if the local store is empty.", query, source))
+				if topUpErr != nil && ds == "live" && pages == 0 {
+					return fmt.Errorf("live feed fetch failed: %w", topUpErr)
+				}
+			}
+			// A stale or never-synced section with nothing stored in the
+			// window and no live pages is missing data, not an empty result.
+			// A fresh sync with nothing in the window really has no matches.
+			if !fresh && storedBefore == 0 && pages == 0 {
+				reason := "no completed sync"
+				if topUpErr != nil {
+					reason = fmt.Sprintf("the live feed is unreachable (%v)", topUpErr)
+				} else if ds == "local" {
+					reason = "--data-source local skips the live feed"
+				}
+				return fmt.Errorf("no stored stories for %s in the requested window and %s; run `digg-pp-cli sync --topics %s`",
+					strings.Join(topics, ","), reason, strings.Join(topics, ","))
+			}
+			if topUpErr != nil {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warn: live feed top-up failed: %v\n", topUpErr)
+			}
+			if !fresh {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warn: local copy of %s has no completed sync in the last %d hours; results may miss stories. Run `digg-pp-cli sync --topics %s`.\n",
+					strings.Join(staleTopics, ","), int(searchFreshFor.Hours()), strings.Join(staleTopics, ","))
+			}
+
+			matches, err := diggstore.SearchFeedStories(db, query, topics, window, limit)
+			if err != nil {
+				return err
+			}
+			now := time.Now()
+			results := make([]searchResult, 0, len(matches))
+			for _, m := range matches {
+				results = append(results, searchResult{
+					ClusterID:     m.ClusterID,
+					ClusterURLID:  m.ClusterURLID,
+					Title:         m.Title,
+					TLDR:          m.TLDR,
+					Rank:          m.Rank,
+					PostCount:     m.PostCount,
+					UniqueAuthors: m.UniqueAuthors,
+					FirstPostAge:  formatStoryAge(now.Sub(m.CreatedAt)),
+				})
 			}
 
 			if flags.asJSON {
@@ -869,155 +950,65 @@ formats Digg returns (Nh, Nd, Nw) plus Nm for months (~30 days).`,
 					"source": source,
 					"query":  query,
 					"count":  len(results),
+					"topics": topics,
+					"stale":  !fresh,
+				}
+				if !oldestSync.IsZero() {
+					meta["synced_at"] = oldestSync.UTC().Format(time.RFC3339)
 				}
 				if sinceStr != "" {
 					meta["since"] = sinceStr
 				}
-				env := searchEnvelope{
-					Meta:    meta,
-					Results: results,
-				}
-				return printJSONFiltered(cmd.OutOrStdout(), env, flags)
+				return printJSONFiltered(cmd.OutOrStdout(), searchEnvelope{Meta: meta, Results: results}, flags)
+			}
+			if len(results) == 0 {
+				return emptyHint(cmd, fmt.Sprintf("no matches for %q in %s (source=%s). Try a different query or `digg-pp-cli sync --topics %s`.",
+					query, strings.Join(topics, ","), source, strings.Join(topics, ",")))
 			}
 			for _, r := range results {
-				rank := r.Rank
-				if rank == 0 {
-					rank = r.CurrentRank
-				}
-				headline := firstNonEmpty(r.Title, r.Label, r.ClusterURLID)
-				fmt.Fprintf(cmd.OutOrStdout(), "#%d  %s  [%s]\n", rank, headline, r.ClusterURLID)
+				fmt.Fprintf(cmd.OutOrStdout(), "#%d  %s  [%s]\n", r.Rank, firstNonEmpty(r.Title, r.ClusterURLID), r.ClusterURLID)
 				if r.TLDR != "" {
 					fmt.Fprintf(cmd.OutOrStdout(), "    %s\n", diggTruncate(r.TLDR, 200))
 				}
-				if r.FirstPostAge != "" {
-					fmt.Fprintf(cmd.OutOrStdout(), "    posts=%d  authors=%d  age=%s\n", r.PostCount, r.UniqueAuthors, r.FirstPostAge)
-				}
+				fmt.Fprintf(cmd.OutOrStdout(), "    posts=%d  authors=%d  age=%s\n", r.PostCount, r.UniqueAuthors, r.FirstPostAge)
 			}
 			return nil
 		},
 	}
 	cmd.Flags().IntVar(&limit, "limit", 20, "Max number of results")
-	cmd.Flags().StringVar(&sinceStr, "since", "", "Filter to clusters first posted within this window. Accepts Nh, Nd, Nw, Nm (e.g. 30d, 1w, 12h, 1m). Default empty (no filter).")
+	cmd.Flags().StringVar(&sinceStr, "since", "", "Filter to stories that started within this window. Accepts Nh, Nd, Nw, Nm (e.g. 30d, 1w, 12h, 1m). Default empty (no filter).")
+	cmd.Flags().StringSliceVar(&topics, "topic", []string{"ai"}, "Comma-separated Digg sections to search (valid: "+strings.Join(validTopicSlugs(), ", ")+")")
 	return cmd
 }
 
-// searchStoriesURLOverride lets tests redirect the live search URL to
-// a local httptest server. Empty string falls through to the default
-// "https://di.gg/api/search/stories". Production code never sets this.
-var searchStoriesURLOverride string
-
-// liveSearch hits /api/search/stories via the shared client and maps
-// the upstream envelope onto searchResult. The optional `since` window
-// is applied AFTER the upstream returns and BEFORE limit clamping so a
-// caller passing `--limit 5 --since 7d` gets up to 5 results that all
-// fall within the window — never fewer than 5 because some 26d-old
-// rows ate into the budget.
-//
-// Filter policy: a record whose firstPostAge fails to parse is KEPT.
-// Digg occasionally returns shapes the parser doesn't recognize and
-// silently dropping them is worse than surfacing them with the original
-// string so the caller can decide.
-func liveSearch(ctx context.Context, flags *rootFlags, query string, limit int, since time.Duration) ([]searchResult, error) {
+// searchTopUp fetches up to searchTopUpPages live feed pages split across
+// topics and stores them. It never records freshness: a top-up sees only
+// the highest-ranked stories, so it must not stand in for a sync. It
+// returns the pages stored and the first error hit.
+func searchTopUp(ctx context.Context, flags *rootFlags, db *sql.DB, topics []string, feedRange string) (int, error) {
 	c, err := flags.newClient()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	// When --since is active we have to over-fetch from upstream so the
-	// in-memory filter isn't capped by the server's `limit`. Without
-	// this, a user asking for `--limit 5 --since 7d` could get fewer
-	// than 5 in-window results when older rows were among the first 5
-	// the server returned. We don't pass `limit` to upstream in that
-	// case; the post-filter caller-side cap below applies instead.
-	upstreamLimit := limit
-	if since > 0 {
-		upstreamLimit = 0
+	perTopic := searchTopUpPages / len(topics)
+	if perTopic < 1 {
+		perTopic = 1
 	}
-	var resp *client.StoriesSearchResponse
-	if searchStoriesURLOverride != "" {
-		resp, err = c.SearchStoriesFrom(ctx, searchStoriesURLOverride, query, upstreamLimit)
-	} else {
-		resp, err = c.SearchStories(ctx, query, upstreamLimit)
-	}
-	if err != nil {
-		return nil, err
-	}
-	out := make([]searchResult, 0, len(resp.Results))
-	for _, r := range resp.Results {
-		if since > 0 {
-			// firstPostAge may be empty (never observed but defensive)
-			// or in a shape the parser doesn't recognize — both cases
-			// keep the record. Only successfully-parsed ages > since
-			// are dropped.
-			if age, perr := cliutil.ParseDiggAge(r.FirstPostAge); perr == nil {
-				if age > since {
-					continue
-				}
-			}
-		}
-		out = append(out, searchResult{
-			ClusterID:     r.ClusterID,
-			ClusterURLID:  r.ClusterURLID,
-			Title:         r.Title,
-			TLDR:          r.Description,
-			Rank:          r.Rank,
-			PostCount:     r.PostCount,
-			UniqueAuthors: r.UniqueAuthors,
-			FirstPostAge:  r.FirstPostAge,
-		})
-		if limit > 0 && len(out) >= limit {
+	pages := 0
+	var firstErr error
+	for i, t := range topics {
+		if i*perTopic >= searchTopUpPages {
 			break
 		}
-	}
-	return out, nil
-}
-
-// localSearch runs the existing FTS5 query against the local store.
-// Returns an empty slice (not an error) when there are no matches, so
-// the caller can render the empty-results envelope or the empty-hint
-// message uniformly.
-//
-// When `since > 0` the query is gated by digg_clusters.first_post_at
-// (NOT first_seen_at — that column doesn't exist on this schema; see
-// internal/diggstore/store.go EnsureSchema). We compare on the column
-// whose semantics match the live `firstPostAge` field: when the cluster
-// first observed a post. Records with a NULL or empty first_post_at
-// are kept (matching the live-mode "keep on parse failure" policy)
-// rather than silently filtered out.
-func localSearch(ctx context.Context, query string, limit int, since time.Duration) ([]searchResult, error) {
-	_, db, closeFn, err := openStore(ctx)
-	if err != nil {
-		return nil, err
-	}
-	defer closeFn()
-	q := `SELECT c.cluster_id, c.cluster_url_id, COALESCE(c.label,''), COALESCE(c.tldr,''), COALESCE(c.current_rank,0)
-		 FROM digg_clusters_fts f JOIN digg_clusters c ON c.cluster_id = f.cluster_id
-		 WHERE digg_clusters_fts MATCH ?`
-	args := []any{query}
-	if since > 0 {
-		// Keep rows missing first_post_at — see comment above.
-		q += ` AND (c.first_post_at IS NULL OR c.first_post_at = '' OR c.first_post_at >= ?)`
-		args = append(args, time.Now().Add(-since).UTC().Format(time.RFC3339))
-	}
-	q += ` ORDER BY c.current_rank ASC LIMIT ?`
-	args = append(args, limit)
-
-	rows, err := db.QueryContext(ctx, q, args...)
-	if err != nil {
-		return nil, fmt.Errorf("FTS query: %w", err)
-	}
-	defer rows.Close()
-	var results []searchResult
-	for rows.Next() {
-		var r searchResult
-		if err := rows.Scan(&r.ClusterID, &r.ClusterURLID, &r.Label, &r.TLDR, &r.CurrentRank); err != nil {
-			return nil, err
+		res, err := walkFeed(ctx, c, client.FeedParams{Topic: t, View: "top", Range: feedRange}, perTopic, func(p *client.FeedPage) error {
+			return diggstore.UpsertFeedPage(db, p.Posts, t, feedRange, time.Now())
+		})
+		pages += res.Pages
+		if err != nil && firstErr == nil {
+			firstErr = fmt.Errorf("%s: %w", t, err)
 		}
-		results = append(results, r)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return results, nil
+	return pages, firstErr
 }
 
 // ============== events ==============
@@ -1028,8 +1019,8 @@ func newEventsCmd(flags *rootFlags) *cobra.Command {
 	var typeFilter string
 	cmd := &cobra.Command{
 		Use:         "events",
-		Short:       "Tail Digg's ingestion-pipeline event stream from the local store",
-		Long:        `Read events that were captured during sync from /api/trending/status: cluster_detected, fast_climb (with delta + previousRank → currentRank), post_understanding (X posts being processed), batch_started/batch_breakdown/posts_stored, and embedding_progress.`,
+		Short:       "List Digg pipeline events stored by sync",
+		Long:        `List pipeline events stored in the local database. Sync captures the events each section page embeds in its RSC stream (cluster_detected, fast_climb with delta + previousRank → currentRank). This reads stored events only; Digg removed its live pipeline-status endpoint in October 2026, so run ` + "`sync`" + ` to capture new ones.`,
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		Example: `  digg-pp-cli events --since 1h --type fast_climb
   digg-pp-cli events --type cluster_detected --limit 10 --json
@@ -1736,7 +1727,7 @@ Sortable by:
 				// so the request honors --rate-limit / --timeout and
 				// shares the impersonated transport with the rest of
 				// the digg CLI's page fetchers (FetchClusterPosts,
-				// SearchStories, SearchUsers, FetchUserPeerFollowCount).
+				// SearchUsers, FetchUserPeerFollowCount).
 				// Bypassing the Client here used to skip the limiter,
 				// which is dangerous for a 200KB+ /ai/1000 page.
 				c, cerr := flags.newClient()
@@ -1953,14 +1944,14 @@ func rosterOrderBy(by string) (string, error) {
 
 // searchUsersURLOverride lets tests redirect the live user-search
 // URL to a local httptest server. Empty string falls through to the
-// default "https://di.gg/api/search/users". Production code never
+// default "https://digg.com/api/search/users". Production code never
 // sets this.
 var searchUsersURLOverride string
 
 // roster1000URLOverride lets tests redirect the live /ai/1000 fetch
 // used on the off-1000 cache-cold fallback path to a local httptest
 // server. Empty string falls through to the default
-// "https://di.gg/ai/1000". Production code never sets this.
+// "https://digg.com/tech/x/rankings". Production code never sets this.
 var roster1000URLOverride string
 
 // authorGetResult is the per-author payload returned by
@@ -2608,7 +2599,7 @@ func newWatchCmd(flags *rootFlags) *cobra.Command {
 			it := 0
 			for {
 				it++
-				html, err := fetchURL(ctx, "https://di.gg/ai")
+				html, err := fetchURL(ctx, "https://digg.com/ai")
 				if err != nil {
 					fmt.Fprintf(cmd.ErrOrStderr(), "watch: fetch error: %v\n", err)
 				} else {
@@ -2707,78 +2698,6 @@ func computeWatchAlerts(db *sql.DB, current []diggparse.Cluster, minDelta int) [
 	return out
 }
 
-// ============== pipeline ==============
-
-func newPipelineCmd(flags *rootFlags) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:         "pipeline",
-		Short:       "Inspect Digg's ingestion pipeline (status + events)",
-		Annotations: map[string]string{"mcp:read-only": "true"},
-	}
-	cmd.AddCommand(newPipelineStatusCmd(flags))
-	return cmd
-}
-
-func newPipelineStatusCmd(flags *rootFlags) *cobra.Command {
-	var watchMode bool
-	var interval time.Duration
-	cmd := &cobra.Command{
-		Use:         "status",
-		Short:       "One-screen view of /api/trending/status: isFetching, nextFetchAt, storiesToday, clustersToday",
-		Annotations: map[string]string{"mcp:read-only": "true"},
-		Example: `  digg-pp-cli pipeline status
-  digg-pp-cli pipeline status --watch --interval 60s`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if dryRunOK(flags) {
-				return nil
-			}
-			fetchOnce := func() error {
-				body, err := fetchURL(cmd.Context(), "https://di.gg/api/trending/status")
-				if err != nil {
-					return err
-				}
-				ts, err := diggparse.ParseTrendingStatus(body)
-				if err != nil {
-					return err
-				}
-				if flags.asJSON {
-					return printJSONFiltered(cmd.OutOrStdout(), ts, flags)
-				}
-				fmt.Fprintf(cmd.OutOrStdout(), "Pipeline status (computed at %s)\n", ts.ComputedAt)
-				fmt.Fprintf(cmd.OutOrStdout(), "  isFetching:           %v\n", ts.IsFetching)
-				fmt.Fprintf(cmd.OutOrStdout(), "  storiesToday:         %d\n", ts.StoriesToday)
-				fmt.Fprintf(cmd.OutOrStdout(), "  clustersToday:        %d\n", ts.ClustersToday)
-				fmt.Fprintf(cmd.OutOrStdout(), "  nextFetchAt:          %s\n", ts.NextFetchAt)
-				fmt.Fprintf(cmd.OutOrStdout(), "  lastFetchCompletedAt: %s\n", ts.LastFetchCompletedAt)
-				fmt.Fprintf(cmd.OutOrStdout(), "  recent events: %d\n", len(ts.Events))
-				for i, e := range ts.Events {
-					if i >= 5 {
-						break
-					}
-					fmt.Fprintf(cmd.OutOrStdout(), "    %s  %s\n", e.At, e.Type)
-				}
-				return nil
-			}
-			if !watchMode {
-				return fetchOnce()
-			}
-			for {
-				if err := fetchOnce(); err != nil {
-					fmt.Fprintf(cmd.ErrOrStderr(), "status: %v\n", err)
-				}
-				select {
-				case <-cmd.Context().Done():
-					return nil
-				case <-time.After(interval):
-				}
-			}
-		},
-	}
-	cmd.Flags().BoolVar(&watchMode, "watch", false, "Re-poll the endpoint on an interval")
-	cmd.Flags().DurationVar(&interval, "interval", 60*time.Second, "Poll interval")
-	return cmd
-}
-
 // ============== open ==============
 
 func newOpenCmd(flags *rootFlags) *cobra.Command {
@@ -2817,7 +2736,7 @@ func newOpenCmd(flags *rootFlags) *cobra.Command {
 				return err
 			}
 			if perm == "" {
-				perm = "https://di.gg/ai/" + urlID
+				perm = "https://digg.com/ai/" + urlID
 			}
 			// Verify-environment short-circuit (printing-press side-effect convention).
 			if isVerifyEnv() {

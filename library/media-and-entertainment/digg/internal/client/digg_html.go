@@ -5,8 +5,8 @@
 // future regeneration doesn't blow these methods away.
 //
 // PATCH(library-side): added by U4 of the digg search/roster plan, then
-// extended by U1 to host /api/search/stories alongside /ai/1000, then
-// extended by U2 to host /api/search/users.
+// extended by U2 to host /api/search/users. (/api/search/stories lived
+// here too until Digg removed it in October 2026.)
 
 package client
 
@@ -24,42 +24,11 @@ import (
 	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/digg/internal/diggparse"
 )
 
-// roster1000URL is the canonical /ai/1000 page URL. Lives on di.gg, not
-// the API host the generated client points at. Defined as a const so
-// tests can substitute via FetchRoster1000From.
-const roster1000URL = "https://di.gg/ai/1000"
-
-// searchStoriesURL is the upstream cluster-search endpoint backing the
-// di.gg/ai Cmd+K modal. No published contract; verified by curl probe
-// 2026-05-09 to return {query, results[], count, duration_ms}. The base
-// URL is overridable in tests via SearchStoriesFrom.
-const searchStoriesURL = "https://di.gg/api/search/stories"
-
-// StoriesSearchResult is one entry in a /api/search/stories response.
-// Mirrors the documented envelope verbatim so callers can pass through
-// pagination-relevant fields (rank, postCount, uniqueAuthors) without
-// reshaping. firstPostAge stays a string ("2d", "26d", "5h") because
-// U3's --since filter parses it on the CLI side.
-type StoriesSearchResult struct {
-	ClusterID     string `json:"clusterId"`
-	ClusterURLID  string `json:"clusterUrlId"`
-	Rank          int    `json:"rank"`
-	Title         string `json:"title"`
-	Description   string `json:"description"`
-	PostCount     int    `json:"postCount"`
-	UniqueAuthors int    `json:"uniqueAuthors"`
-	FirstPostAge  string `json:"firstPostAge"`
-}
-
-// StoriesSearchResponse is the full envelope returned by
-// /api/search/stories. count and duration_ms are top-level upstream and
-// preserved here so doctor / smoke checks can flag drift.
-type StoriesSearchResponse struct {
-	Query      string                `json:"query"`
-	Results    []StoriesSearchResult `json:"results"`
-	Count      int                   `json:"count"`
-	DurationMS int                   `json:"duration_ms"`
-}
+// roster1000URL is the page that carries the 1000-account roster. It was
+// /ai/1000 until Digg moved it under /tech in October 2026 (the old path
+// now 308-redirects here). Defined as a const so tests can substitute via
+// FetchRoster1000From.
+const roster1000URL = "https://digg.com/tech/x/rankings"
 
 // FetchRoster1000 GETs the /ai/1000 page, hands the HTML to the RSC
 // parser, and returns the structured roster. Uses the client's
@@ -108,65 +77,6 @@ func (c *Client) FetchRoster1000From(ctx context.Context, url string) ([]diggpar
 	return authors, err
 }
 
-// SearchStories hits Digg's undocumented /api/search/stories endpoint
-// — the JSON surface backing the di.gg/ai Cmd+K modal. Returns the
-// upstream envelope unchanged so callers can use rank/postCount/
-// uniqueAuthors/firstPostAge directly.
-//
-// query is required; empty query is the caller's responsibility (the
-// upstream returns an empty results array, not an error). limit is sent
-// as an upstream query param when > 0 — verified by curl probe that the
-// server honors `limit` (nolimit returns 11 results, limit=2 returns 2).
-func (c *Client) SearchStories(ctx context.Context, query string, limit int) (*StoriesSearchResponse, error) {
-	return c.SearchStoriesFrom(ctx, searchStoriesURL, query, limit)
-}
-
-// SearchStoriesFrom is SearchStories with a caller-supplied base URL.
-// Exists so unit tests can point at a local httptest server.
-func (c *Client) SearchStoriesFrom(ctx context.Context, baseURL, query string, limit int) (*StoriesSearchResponse, error) {
-	cctx, cancel := context.WithTimeout(ctx, c.ConfiguredTimeout())
-	defer cancel()
-
-	c.limiter.Wait()
-
-	q := url.Values{}
-	q.Set("q", query)
-	if limit > 0 {
-		q.Set("limit", strconv.Itoa(limit))
-	}
-	full := baseURL + "?" + q.Encode()
-
-	req, err := http.NewRequestWithContext(cctx, http.MethodGet, full, nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", "digg-pp-cli/0.1.0 (+https://github.com/mvanhorn/printing-press-library)")
-	req.Header.Set("Accept", "application/json")
-
-	httpClient := c.HTTPClient
-	if httpClient == nil {
-		httpClient = &http.Client{Timeout: 30 * time.Second}
-	}
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("GET %s: %w", baseURL, err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("GET %s: HTTP %d: %s", baseURL, resp.StatusCode, truncate(string(body), 200))
-	}
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("reading /api/search/stories body: %w", err)
-	}
-	var out StoriesSearchResponse
-	if err := json.Unmarshal(body, &out); err != nil {
-		return nil, fmt.Errorf("decoding /api/search/stories: %w", err)
-	}
-	return &out, nil
-}
-
 func truncate(s string, n int) string {
 	if len(s) <= n {
 		return s
@@ -175,10 +85,10 @@ func truncate(s string, n int) string {
 }
 
 // searchUsersURL is the upstream user-search endpoint backing
-// `authors get <handle>` lookups. Same host shape as
-// /api/search/stories; verified by curl probe 2026-05-09. The base
-// URL is overridable in tests via SearchUsersFrom.
-const searchUsersURL = "https://di.gg/api/search/users"
+// `authors get <handle>` lookups. Verified by curl probe 2026-05-09
+// and still live 2026-10-21. The base URL is overridable in tests via
+// SearchUsersFrom.
+const searchUsersURL = "https://digg.com/api/search/users"
 
 // UsersSearchResult is one entry in a /api/search/users response.
 //
@@ -205,8 +115,7 @@ type UsersSearchResult struct {
 
 // UsersSearchResponse is the full envelope returned by
 // /api/search/users. count and duration_ms are top-level upstream and
-// preserved here for parity with /api/search/stories so doctor / smoke
-// checks can flag drift uniformly across the two endpoints.
+// preserved here so doctor / smoke checks can flag drift.
 type UsersSearchResponse struct {
 	Query      string              `json:"query"`
 	Results    []UsersSearchResult `json:"results"`
@@ -218,7 +127,7 @@ type UsersSearchResponse struct {
 // fetches. Joined with the caller-supplied clusterUrlId by
 // FetchClusterPosts. Defined as a const so tests can substitute via
 // FetchClusterPostsFrom.
-const clusterPostsURLBase = "https://di.gg/ai"
+const clusterPostsURLBase = "https://digg.com/ai"
 
 // FetchClusterPosts GETs the /ai/<clusterUrlId> page, hands the HTML
 // to the parser, and returns the structured posts (RSC array enriched
@@ -277,19 +186,15 @@ func (c *Client) FetchClusterPostsFrom(ctx context.Context, url string) ([]diggp
 //
 // query is required; an empty query is the caller's responsibility
 // (upstream returns an empty results array, not an error). limit is
-// sent as an upstream query param when > 0 — same shape as
-// SearchStories; small limits are common here because the call site
+// sent as an upstream query param when > 0; small limits are common
+// here because the call site
 // usually wants exact-or-top-fuzzy and capped fan-out.
 func (c *Client) SearchUsers(ctx context.Context, query string, limit int) (*UsersSearchResponse, error) {
 	return c.SearchUsersFrom(ctx, searchUsersURL, query, limit)
 }
 
 // SearchUsersFrom is SearchUsers with a caller-supplied base URL.
-// Exists so unit tests can point at a local httptest server. Mirrors
-// SearchStoriesFrom byte-for-byte except for the path constant; if
-// the request shape ever diverges (auth headers, alt encoding,
-// pagination cursor) split the helpers; until then keep them paired
-// so a fix to one is obvious for the other.
+// Exists so unit tests can point at a local httptest server.
 func (c *Client) SearchUsersFrom(ctx context.Context, baseURL, query string, limit int) (*UsersSearchResponse, error) {
 	cctx, cancel := context.WithTimeout(ctx, c.ConfiguredTimeout())
 	defer cancel()
@@ -341,7 +246,7 @@ func (c *Client) SearchUsersFrom(ctx context.Context, baseURL, query string, lim
 // need the meta description (a few hundred bytes), so a regex over
 // the HTML is dramatically cheaper than parsing the full DOM. The
 // base URL is overridable in tests via FetchUserPeerFollowCountFrom.
-const userPeerFollowURLBase = "https://di.gg/u/x"
+const userPeerFollowURLBase = "https://digg.com/u/x"
 
 // userPeerFollowMetaRegex extracts the "followed by N tracked AI
 // influencers" count from the /u/x/<handle> meta description.

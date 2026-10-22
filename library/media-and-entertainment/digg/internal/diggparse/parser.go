@@ -5,15 +5,13 @@
 //
 // Why this exists: Digg AI is a Next.js 15 SPA on Vercel. The page's
 // data is shipped to the browser as a series of self.__next_f.push([1,
-// "<escaped-json>"]) calls embedded inline in the HTML. There is no
-// public REST endpoint for the feed; the only JSON API is
-// /api/trending/status. To turn /ai into a CLI-friendly structured
-// surface we parse the RSC stream from the same HTML the browser
-// renders.
+// "<escaped-json>"]) calls embedded inline in the HTML. The ranked list,
+// scores, and embedded pipeline events exist only there (the paginated
+// /api/feed/continuous feed carries story content but not rank data), so
+// we parse the RSC stream from the same HTML the browser renders.
 package diggparse
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -86,7 +84,7 @@ type ClusterAuthor struct {
 	PostPermalink string  `json:"permalink,omitempty"`
 }
 
-// Event is one entry from /api/trending/status events[].
+// Event is one pipeline event embedded in a section page's RSC stream.
 type Event struct {
 	ID            string          `json:"id"`
 	Type          string          `json:"type"`
@@ -115,17 +113,6 @@ type Event struct {
 	CreatedAt     string          `json:"createdAt,omitempty"`
 	DedupeKey     string          `json:"dedupeKey,omitempty"`
 	RawJSON       json.RawMessage `json:"-"`
-}
-
-// TrendingStatus mirrors GET /api/trending/status.
-type TrendingStatus struct {
-	ComputedAt           string  `json:"computedAt,omitempty"`
-	NextFetchAt          string  `json:"nextFetchAt,omitempty"`
-	LastFetchCompletedAt string  `json:"lastFetchCompletedAt,omitempty"`
-	IsFetching           bool    `json:"isFetching"`
-	StoriesToday         int     `json:"storiesToday,omitempty"`
-	ClustersToday        int     `json:"clustersToday,omitempty"`
-	Events               []Event `json:"events,omitempty"`
 }
 
 // pushPattern matches: self.__next_f.push([1, "<js-string-literal>"])
@@ -246,9 +233,8 @@ func ExtractClusters(decoded string) ([]Cluster, error) {
 	return out, nil
 }
 
-// ExtractEvents finds every event-shaped object in the stream. Used for
-// /api/trending/status JSON OR for cluster_detected/fast_climb events
-// embedded in the /ai HTML stream.
+// ExtractEvents finds every event-shaped object in the stream, such as
+// the cluster_detected/fast_climb events embedded in section pages.
 func ExtractEvents(decoded string) ([]Event, error) {
 	objs := scanObjectsContaining(decoded, `"dedupeKey":"`)
 	out := make([]Event, 0, len(objs))
@@ -501,16 +487,6 @@ func ParseHomeFeed(html []byte) (clusters []Cluster, events []Event, decoded str
 	}
 	events, _ = ExtractEvents(decoded)
 	return clusters, events, decoded, nil
-}
-
-// ParseTrendingStatus parses the /api/trending/status JSON response.
-func ParseTrendingStatus(body []byte) (*TrendingStatus, error) {
-	body = bytes.TrimSpace(body)
-	var t TrendingStatus
-	if err := json.Unmarshal(body, &t); err != nil {
-		return nil, fmt.Errorf("parsing trending/status: %w", err)
-	}
-	return &t, nil
 }
 
 // ParseTime is a forgiving timestamp parser. Digg ships a mix of

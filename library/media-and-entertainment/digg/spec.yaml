@@ -2,7 +2,7 @@ name: digg
 display_name: Digg
 description: "Digg: tail the AI story leaderboard, GitHub feeds, ranking-change history, and live ingestion pipeline events from the terminal. Read-only."
 version: "0.2.0"
-base_url: "https://di.gg"
+base_url: "https://digg.com"
 cli_description: "Read-only CLI for Digg — the AI story leaderboard, GitHub feeds, and ingestion pipeline events on digg.com."
 
 auth:
@@ -13,18 +13,6 @@ config:
   path: "~/.config/digg-pp-cli/config.toml"
 
 resources:
-  trending:
-    description: "Public ingestion-pipeline status and event stream"
-    endpoints:
-      status:
-        method: GET
-        path: "/api/trending/status"
-        description: "Read the current pipeline status: storiesToday, clustersToday, isFetching, nextFetchAt, and the recent event stream (cluster_detected, fast_climb, post_understanding, batch_started, batch_breakdown, posts_stored, embedding_progress)."
-        params: []
-        response:
-          type: object
-          item: TrendingStatus
-
   feed:
     description: "Top-level story feed (HTML page; CLI parses the embedded RSC stream)"
     endpoints:
@@ -56,7 +44,7 @@ resources:
     endpoints:
       stars:
         method: GET
-        path: "/ai/github/stars"
+        path: "/tech/github/stars"
         description: "Top AI repos ranked by starring activity from Digg-tracked accounts. Returns repo_full_name, language, stargazers_count, recent starrer list, breakout/novel/ai_related scores, and the model's one-sentence classification."
         params:
           # PATCH(digg-rankings-and-min-starrers): smart-money-convergence filter.
@@ -70,7 +58,7 @@ resources:
 
       new:
         method: GET
-        path: "/ai/github/new"
+        path: "/tech/github/new"
         description: "Recently first-seen GitHub repos with the Digg-tracked creator/starrer who first put them on Digg's radar (event_id + event_created_at + creator)."
         params: []
         response:
@@ -79,7 +67,7 @@ resources:
 
       activity:
         method: GET
-        path: "/ai/github/activity"
+        path: "/tech/github/activity"
         description: "Top GitHub contributor leaderboard: per-author rank, contribution count, and distinct repos count over Digg's tracking window."
         params: []
         response:
@@ -88,23 +76,23 @@ resources:
 
       recent:
         method: GET
-        path: "/ai/github/recent"
+        path: "/tech/github/recent"
         description: "Live GitHub activity feed: per-event entries with the github.com URL (issue/PR/commit/repo), the user who acted, and a short description of the target."
         params: []
         response:
           type: object
           item: RawHTML
 
-  # PATCH(digg-rankings-and-min-starrers): three sub-views of the
-  # /ai/x/rankings/companies page, each parsed from a distinct section
-  # of the same embedded RSC stream.
+  # PATCH(digg-rankings-and-min-starrers): views of the rankings page
+  # (formerly /ai/x/rankings/companies, now /tech/x/rankings). Digg
+  # removed the emerging and movers sections in October 2026.
   rankings:
-    description: "Rankings views Digg publishes alongside the AI 1000 leaderboard. Three sub-views of the /ai/x/rankings/companies snapshot."
+    description: "Views of Digg's rankings page. Only the full ranking remains; emerging and movers fail closed."
     endpoints:
       emerging:
         method: GET
-        path: "/ai/x/rankings/companies"
-        description: "Curated list of small AI companies (the 'EMERGING STARTUPS — CURATED THIS SNAPSHOT' block). ~10 rows refreshed per snapshot. Mixes AI-judge-flagged emerging startups (IsEmergingStartup=true) with adjacent new entrants the curator surfaced."
+        path: "/tech/x/rankings"
+        description: "Removed by Digg in October 2026; the command exits non-zero with a removed-view error."
         params:
           - name: max-skip-ratio
             type: float
@@ -116,8 +104,8 @@ resources:
 
       movers:
         method: GET
-        path: "/ai/x/rankings/companies"
-        description: "Companies whose follower count shifted most since the last snapshot. --direction up returns gainers, down returns losers, both returns both with direction stamped per row."
+        path: "/tech/x/rankings"
+        description: "Removed by Digg in October 2026; the command exits non-zero with a removed-view error."
         params:
           - name: direction
             type: string
@@ -133,8 +121,8 @@ resources:
 
       list:
         method: GET
-        path: "/ai/x/rankings/companies"
-        description: "Full company ranking — the 'Companies followed by the AI 2K' section. Server-paginated; this returns the initial-HTML slice (typically the top 50-200 entries)."
+        path: "/tech/x/rankings"
+        description: "Full ranking of people and companies. Server-paginated; this returns the initial-HTML slice."
         params:
           - name: limit
             type: int
@@ -149,21 +137,6 @@ resources:
           item: RawHTML
 
 types:
-  TrendingStatus:
-    fields:
-      - name: computedAt
-        type: string
-      - name: nextFetchAt
-        type: string
-      - name: lastFetchCompletedAt
-        type: string
-      - name: isFetching
-        type: bool
-      - name: storiesToday
-        type: int
-      - name: clustersToday
-        type: int
-
   RawHTML:
     fields:
       - name: body
