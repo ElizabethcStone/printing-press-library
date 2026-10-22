@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "fedex",
   "cli_name": "fedex-pp-cli",
-  "version": "2026.9.1",
-  "released_at": "2026-09-03T09:06:45Z",
-  "source_commit": "ef540232d9e7b16b51fb397fdc215eb6995d7e35",
+  "version": "2026.10.1",
+  "released_at": "2026-10-22T01:19:55Z",
+  "source_commit": "36d85b8a38b45cbd4535152318fda5cd06003310",
   "printing_press_version": "3.6.0",
   "run_id": "20260502-152509",
   "changes": [
     {
-      "title": "fix(fedex): prevent unsafe mutation retries",
-      "pr": 1910,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/1910",
-      "commit": "ef540232d9e7b16b51fb397fdc215eb6995d7e35"
+      "title": "fix(fedex): gate MCP mutations and harden local storage (from @jesseraasch #1912, #1914)",
+      "pr": 2351,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2351",
+      "commit": "36d85b8a38b45cbd4535152318fda5cd06003310"
     }
   ]
 }
