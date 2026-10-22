@@ -22150,6 +22150,12 @@
         "Create, wait for, and download an ads performance report in one command. Requires the ads:read scope and --ad-account-id (or PINTEREST_AD_ACCOUNT_ID)."
       ],
       "path": "library/marketing/pinterest",
+      "release": {
+        "cli_name": "pinterest-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-22T08:49:09Z",
+        "source_commit": "9c5d93e54a5a955b705cb164883393c61099c5e6"
+      },
       "printer": "ElizabethcStone",
       "printer_name": "Elizabeth Stone",
       "creator": {
