@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.4 - 2026-10-22
+
+- feat(x-twitter): articles patch-md for embedded posts in existing articles (#2353).
+
 ## 2026.10.3 - 2026-10-01
 
 - feat(x-twitter): select isolated saved profile stores (#2162).

@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "x-twitter",
   "cli_name": "x-twitter-pp-cli",
-  "version": "2026.10.3",
-  "released_at": "2026-10-01T22:30:14Z",
-  "source_commit": "300e1587f6bcae0a38c1aebe0f206c0d85882cf2",
+  "version": "2026.10.4",
+  "released_at": "2026-10-22T02:41:52Z",
+  "source_commit": "3fe34da801444fecaa0529fc011e3c6decd5f60e",
   "printing_press_version": "4.20.1",
   "run_id": "20260603-230951",
   "changes": [
     {
-      "title": "feat(x-twitter): select isolated saved profile stores",
-      "pr": 2162,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2162",
-      "commit": "300e1587f6bcae0a38c1aebe0f206c0d85882cf2"
+      "title": "feat(x-twitter): articles patch-md for embedded posts in existing articles",
+      "pr": 2353,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2353",
+      "commit": "3fe34da801444fecaa0529fc011e3c6decd5f60e"
     }
   ]
 }
