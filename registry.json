@@ -9431,7 +9431,7 @@
           "stdio",
           "http"
         ],
-        "tool_count": 48,
+        "tool_count": 59,
         "public_tool_count": 0,
         "auth_type": "bearer_token",
         "env_vars": [
