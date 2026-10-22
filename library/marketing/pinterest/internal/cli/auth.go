@@ -368,7 +368,8 @@ func resolveOAuthCredentials(cmd *cobra.Command, flags *rootFlags, cfg *config.C
 	if clientID != "" {
 		// Pinterest's token endpoint needs the secret (no PKCE), so ask for it
 		// rather than silently falling through to a public-client exchange.
-		if clientSecret == "" && !flags.noInput && stdinIsTerminal(cmd.InOrStdin()) {
+		// --dry-run only previews the authorize URL, which needs no secret.
+		if clientSecret == "" && !flags.noInput && !flags.dryRun && stdinIsTerminal(cmd.InOrStdin()) {
 			var err error
 			clientSecret, err = promptOAuthSecret(cmd, bufio.NewReader(cmd.InOrStdin()))
 			if err != nil {
@@ -412,20 +413,31 @@ func promptOAuthCredential(cmd *cobra.Command, reader *bufio.Reader, label strin
 }
 
 // promptOAuthSecret reads the client secret without echoing it when stdin is
-// a terminal; piped input falls back to a plain line read.
+// a terminal; piped input falls back to a plain line read. An empty answer is
+// rejected before the browser opens: Pinterest's token exchange always needs it.
 func promptOAuthSecret(cmd *cobra.Command, reader *bufio.Reader) (string, error) {
-	const label = "OAuth2 Client Secret (input hidden; press Enter if not required)"
+	const label = "OAuth2 Client Secret (required; input hidden)"
+	var secret string
 	f, ok := cmd.InOrStdin().(*os.File)
 	if !ok || !term.IsTerminal(int(f.Fd())) {
-		return promptOAuthCredential(cmd, reader, label)
+		s, err := promptOAuthCredential(cmd, reader, label)
+		if err != nil {
+			return "", err
+		}
+		secret = s
+	} else {
+		fmt.Fprintf(cmd.ErrOrStderr(), "%s: ", label)
+		b, err := term.ReadPassword(int(f.Fd()))
+		fmt.Fprintln(cmd.ErrOrStderr())
+		if err != nil {
+			return "", fmt.Errorf("reading client secret: %w", err)
+		}
+		secret = strings.TrimSpace(string(b))
 	}
-	fmt.Fprintf(cmd.ErrOrStderr(), "%s: ", label)
-	b, err := term.ReadPassword(int(f.Fd()))
-	fmt.Fprintln(cmd.ErrOrStderr())
-	if err != nil {
-		return "", fmt.Errorf("reading client secret: %w", err)
+	if secret == "" {
+		return "", fmt.Errorf("OAuth2 client secret is required; copy the revealed App secret key from your Pinterest app page")
 	}
-	return strings.TrimSpace(string(b)), nil
+	return secret, nil
 }
 
 func stdinIsTerminal(r io.Reader) bool {

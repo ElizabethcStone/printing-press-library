@@ -151,7 +151,7 @@ Pinterest uses OAuth 2.0 authorization code.
 |---|---|---|
 | "invalid scopes requested" on Pinterest's page | Your app or account can't grant one of the requested scopes | Retry with `--scopes basic`, or list only the scopes you need |
 | Redirect error on Pinterest's page | The redirect URI isn't registered exactly | Add `http://localhost:8875/callback` to the app, or match `--port` to the one you registered |
-| `exchanging code for token: HTTP 401 ... Authentication failed` | Wrong or empty client secret (often the masked dots were copied, or Enter was pressed at an empty prompt) | Reveal the secret on the app page, or reset it, and log in again |
+| `exchanging code for token: HTTP 401 ... Authentication failed` | Wrong client secret (often the masked dots were copied, or the secret was reset) | Reveal the secret on the app page, or reset it, and log in again |
 
 ## Quick Start
 
