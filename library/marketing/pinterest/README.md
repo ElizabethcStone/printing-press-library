@@ -128,6 +128,8 @@ Pinterest uses OAuth 2.0 authorization code. Run 'pinterest-pp-cli auth login' w
 
 **Scopes.** `auth login` requests every scope Pinterest documents (ads, billing, biz_access, boards, catalogs, pins, user_accounts; read/write and secret variants) except `msot:write`, which Pinterest's OAuth docs do not list and which gets "invalid scopes requested". Choose your own set with `--scopes` (comma-separated, replaces the default) or persist it with `PINTEREST_SCOPES`. `--scopes basic` expands to boards/pins/user_accounts read+write, for apps or accounts that cannot grant ads, billing, biz_access or catalogs. Pinterest's docs do not say whether personal accounts can grant those four, so if login is rejected, try `basic`. Add `msot:write` explicitly only if your app has MSOT access.
 
+**Client secret.** Pinterest's token exchange requires the app secret (it does not accept PKCE-only clients). If you pass `--client-id` without `--client-secret` or `PINTEREST_CLIENT_SECRET`, login prompts for the secret with hidden input so it never appears on screen or in shell history. An `HTTP 401 ... Authentication failed` at token exchange means the secret is wrong or empty: reveal or reset it on your app page and retry.
+
 ## Quick Start
 
 ```bash

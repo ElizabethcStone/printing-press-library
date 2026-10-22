@@ -27,6 +27,7 @@ import (
 	"github.com/mvanhorn/printing-press-library/library/marketing/pinterest/internal/cliutil"
 	"github.com/mvanhorn/printing-press-library/library/marketing/pinterest/internal/config"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 func newAuthCmd(flags *rootFlags) *cobra.Command {
@@ -365,6 +366,15 @@ func resolveOAuthCredentials(cmd *cobra.Command, flags *rootFlags, cfg *config.C
 		clientSecret = cfg.ClientSecret
 	}
 	if clientID != "" {
+		// Pinterest's token endpoint needs the secret (no PKCE), so ask for it
+		// rather than silently falling through to a public-client exchange.
+		if clientSecret == "" && !flags.noInput && stdinIsTerminal(cmd.InOrStdin()) {
+			var err error
+			clientSecret, err = promptOAuthSecret(cmd, bufio.NewReader(cmd.InOrStdin()))
+			if err != nil {
+				return "", "", err
+			}
+		}
 		return clientID, clientSecret, nil
 	}
 	if flags.noInput {
@@ -380,7 +390,7 @@ func resolveOAuthCredentials(cmd *cobra.Command, flags *rootFlags, cfg *config.C
 		return "", "", fmt.Errorf("OAuth2 client ID is required")
 	}
 	if clientSecret == "" {
-		clientSecret, err = promptOAuthCredential(cmd, reader, "OAuth2 Client Secret (press Enter if not required)")
+		clientSecret, err = promptOAuthSecret(cmd, reader)
 		if err != nil {
 			return "", "", err
 		}
@@ -399,6 +409,28 @@ func promptOAuthCredential(cmd *cobra.Command, reader *bufio.Reader, label strin
 		return "", fmt.Errorf("reading %s: %w", strings.ToLower(label), err)
 	}
 	return strings.TrimSpace(line), nil
+}
+
+// promptOAuthSecret reads the client secret without echoing it when stdin is
+// a terminal; piped input falls back to a plain line read.
+func promptOAuthSecret(cmd *cobra.Command, reader *bufio.Reader) (string, error) {
+	const label = "OAuth2 Client Secret (input hidden; press Enter if not required)"
+	f, ok := cmd.InOrStdin().(*os.File)
+	if !ok || !term.IsTerminal(int(f.Fd())) {
+		return promptOAuthCredential(cmd, reader, label)
+	}
+	fmt.Fprintf(cmd.ErrOrStderr(), "%s: ", label)
+	b, err := term.ReadPassword(int(f.Fd()))
+	fmt.Fprintln(cmd.ErrOrStderr())
+	if err != nil {
+		return "", fmt.Errorf("reading client secret: %w", err)
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
+func stdinIsTerminal(r io.Reader) bool {
+	f, ok := r.(*os.File)
+	return ok && term.IsTerminal(int(f.Fd()))
 }
 
 func newAuthStatusCmd(flags *rootFlags) *cobra.Command {
