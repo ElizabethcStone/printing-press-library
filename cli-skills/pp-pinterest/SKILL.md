@@ -381,6 +381,8 @@ Alternatives when you already have an access token: export it as `PINTEREST_ACCE
 
 Run `pinterest-pp-cli doctor` to verify setup.
 
+**Scopes.** `auth login` requests every scope Pinterest documents (ads, billing, biz_access, boards, catalogs, pins, user_accounts; read/write and secret variants) except `msot:write`, which Pinterest's OAuth docs do not list and which gets "invalid scopes requested". Choose your own set with `--scopes` (comma-separated, replaces the default) or persist it with `PINTEREST_SCOPES`. `--scopes basic` expands to boards/pins/user_accounts read+write, for apps or accounts that cannot grant ads, billing, biz_access or catalogs. Pinterest's docs do not say whether personal accounts can grant those four, so if login is rejected, try `basic`. Add `msot:write` explicitly only if your app has MSOT access.
+
 ## Agent Mode
 
 Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color`.

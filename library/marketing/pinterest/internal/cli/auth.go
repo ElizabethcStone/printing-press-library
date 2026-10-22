@@ -103,6 +103,7 @@ func newAuthLoginCmd(flags *rootFlags) *cobra.Command {
 	var clientID string
 	var clientSecret string
 	var port int
+	var scopeOverride []string
 
 	cmd := &cobra.Command{
 		Use:   "login",
@@ -119,18 +120,19 @@ func newAuthLoginCmd(flags *rootFlags) *cobra.Command {
 			if clientSecret == "" {
 				clientSecret = os.Getenv("PINTEREST_CLIENT_SECRET")
 			}
-			return runOAuthLogin(cmd, flags, clientID, clientSecret, port, clientIDFromFlag, clientSecretFromFlag)
+			return runOAuthLogin(cmd, flags, clientID, clientSecret, port, scopeOverride, clientIDFromFlag, clientSecretFromFlag)
 		},
 	}
 
 	cmd.Flags().StringVar(&clientID, "client-id", "", "OAuth2 client ID")
 	cmd.Flags().StringVar(&clientSecret, "client-secret", "", "OAuth2 client secret")
 	cmd.Flags().IntVar(&port, "port", 8875, "Local callback server port")
+	cmd.Flags().StringSliceVar(&scopeOverride, "scopes", nil, "OAuth scopes to request, comma-separated (replaces the default of all documented scopes except msot:write; env PINTEREST_SCOPES; \"basic\" = boards/pins/user_accounts read+write; add msot:write only if your app has MSOT access)")
 
 	return cmd
 }
 
-func runOAuthLogin(cmd *cobra.Command, flags *rootFlags, clientID, clientSecret string, port int, clientIDFromFlag, clientSecretFromFlag bool) error {
+func runOAuthLogin(cmd *cobra.Command, flags *rootFlags, clientID, clientSecret string, port int, scopeOverride []string, clientIDFromFlag, clientSecretFromFlag bool) error {
 	w := cmd.OutOrStdout()
 	cfg, err := config.Load(flags.configPath)
 	if err != nil {
@@ -187,7 +189,7 @@ func runOAuthLogin(cmd *cobra.Command, flags *rootFlags, clientID, clientSecret 
 		params.Set("code_challenge", pkceCodeChallengeS256(codeVerifier))
 		params.Set("code_challenge_method", "S256")
 	}
-	scopes := []string{"ads:read", "ads:write", "billing:read", "billing:write", "biz_access:read", "biz_access:write", "boards:read", "boards:read_secret", "boards:write", "boards:write_secret", "catalogs:read", "catalogs:write", "msot:write", "pins:read", "pins:read_secret", "pins:write", "pins:write_secret", "user_accounts:read", "user_accounts:write"}
+	scopes := resolveLoginScopes(scopeOverride, os.Getenv("PINTEREST_SCOPES"))
 	if len(scopes) > 0 {
 		params.Set("scope", strings.Join(scopes, " "))
 	}
@@ -231,7 +233,7 @@ func runOAuthLogin(cmd *cobra.Command, flags *rootFlags, clientID, clientSecret 
 			return
 		}
 		if errMsg := r.URL.Query().Get("error"); errMsg != "" {
-			errCh <- fmt.Errorf("auth error: %s", errMsg)
+			errCh <- fmt.Errorf("auth error: %s (if Pinterest rejected the scopes, retry with a smaller set, e.g. --scopes basic)", errMsg)
 			http.Error(w, errMsg, http.StatusBadRequest)
 			return
 		}
@@ -604,4 +606,31 @@ func openBrowser(url string) {
 		return
 	}
 	cmd.Start()
+}
+
+var (
+	pinterestDefaultScopes = []string{"ads:read", "ads:write", "billing:read", "billing:write", "biz_access:read", "biz_access:write", "boards:read", "boards:read_secret", "boards:write", "boards:write_secret", "catalogs:read", "catalogs:write", "pins:read", "pins:read_secret", "pins:write", "pins:write_secret", "user_accounts:read", "user_accounts:write"}
+	pinterestBasicScopes   = []string{"boards:read", "boards:read_secret", "boards:write", "boards:write_secret", "pins:read", "pins:read_secret", "pins:write", "pins:write_secret", "user_accounts:read", "user_accounts:write"}
+)
+
+// resolveLoginScopes picks the OAuth scopes: --scopes, else PINTEREST_SCOPES
+// (comma or space separated), else every documented scope except msot:write.
+// The token "basic" expands to the boards/pins/user_accounts preset.
+func resolveLoginScopes(flagScopes []string, env string) []string {
+	in := flagScopes
+	if len(in) == 0 {
+		in = strings.FieldsFunc(env, func(r rune) bool { return r == ',' || r == ' ' })
+	}
+	if len(in) == 0 {
+		return pinterestDefaultScopes
+	}
+	var out []string
+	for _, sc := range in {
+		if sc = strings.TrimSpace(sc); sc == "basic" {
+			out = append(out, pinterestBasicScopes...)
+		} else if sc != "" {
+			out = append(out, sc)
+		}
+	}
+	return out
 }

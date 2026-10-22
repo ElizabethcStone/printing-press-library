@@ -126,6 +126,8 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 Pinterest uses OAuth 2.0 authorization code. Run 'pinterest-pp-cli auth login' with PINTEREST_CLIENT_ID and PINTEREST_CLIENT_SECRET set; the redirect URI must exactly match the one registered on your Pinterest app (for example http://localhost:8875/callback). Token exchange and refresh authenticate the app with HTTP Basic, and continuous refresh keeps access alive. For one-off runs, export a current access token as PINTEREST_ACCESS_TOKEN (PINTEREST_OAUTH2 is also accepted).
 
+**Scopes.** `auth login` requests every scope Pinterest documents (ads, billing, biz_access, boards, catalogs, pins, user_accounts; read/write and secret variants) except `msot:write`, which Pinterest's OAuth docs do not list and which gets "invalid scopes requested". Choose your own set with `--scopes` (comma-separated, replaces the default) or persist it with `PINTEREST_SCOPES`. `--scopes basic` expands to boards/pins/user_accounts read+write, for apps or accounts that cannot grant ads, billing, biz_access or catalogs. Pinterest's docs do not say whether personal accounts can grant those four, so if login is rejected, try `basic`. Add `msot:write` explicitly only if your app has MSOT access.
+
 ## Quick Start
 
 ```bash
@@ -947,6 +949,7 @@ If you use agentcookie to sync secrets across machines, this CLI auto-adopts age
 
 - **401 Unauthorized after a few weeks** — Run pinterest-pp-cli auth status; if the refresh token expired, re-run pinterest-pp-cli auth login
 - **redirect_uri mismatch during login** — Pass the exact registered callback, e.g. pinterest-pp-cli auth login --port 8875
+- **invalid scopes requested during login** — Default login requests the standard scopes (not msot:write). If your app lacks some, pick a smaller set: pinterest-pp-cli auth login --scopes boards:read,pins:read,user_accounts:read. Add msot:write only for MSOT-enabled apps.
 - **429 Too Many Requests on trial access** — Trial apps are capped at 1000 requests/day; use the local store (search, pins audit) and sync with --max-pages
 
 ---
