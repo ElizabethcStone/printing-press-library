@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "pinterest",
+  "cli_name": "pinterest-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-22T08:49:09Z",
+  "source_commit": "9c5d93e54a5a955b705cb164883393c61099c5e6",
+  "printing_press_version": "4.33.9",
+  "run_id": "20261021-092559-b7e82418",
+  "changes": [
+    {
+      "title": "feat(pinterest): add pinterest",
+      "pr": 2348,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2348",
+      "commit": "9c5d93e54a5a955b705cb164883393c61099c5e6"
+    }
+  ]
+}
