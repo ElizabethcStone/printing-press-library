@@ -6949,9 +6949,9 @@
         "digg",
         "digg-pp-cli",
         "Read-only CLI for Digg — the AI story leaderboard, GitHub feeds, and ingestion pipeline events on digg.com.",
-        "Live pipeline event tail",
+        "Stored pipeline events",
         "events",
-        "Tail Digg's ingestion pipeline in real time — see clusters as they're detected, stories fast-climbing the leaderboard with explicit rank deltas, X posts being processed, batch breakdowns.",
+        "List the pipeline events sync captured from section pages: clusters as they were detected and stories fast-climbing the leaderboard with explicit rank deltas.",
         "Replacement archaeology",
         "replaced",
         "Show stories that were knocked out of the rankings since the last sync, with Digg's own published replacement rationale.",
@@ -6987,10 +6987,7 @@
         "Every cluster a given X account contributed to, with post type (original, retweet, quote, reply).",
         "Rank-movement watcher",
         "watch",
-        "Poll /ai, diff against last snapshot, alert when any cluster moves N+ ranks.",
-        "Pipeline status dashboard",
-        "pipeline status",
-        "One-screen view of /api/trending/status: isFetching, nextFetchAt, storiesToday, clustersToday, last 5 events."
+        "Poll /ai, diff against last snapshot, alert when any cluster moves N+ ranks."
       ],
       "path": "library/media-and-entertainment/digg",
       "release": {
@@ -9415,9 +9412,9 @@
       "path": "library/commerce/fedex",
       "release": {
         "cli_name": "fedex-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-03T09:06:45Z",
-        "source_commit": "ef540232d9e7b16b51fb397fdc215eb6995d7e35"
+        "version": "2026.10.1",
+        "released_at": "2026-10-22T01:19:55Z",
+        "source_commit": "36d85b8a38b45cbd4535152318fda5cd06003310"
       },
       "printer": "tmchow",
       "printer_name": "Trevin Chow",
@@ -22125,6 +22122,58 @@
       }
     },
     {
+      "name": "pinterest",
+      "category": "marketing",
+      "api": "Pinterest",
+      "description": "Every Pinterest v5 endpoint plus period-over-period analytics, Pin hygiene audits, and offline Pin search.",
+      "search_terms": [
+        "pinterest",
+        "pinterest-pp-cli",
+        "Every Pinterest v5 endpoint plus period-over-period analytics, Pin hygiene audits, and offline Pin search.",
+        "Period-over-period performance",
+        "perf compare",
+        "See whether impressions, saves, and outbound clicks grew versus the previous equal-length period, with absolute and percent deltas.",
+        "Pin hygiene audit",
+        "pins audit",
+        "Find published Pins missing alt text, a destination link, a title, or UTM tracking, grouped by board. Reads the local store; run sync first.",
+        "Pin preflight",
+        "pins preflight",
+        "Validate a proposed Pin (field limits, board and section by name, UTM link) and get a ready-to-send create body without writing anything. Board names resolve from the local store; run sync first.",
+        "Save to outbound-click funnel",
+        "pins funnel",
+        "Rank your top Pins by impressions (or --sort-by metric), compute save and outbound-click rates, and flag Pins that get saved but don't send traffic.",
+        "Trend content gaps",
+        "trends gaps",
+        "List trending keywords for a region with how many of your synced Pins cover each, zero-coverage first. Coverage counts need a synced local store.",
+        "One-shot ads report",
+        "ads report",
+        "Create, wait for, and download an ads performance report in one command. Requires the ads:read scope and --ad-account-id (or PINTEREST_AD_ACCOUNT_ID)."
+      ],
+      "path": "library/marketing/pinterest",
+      "printer": "ElizabethcStone",
+      "printer_name": "Elizabeth Stone",
+      "creator": {
+        "handle": "ElizabethcStone",
+        "name": "Elizabeth Stone"
+      },
+      "mcp": {
+        "binary": "pinterest-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 266,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "PINTEREST_ACCESS_TOKEN",
+          "PINTEREST_OAUTH2"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "pipedrive",
       "category": "sales-and-crm",
       "api": "Pipedrive",
@@ -33583,9 +33632,9 @@
       "path": "library/social-and-messaging/x-twitter",
       "release": {
         "cli_name": "x-twitter-pp-cli",
-        "version": "2026.10.3",
-        "released_at": "2026-10-01T22:30:14Z",
-        "source_commit": "300e1587f6bcae0a38c1aebe0f206c0d85882cf2"
+        "version": "2026.10.4",
+        "released_at": "2026-10-22T02:41:52Z",
+        "source_commit": "3fe34da801444fecaa0529fc011e3c6decd5f60e"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
