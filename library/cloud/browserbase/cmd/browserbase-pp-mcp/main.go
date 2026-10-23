@@ -13,7 +13,7 @@ import (
 )
 
 // version is the printed MCP server's version, overridable at build time via ldflags.
-var version = "2026.10.1"
+var version = "2026.10.2"
 
 func main() {
 	if err := cli.BindMCPServerProfile(); err != nil {

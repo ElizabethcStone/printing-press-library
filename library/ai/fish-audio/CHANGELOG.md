@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.6 - 2026-10-23
+
+- fix(library): refresh CLIs to printing-press v4.33.10 (MCP upload input handling and share command hardening) (#2370).
+
 ## 2026.10.5 - 2026-10-01
 
 - fix(fish-audio): retain partial batch recovery details (#2140).
