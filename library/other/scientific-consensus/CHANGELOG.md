@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.4 - 2026-10-23
+
+- fix(scientific-consensus): bump excelize for GO-2026-6684 / GO-2026-6688 (#2356).
+
 ## 2026.10.3 - 2026-10-16
 
 - fix(scientific-consensus): PICOTokens skips subordinate-clause and empty-side verb matches (#2324).

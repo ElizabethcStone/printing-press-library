@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.1 - 2026-10-23
+
+- feat(google-search-console): support multiple saved Google accounts (#2363).
+
 ## 2026.9.3 - 2026-09-25
 
 - fix(google-search-console): stop double-encoding sitemap feedpath (#2054).
