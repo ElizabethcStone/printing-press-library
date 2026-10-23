@@ -2079,6 +2079,10 @@
         {
           "handle": "kriptoburak",
           "name": "Burak Bayır"
+        },
+        {
+          "handle": "johnisanerd",
+          "name": "John Cole"
         }
       ],
       "mcp": {
@@ -5238,9 +5242,9 @@
       "path": "library/cloud/cloud-run-admin",
       "release": {
         "cli_name": "cloud-run-admin-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-22T18:34:30Z",
+        "source_commit": "b26d9a691320ca6d117de7aa5dbb70a812c001f9"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -11714,9 +11718,9 @@
       "path": "library/marketing/google-analytics",
       "release": {
         "cli_name": "google-analytics-pp-cli",
-        "version": "2026.8.1",
-        "released_at": "2026-08-17T07:57:07Z",
-        "source_commit": "40363ac0936c4f406625f8399d8ad9b57673170e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-22T18:32:20Z",
+        "source_commit": "caa18ca7e89394d16603a7c880fcb62ad3e1c93d"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
