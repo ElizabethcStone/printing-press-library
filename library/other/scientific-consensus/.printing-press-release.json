@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "scientific-consensus",
   "cli_name": "scientific-consensus-pp-cli",
-  "version": "2026.10.4",
-  "released_at": "2026-10-23T08:56:38Z",
-  "source_commit": "eb28f2c6005cc2c29b24ac4176d22704ba5ec797",
+  "version": "2026.10.5",
+  "released_at": "2026-10-23T09:02:35Z",
+  "source_commit": "d6a7a3473cacba408bfa6a75c701691bb56c349e",
   "printing_press_version": "4.24.0",
   "run_id": "20260620-165352-e55cec69",
   "changes": [
     {
-      "title": "fix(scientific-consensus): bump excelize for GO-2026-6684 / GO-2026-6688",
-      "pr": 2356,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2356",
-      "commit": "eb28f2c6005cc2c29b24ac4176d22704ba5ec797"
+      "title": "fix(scientific-consensus): mark truncated abstracts",
+      "pr": 2355,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2355",
+      "commit": "d6a7a3473cacba408bfa6a75c701691bb56c349e"
     }
   ]
 }

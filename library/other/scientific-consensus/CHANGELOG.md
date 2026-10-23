@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.5 - 2026-10-23
+
+- fix(scientific-consensus): mark truncated abstracts (#2355).
+
 ## 2026.10.4 - 2026-10-23
 
 - fix(scientific-consensus): bump excelize for GO-2026-6684 / GO-2026-6688 (#2356).
