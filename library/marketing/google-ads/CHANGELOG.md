@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.2 - 2026-10-23
+
+- fix(google-ads): target Google Ads API v26 (v22 is retired) (#2357).
+
 ## 2026.10.1 - 2026-10-20
 
 - fix(google-ads): raise API error body limit from 200 to 4096 bytes (#2342).

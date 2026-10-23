@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "google-ads",
   "cli_name": "google-ads-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-20T08:55:25Z",
-  "source_commit": "833637bd09b305963e8bd437869f1944b37ec914",
+  "version": "2026.10.2",
+  "released_at": "2026-10-23T08:58:10Z",
+  "source_commit": "846c531743e4a8e228f81e98b23a08ea5aebd24c",
   "printing_press_version": "3.10.0",
   "run_id": "20260506-162403",
   "changes": [
     {
-      "title": "fix(google-ads): raise API error body limit from 200 to 4096 bytes",
-      "pr": 2342,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2342",
-      "commit": "833637bd09b305963e8bd437869f1944b37ec914"
+      "title": "fix(google-ads): target Google Ads API v26 (v22 is retired)",
+      "pr": 2357,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2357",
+      "commit": "846c531743e4a8e228f81e98b23a08ea5aebd24c"
     }
   ]
 }
