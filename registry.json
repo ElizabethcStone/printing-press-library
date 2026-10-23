@@ -11671,6 +11671,10 @@
         {
           "handle": "marshalldavies",
           "name": "Marshall Davies"
+        },
+        {
+          "handle": "azbirovskiy",
+          "name": "azbirovskiy"
         }
       ],
       "mcp": {
@@ -12000,9 +12004,9 @@
       "path": "library/marketing/google-search-console",
       "release": {
         "cli_name": "google-search-console-pp-cli",
-        "version": "2026.9.3",
-        "released_at": "2026-09-25T08:56:46Z",
-        "source_commit": "6437c7718486f73d6ce49c62138edf79a31b897a"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T08:56:38Z",
+        "source_commit": "c6a98d7b928b8dfc3ff7b6d3cf42a50ba293e0df"
       },
       "printer": "bossriceshark",
       "printer_name": "Matt",
@@ -25609,9 +25613,9 @@
       "path": "library/other/scientific-consensus",
       "release": {
         "cli_name": "scientific-consensus-pp-cli",
-        "version": "2026.10.3",
-        "released_at": "2026-10-16T08:55:32Z",
-        "source_commit": "84895223e002bb6ab111aa9bd8cbdd5ad9a67b67"
+        "version": "2026.10.4",
+        "released_at": "2026-10-23T08:56:38Z",
+        "source_commit": "eb28f2c6005cc2c29b24ac4176d22704ba5ec797"
       },
       "printer": "laci141",
       "printer_name": "laci141",
