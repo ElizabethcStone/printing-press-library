@@ -2,16 +2,16 @@
   "schema_version": 1,
   "slug": "firecrawl",
   "cli_name": "firecrawl-pp-cli",
-  "version": "2026.9.1",
-  "released_at": "2026-09-11T09:22:21Z",
-  "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e",
+  "version": "2026.10.1",
+  "released_at": "2026-10-23T08:59:22Z",
+  "source_commit": "5aa983ca95221146c7485d30ef479fa1e11de0cd",
   "printing_press_version": "3.6.0",
   "changes": [
     {
-      "title": "fix: fail closed on ambiguous fleet write retries",
-      "pr": 1978,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/1978",
-      "commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+      "title": "fix(firecrawl): identify firecrawl-pp-cli requests to Firecrawl",
+      "pr": 2366,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2366",
+      "commit": "5aa983ca95221146c7485d30ef479fa1e11de0cd"
     }
   ]
 }
