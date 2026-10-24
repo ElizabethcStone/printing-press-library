@@ -1328,9 +1328,9 @@
       "path": "library/commerce/amazon-ads",
       "release": {
         "cli_name": "amazon-ads-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -2658,9 +2658,9 @@
       "path": "library/auth/authentik",
       "release": {
         "cli_name": "authentik-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "CarlF01",
       "printer_name": "CFinney",
@@ -4213,9 +4213,9 @@
       "path": "library/cloud/browserbase",
       "release": {
         "cli_name": "browserbase-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T23:19:35Z",
-        "source_commit": "a3bb76cfe136f77f0ea4f0f7747005c1c3db8368"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
@@ -4375,6 +4375,60 @@
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "care",
+      "category": "other",
+      "api": "Care",
+      "description": "care.com CLI: search caregivers, review applicants/messages, analyze and reach out - over your own authenticated session",
+      "search_terms": [
+        "care",
+        "care-pp-cli",
+        "care.com CLI: search caregivers, review applicants/messages, analyze and reach out - over your own authenticated session",
+        "Job-scoped caregiver search",
+        "find",
+        "Search caregivers near a zip for a specific job you are hiring for, with local filters for hourly rate, years of experience, and review count, ranked by reviews/rating/experience. Transcends the raw SearchProvidersChildCare BFF call, which returns unranked, unfiltered pages.",
+        "The raw API returns unranked provider pages; hiring requires filtering and ranking against a concrete job so any match can be messaged under it.",
+        "Weighted fit-score recommendation",
+        "recommend",
+        "Rank caregivers by a weighted 0-100 fit score (reviews, rating, experience, background-check, proven hires, rate-fit) and explain each score in plain language.",
+        "No care.com endpoint scores fit; this synthesizes multiple profile signals into one ranked, explained shortlist.",
+        "Single-view caregiver profile",
+        "caregiver",
+        "Fetch one caregiver's full profile - experience, ages served, qualities/certifications, education, rate, and background-check status - in a single readable view.",
+        "The raw GetCaregiver response is a deeply nested GraphQL payload; this flattens it to the fields a hiring decision needs.",
+        "Local offline sync",
+        "sync",
+        "Persist caregiver searches to a local SQLite database for offline listing, dedupe across searches, and contacted-tracking, so outreach is not repeated.",
+        "care.com has no client-side state for who you have already contacted; a local store makes multi-session hiring workflows idempotent.",
+        "Draft-and-confirm outreach",
+        "outreach",
+        "Compose a personalized message from a caregiver's real profile (experience, ages, credentials) and send it through care.com's moderated send path. Dry-run by default; a real send requires an explicit --confirm per message.",
+        "Messaging real people demands a safety model; every send is preview-first with no blast mode, and drafts are ASCII-only to survive paste.",
+        "Unified message inbox",
+        "messages",
+        "Read the full conversation list and message bodies from care.com's messaging backend (Stream Chat), and reply through care.com's moderated send path. Replaces the generated stub that only returned a thread id.",
+        "care.com messaging does not run on the GraphQL BFF; the inbox lives on Stream Chat, so reviewing applicant conversations requires talking to Stream's REST API with the page-embedded token."
+      ],
+      "path": "library/other/care",
+      "printer": "beetz12",
+      "printer_name": "david",
+      "creator": {
+        "handle": "beetz12",
+        "name": "david"
+      },
+      "mcp": {
+        "binary": "care-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 36,
+        "public_tool_count": 0,
+        "auth_type": "cookie",
+        "env_vars": [],
+        "mcp_ready": "partial",
+        "spec_format": "internal"
       }
     },
     {
@@ -5187,9 +5241,9 @@
       "path": "library/productivity/clockify",
       "release": {
         "cli_name": "clockify-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "melanson633",
       "printer_name": "melanson633",
@@ -5304,9 +5358,9 @@
       "path": "library/cloud/cloudflare",
       "release": {
         "cli_name": "cloudflare-pp-cli",
-        "version": "2026.10.2",
-        "released_at": "2026-10-01T22:09:24Z",
-        "source_commit": "802b7744c60606bb83945cedecadf8121d92fcd2"
+        "version": "2026.10.3",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -5699,9 +5753,9 @@
       "path": "library/sales-and-crm/conduyt-crm",
       "release": {
         "cli_name": "conduyt-crm-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T22:54:06Z",
-        "source_commit": "dd9e758828bc486aa503b5eb796ab7a1cc92a5f3"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "ptaramona",
       "printer_name": "Conduyt",
@@ -7154,9 +7208,9 @@
       "path": "library/productivity/discord",
       "release": {
         "cli_name": "discord-pp-cli",
-        "version": "2026.10.3",
-        "released_at": "2026-10-01T21:32:35Z",
-        "source_commit": "7f8f9f367dd51773f29312495b0519ea6d419da6"
+        "version": "2026.10.4",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "mvanhorn",
       "printer_name": "Hunter Veltri",
@@ -8246,9 +8300,9 @@
       "path": "library/ai/elevenlabs",
       "release": {
         "cli_name": "elevenlabs-pp-cli",
-        "version": "2026.10.2",
-        "released_at": "2026-10-01T22:07:06Z",
-        "source_commit": "6a0986ee96fae7da43148e2606670a0294d19c5b"
+        "version": "2026.10.3",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -9759,9 +9813,9 @@
       "path": "library/ai/fish-audio",
       "release": {
         "cli_name": "fish-audio-pp-cli",
-        "version": "2026.10.5",
-        "released_at": "2026-10-01T21:50:39Z",
-        "source_commit": "33f732fef8aff4b50856a7dcb0cf3b30c90b3e48"
+        "version": "2026.10.6",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "jongouveia",
       "printer_name": "Jon Gouveia",
@@ -10261,9 +10315,9 @@
       "path": "library/developer-tools/forgejo",
       "release": {
         "cli_name": "forgejo-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T20:23:18Z",
-        "source_commit": "86aa41d2a97b63dcf48d245bcc079a0adf152bfc"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "jrimmer",
       "printer_name": "jrimmer",
@@ -12634,9 +12688,9 @@
       "path": "library/ai/groq",
       "release": {
         "cli_name": "groq-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
@@ -14282,9 +14336,9 @@
       "path": "library/media-and-entertainment/immich",
       "release": {
         "cli_name": "immich-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "Avanderheyde",
       "printer_name": "avanderheyde",
@@ -14442,9 +14496,9 @@
       "path": "library/other/inaturalist",
       "release": {
         "cli_name": "inaturalist-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "Avanderheyde",
       "printer_name": "avanderheyde",
@@ -16071,9 +16125,9 @@
       "path": "library/ai/kie",
       "release": {
         "cli_name": "kie-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-02T00:05:52Z",
-        "source_commit": "9c91a243e504f0f4d3e8d9850f168d61dd0983b4"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "kelvincushman",
       "printer_name": "Kelvin Cushman",
@@ -17419,9 +17473,9 @@
       "path": "library/productivity/marianatek",
       "release": {
         "cli_name": "marianatek-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "salmonumbrella",
       "printer_name": "salmonumbrella",
@@ -17694,6 +17748,10 @@
         {
           "handle": "bobeglz",
           "name": "bobeglz"
+        },
+        {
+          "handle": "azbirovskiy",
+          "name": "azbirovskiy"
         }
       ],
       "mcp": {
@@ -18612,9 +18670,9 @@
       "path": "library/developer-tools/n8n",
       "release": {
         "cli_name": "n8n-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-21T08:52:22Z",
-        "source_commit": "a792670458f827816f8d3b5942ea4bfc4f220c95"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "ElizabethcStone",
       "printer_name": "Mini",
@@ -19009,9 +19067,9 @@
       "path": "library/cloud/neon",
       "release": {
         "cli_name": "neon-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-11T08:52:49Z",
-        "source_commit": "4141b069a41683bacda7ea902116e94091f3ba10"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "gregmushen",
       "printer_name": "Greg Mushen",
@@ -19132,9 +19190,9 @@
       "path": "library/cloud/netlify",
       "release": {
         "cli_name": "netlify-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "Selrach84",
       "printer_name": "Charles Denzel Segovia",
@@ -20671,9 +20729,9 @@
       "path": "library/ai/openrouter",
       "release": {
         "cli_name": "openrouter-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-08T08:51:28Z",
-        "source_commit": "8ca2c5a70d27a6b5d9afb0a85d6e79fca50ba753"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "rvdlaar",
       "printer_name": "Rick van de Laar",
@@ -20739,9 +20797,9 @@
       "path": "library/ai/openrouter-image",
       "release": {
         "cli_name": "openrouter-image-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T21:34:10Z",
-        "source_commit": "d7da5a1775ef8589f3090f2b8770df894aa12d79"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "neal-kyle",
       "printer_name": "Kyle Neal",
@@ -22101,9 +22159,9 @@
       "path": "library/ai/pinecone",
       "release": {
         "cli_name": "pinecone-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-02T02:03:39Z",
-        "source_commit": "421e6b5e9771aa7314401103809b283889415cfd"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
@@ -22216,9 +22274,9 @@
       "path": "library/sales-and-crm/pipedrive",
       "release": {
         "cli_name": "pipedrive-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "debgotwired",
       "printer_name": "Deb Mukherjee",
@@ -22935,9 +22993,9 @@
       "path": "library/developer-tools/posthog",
       "release": {
         "cli_name": "posthog-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "riteshtiwari",
       "printer_name": "riteshtiwari",
@@ -23937,9 +23995,9 @@
       "path": "library/productivity/raindrop",
       "release": {
         "cli_name": "raindrop-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-18T08:50:09Z",
-        "source_commit": "bfe52f5d8244dadbfa0b173795fa1b3935dd0391"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "srijits",
       "printer_name": "srijits",
@@ -25073,9 +25131,9 @@
       "path": "library/ai/rightbrain",
       "release": {
         "cli_name": "rightbrain-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-02T01:55:28Z",
-        "source_commit": "f54d1b1d99ed64ae57373a04487f3636f09d2675"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "papaonlegs",
       "printer_name": "Farouk Umar",
@@ -25289,9 +25347,9 @@
       "path": "library/social-and-messaging/roblox",
       "release": {
         "cli_name": "roblox-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "krMaynard",
       "printer_name": "Kieran Maynard",
@@ -25549,9 +25607,9 @@
       "path": "library/ai/sarvam",
       "release": {
         "cli_name": "sarvam-pp-cli",
-        "version": "2026.10.10",
-        "released_at": "2026-10-02T03:01:09Z",
-        "source_commit": "4a9415d29951d08780fb4cd8a00a7d9887d62dc5"
+        "version": "2026.10.11",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
@@ -27297,9 +27355,9 @@
       "path": "library/productivity/slack",
       "release": {
         "cli_name": "slack-pp-cli",
-        "version": "2026.10.3",
-        "released_at": "2026-10-01T22:25:50Z",
-        "source_commit": "fc79f15a56bc1cca920a8613eeff20b24873f7ac"
+        "version": "2026.10.4",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "mvanhorn",
       "printer_name": "Matt Van Horn",
@@ -28014,9 +28072,9 @@
       "path": "library/commerce/square",
       "release": {
         "cli_name": "square-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "wirelesstkd",
       "printer_name": "matthew.martin",
@@ -28291,9 +28349,9 @@
       "path": "library/productivity/strava",
       "release": {
         "cli_name": "strava-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "azaaron",
       "printer_name": "azaaron",
@@ -28761,9 +28819,9 @@
       "path": "library/developer-tools/supabase",
       "release": {
         "cli_name": "supabase-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T20:21:20Z",
-        "source_commit": "e45694c266280c6daad0291562155315c44b73c7"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "giacaglia",
       "printer_name": "Giuliano Giacaglia",
@@ -28869,9 +28927,9 @@
       "path": "library/productivity/supermemory-admin",
       "release": {
         "cli_name": "supermemory-admin-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "hnshah",
       "printer_name": "Hiten Shah",
@@ -31178,9 +31236,9 @@
       "path": "library/ai/twelvelabs",
       "release": {
         "cli_name": "twelvelabs-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -31675,9 +31733,9 @@
       "path": "library/social-and-messaging/unipile",
       "release": {
         "cli_name": "unipile-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "fuushyn",
       "printer_name": "fuushyn",
@@ -32275,9 +32333,9 @@
       "path": "library/devices/wahoo",
       "release": {
         "cli_name": "wahoo-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T02:58:45Z",
-        "source_commit": "b9919bcc7c214bad576f361557ba39739090f277"
+        "version": "2026.10.2",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "stellato",
       "printer_name": "Greg Stellato",
@@ -32745,9 +32803,9 @@
       "path": "library/ai/wavespeed",
       "release": {
         "cli_name": "wavespeed-pp-cli",
-        "version": "2026.10.3",
-        "released_at": "2026-10-01T19:31:20Z",
-        "source_commit": "63a2b0c73e0b71d11d53b4507a1a85ef25ca6313"
+        "version": "2026.10.4",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
@@ -33713,9 +33771,9 @@
       "path": "library/ai/xai",
       "release": {
         "cli_name": "xai-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "81f5764eda401077520268afe74913c0f21f5b7e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-23T14:24:31Z",
+        "source_commit": "ec9c86e0eb3a3cba12a001972231bbefa5d8ada3"
       },
       "printer": "cathrynlavery",
       "printer_name": "Cathryn Lavery",
