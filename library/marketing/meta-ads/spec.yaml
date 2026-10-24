@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Meta Marketing API
-  version: v19.0
+  version: v26.0
   description: |
     Read-only CLI for Meta (Facebook) Marketing API focused on creative-fatigue
     analysis, audience overlap, and insights forensics. All endpoints require
@@ -12,8 +12,8 @@ info:
     url: https://developers.facebook.com/docs/marketing-api
 
 servers:
-  - url: https://graph.facebook.com/v19.0
-    description: Meta Graph API v19.0 (Marketing API)
+  - url: https://graph.facebook.com/v26.0
+    description: Meta Graph API v26.0 (Marketing API)
 
 security:
   - bearerAuth: []
@@ -823,14 +823,8 @@ components:
           items:
             type: object
             properties:
-              daily_outcomes_curve:
-                type: array
-                items:
-                  type: object
               estimate_ready:
                 type: boolean
-              estimate_dau:
-                type: integer
               estimate_mau_lower_bound:
                 type: integer
               estimate_mau_upper_bound:

@@ -129,11 +129,9 @@ type DeliveryEstimate struct {
 }
 
 type DeliveryEstimateGetItem struct {
-	DailyOutcomesCurve    json.RawMessage `json:"daily_outcomes_curve"`
-	EstimateDau           int             `json:"estimate_dau"`
-	EstimateMauLowerBound int             `json:"estimate_mau_lower_bound"`
-	EstimateMauUpperBound int             `json:"estimate_mau_upper_bound"`
-	EstimateReady         bool            `json:"estimate_ready"`
+	EstimateMauLowerBound int  `json:"estimate_mau_lower_bound"`
+	EstimateMauUpperBound int  `json:"estimate_mau_upper_bound"`
+	EstimateReady         bool `json:"estimate_ready"`
 }
 
 type InsightsList struct {

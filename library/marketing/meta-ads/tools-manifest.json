@@ -1,6 +1,6 @@
 {
   "api_name": "meta-ads",
-  "base_url": "https://graph.facebook.com/v19.0",
+  "base_url": "https://graph.facebook.com/v26.0",
   "description": "The first agent-native Meta Ads CLI with local SQLite history and compound queries the live API cannot answer.",
   "mcp_ready": "full",
   "http_transport": "standard",

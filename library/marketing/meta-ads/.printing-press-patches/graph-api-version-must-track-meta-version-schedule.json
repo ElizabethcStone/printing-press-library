@@ -1,0 +1,30 @@
+{
+  "schema_version": 2,
+  "id": "graph-api-version-must-track-meta-version-schedule",
+  "applied_at": "2026-10-23",
+  "base_run_id": "20260528-183943",
+  "base_printing_press_version": "4.18.1",
+  "summary": "The Graph/Marketing API version baked into the base URL, spec, tools manifest, .printing-press.json api_version and User-Agent is a moving target: it must be a currently supported version, and a reprint must re-source the spec against the current version rather than keep the printed one.",
+  "reason": "Marketing API v19.0 expired on 2025-02-04. Meta does not reject expired versions but silently serves them as the oldest live version (a v19.0 request is answered with facebook-api-version: v25.0 as of 2026-10-23), so the CLI runs API behaviour it was never printed or tested against, and that behaviour shifts again on every Meta expiry. This patch retargets v19.0 to v26.0 (newest version) as a mechanical rewrite, and drops daily_outcomes_curve and estimate_dau from the delivery_estimate response schema: Meta removed them (with budget_guardrail) from v26.0 and removes them from every version on 2026-10-27, with no replacement.",
+  "files": [
+    "spec.yaml",
+    "tools-manifest.json",
+    ".printing-press.json",
+    "internal/config/config.go",
+    "internal/client/client.go",
+    "internal/types/types.go"
+  ],
+  "call_sites": [
+    "BaseURL: \"https://graph.facebook.com/v26.0\"",
+    "req.Header.Set(\"User-Agent\", \"meta-ads-pp-cli/v26.0\")",
+    "- url: https://graph.facebook.com/v26.0"
+  ],
+  "validated_outcome": "Read-only against the live API with an ads_read token, using binaries built from this change: me (ad account discovery), insights get-account (daily, with and without a publisher_platform breakdown) and delivery-estimate all succeed, and every response carries facebook-api-version: v26.0. Insights rows, spend and impressions are identical to the v19.0 build. The field lists sync requests for campaigns, adsets, ads, adcreatives, customaudiences and account- and ad-level insights all return 200 on v26.0. The v20.0-v26.0 changelogs only change write paths for the endpoints this read-only CLI uses, apart from the delivery_estimate field removal.",
+  "patch_count": 1,
+  "deferred_to_upstream": [
+    {
+      "feature": "Reprint against the current Marketing API version so the spec picks up real schema changes instead of a version-token rewrite.",
+      "reason": "Meta ships a new Marketing API version roughly every 4-6 months and expires old ones on a fixed schedule, so a hardcoded version goes stale again; the store's estimate_dau column is left in place (always NULL now) because dropping it needs a schema migration that belongs in a reprint."
+    }
+  ]
+}

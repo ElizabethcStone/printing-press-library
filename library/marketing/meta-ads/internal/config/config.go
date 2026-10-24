@@ -28,7 +28,7 @@ type Config struct {
 
 func Load(configPath string) (*Config, error) {
 	cfg := &Config{
-		BaseURL: "https://graph.facebook.com/v19.0",
+		BaseURL: "https://graph.facebook.com/v26.0",
 	}
 
 	// Resolve config path
