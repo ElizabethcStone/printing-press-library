@@ -17738,9 +17738,9 @@
       "path": "library/marketing/meta-ads",
       "release": {
         "cli_name": "meta-ads-pp-cli",
-        "version": "2026.9.2",
-        "released_at": "2026-09-30T08:53:43Z",
-        "source_commit": "1dbcedf406d6c0f099dbd0e87705b54587cfa87e"
+        "version": "2026.10.1",
+        "released_at": "2026-10-24T08:50:29Z",
+        "source_commit": "469460cb10aeff441f8d8aa9cad6f63f0d8fa3c6"
       },
       "printer": "sdhilip200",
       "printer_name": "Dhilip Subramanian",
