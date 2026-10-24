@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.1 - 2026-10-24
+
+- fix(meta-ads): target Graph/Marketing API v26.0 (v19.0 is expired) (#2371).
+
 ## 2026.9.2 - 2026-09-30
 
 - fix(meta-ads): follow Graph paging.next for --all (#2082).

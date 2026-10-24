@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "meta-ads",
   "cli_name": "meta-ads-pp-cli",
-  "version": "2026.9.2",
-  "released_at": "2026-09-30T08:53:43Z",
-  "source_commit": "1dbcedf406d6c0f099dbd0e87705b54587cfa87e",
+  "version": "2026.10.1",
+  "released_at": "2026-10-24T08:50:29Z",
+  "source_commit": "469460cb10aeff441f8d8aa9cad6f63f0d8fa3c6",
   "printing_press_version": "4.18.1",
   "run_id": "20260528-183943",
   "changes": [
     {
-      "title": "fix(meta-ads): follow Graph paging.next for --all",
-      "pr": 2082,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2082",
-      "commit": "1dbcedf406d6c0f099dbd0e87705b54587cfa87e"
+      "title": "fix(meta-ads): target Graph/Marketing API v26.0 (v19.0 is expired)",
+      "pr": 2371,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2371",
+      "commit": "469460cb10aeff441f8d8aa9cad6f63f0d8fa3c6"
     }
   ]
 }
