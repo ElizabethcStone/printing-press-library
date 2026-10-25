@@ -2102,6 +2102,53 @@
       }
     },
     {
+      "name": "app-store",
+      "category": "marketing",
+      "api": "App Store",
+      "description": "Apple App Store charts, listings, ratings and reviews for any storefront from one Go binary, with a local history that turns repeated captures into rank, listing-change and traction trends.",
+      "search_terms": [
+        "app-store",
+        "App Store",
+        "app-store-pp-cli",
+        "Apple App Store charts, listings, ratings and reviews for any storefront from one Go binary, with a local history that turns repeated captures into rank, listing-change and traction trends.",
+        "Traction by storefront",
+        "traction",
+        "See per-country demand signals for any app, rolled up daily, monthly, annually or all-time: new ratings, chart rank and review volume, clearly labelled as proxies.",
+        "Release and change impact",
+        "impact",
+        "Compare rank, new ratings, review stars and keyword positions in equal windows before and after a release, listing change or date.",
+        "Cross-app change feed",
+        "changes",
+        "One dated feed of every change across your tracked apps: new versions, title and subtitle edits, price and in-app purchase price changes, privacy labels, events and featuring.",
+        "Keyword share of voice",
+        "keyword-share",
+        "See which apps hold the top search results across a set of tracked terms and how that share moved since the last capture.",
+        "Multi-storefront breakouts",
+        "breakouts",
+        "Find apps climbing or entering the same chart in several countries at once."
+      ],
+      "path": "library/marketing/app-store",
+      "printer": "qazmataz",
+      "printer_name": "qazmataz",
+      "creator": {
+        "handle": "qazmataz",
+        "name": "qazmataz"
+      },
+      "mcp": {
+        "binary": "app-store-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 2,
+        "public_tool_count": 2,
+        "auth_type": "none",
+        "env_vars": [],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "apple-docs",
       "category": "developer-tools",
       "api": "Apple Developer Documentation",
@@ -4412,6 +4459,12 @@
         "care.com messaging does not run on the GraphQL BFF; the inbox lives on Stream Chat, so reviewing applicant conversations requires talking to Stream's REST API with the page-embedded token."
       ],
       "path": "library/other/care",
+      "release": {
+        "cli_name": "care-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-24T08:52:00Z",
+        "source_commit": "230894505b778287a404dfa0549415b97759aea9"
+      },
       "printer": "beetz12",
       "printer_name": "david",
       "creator": {
