@@ -2128,6 +2128,12 @@
         "Find apps climbing or entering the same chart in several countries at once."
       ],
       "path": "library/marketing/app-store",
+      "release": {
+        "cli_name": "app-store-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-25T08:50:12Z",
+        "source_commit": "3ddea883666fe41e2bf4342eb8decbbb1fd19b9c"
+      },
       "printer": "qazmataz",
       "printer_name": "qazmataz",
       "creator": {
@@ -7113,6 +7119,12 @@
         "handle": "mvanhorn",
         "name": "Matt Van Horn"
       },
+      "contributors": [
+        {
+          "handle": "tmchow",
+          "name": "Trevin Chow"
+        }
+      ],
       "mcp": {
         "binary": "digg-pp-mcp",
         "transports": [
