@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.2 - 2026-10-25
+
+- fix(cli): keep digg search top-ups inside caller timeouts and concurrent writers (#2377).
+
 ## 2026.10.1 - 2026-10-22
 
 - fix(digg): rebuild search and sync on Digg's current story feed (#2354).
