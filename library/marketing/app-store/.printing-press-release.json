@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "app-store",
+  "cli_name": "app-store-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-25T08:50:12Z",
+  "source_commit": "3ddea883666fe41e2bf4342eb8decbbb1fd19b9c",
+  "printing_press_version": "4.33.10",
+  "run_id": "20261023-151515-ab5f6220",
+  "changes": [
+    {
+      "title": "feat(app-store): add app-store",
+      "pr": 2374,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2374",
+      "commit": "3ddea883666fe41e2bf4342eb8decbbb1fd19b9c"
+    }
+  ]
+}
