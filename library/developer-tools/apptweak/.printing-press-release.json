@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "apptweak",
+  "cli_name": "apptweak-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-26T08:50:40Z",
+  "source_commit": "86d20b57b2033cd6c08bc8fc2501a0c78f81cffb",
+  "printing_press_version": "4.34.1",
+  "run_id": "20260528-190526",
+  "changes": [
+    {
+      "title": "feat(apptweak): add apptweak",
+      "pr": 2040,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2040",
+      "commit": "86d20b57b2033cd6c08bc8fc2501a0c78f81cffb"
+    }
+  ]
+}
