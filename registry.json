@@ -2279,6 +2279,57 @@
       }
     },
     {
+      "name": "apptweak",
+      "category": "developer-tools",
+      "api": "AppTweak",
+      "description": "Every AppTweak endpoint in a local-first CLI — keyword rank fan-outs, competitor metadata diffs, and review mining that no MCP server can do.",
+      "search_terms": [
+        "apptweak",
+        "apptweak-pp-cli",
+        "Every AppTweak endpoint in a local-first CLI — keyword rank fan-outs, competitor metadata diffs, and review mining that no MCP server can do.",
+        "Cross-Country Keyword Rank Fan-Out",
+        "keywords rank-fanout",
+        "Check keyword rankings across many countries in one command — no MCP tool or competitor offers multi-country fan-out.",
+        "Competitor Metadata Diff",
+        "apps metadata-diff",
+        "Compare metadata between two app versions or two competitor apps to spot ASO experiments.",
+        "Keyword Basket Tracker",
+        "keywords track",
+        "Sync and alert on ranking changes for a saved keyword basket across apps and countries.",
+        "Review Sentiment Pipeline",
+        "reviews sentiment",
+        "Aggregate review ratings by keyword term — find what topics drive 1-star vs 5-star reviews.",
+        "Paid vs Organic Keyword Gap",
+        "keywords paid-organic-gap",
+        "Find keywords a competitor bids on where your app doesn't rank organically — ASA opportunity map.",
+        "Credits Monitor",
+        "credits status",
+        "Check remaining API credits and burn rate before running expensive bulk queries."
+      ],
+      "path": "library/developer-tools/apptweak",
+      "printer": "rk-labs-tech",
+      "printer_name": "Ryan Kelley",
+      "creator": {
+        "handle": "rk-labs-tech",
+        "name": "Ryan Kelley"
+      },
+      "mcp": {
+        "binary": "apptweak-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 30,
+        "public_tool_count": 0,
+        "auth_type": "api_key",
+        "env_vars": [
+          "APPTWEAK_API_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "archive-is",
       "category": "media-and-entertainment",
       "api": "Archive.today",
@@ -7109,9 +7160,9 @@
       "path": "library/media-and-entertainment/digg",
       "release": {
         "cli_name": "digg-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-22T08:51:10Z",
-        "source_commit": "c476482a34d6331c4583ebe83bf6064d4b1b460e"
+        "version": "2026.10.2",
+        "released_at": "2026-10-25T23:57:39Z",
+        "source_commit": "328611dc58dfc3295dcff83e685757ac4b9eaeb4"
       },
       "printer": "mvanhorn",
       "printer_name": "Matt Van Horn",
