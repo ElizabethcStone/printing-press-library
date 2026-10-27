@@ -14007,9 +14007,9 @@
       "path": "library/productivity/human-goat",
       "release": {
         "cli_name": "human-goat-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-01T21:44:18Z",
-        "source_commit": "f5b84b4e5614b1c6884cf76883f0d309067cead0"
+        "version": "2026.10.2",
+        "released_at": "2026-10-27T19:10:50Z",
+        "source_commit": "94f0d8950838c172098db0a2c42573722aa9be1f"
       },
       "printer": "mvanhorn",
       "printer_name": "Matt Van Horn",
