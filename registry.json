@@ -2309,9 +2309,9 @@
       "path": "library/developer-tools/apptweak",
       "release": {
         "cli_name": "apptweak-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-26T08:50:40Z",
-        "source_commit": "d7698149796bc71048f54526e010a1535d808e0c"
+        "version": "2026.10.2",
+        "released_at": "2026-10-27T23:27:19Z",
+        "source_commit": "b6f20e98e5add158e1f91bc6eef3b441a5e2f6a4"
       },
       "printer": "rk-labs-tech",
       "printer_name": "Ryan Kelley",
@@ -8687,9 +8687,9 @@
       "path": "library/marketing/erank",
       "release": {
         "cli_name": "erank-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "version": "2026.10.1",
+        "released_at": "2026-10-27T23:27:19Z",
+        "source_commit": "b6f20e98e5add158e1f91bc6eef3b441a5e2f6a4"
       },
       "printer": "horknfbr",
       "printer_name": "horknfbr",
@@ -11257,9 +11257,9 @@
       "path": "library/developer-tools/github-contents",
       "release": {
         "cli_name": "github-contents-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "version": "2026.10.1",
+        "released_at": "2026-10-27T23:27:19Z",
+        "source_commit": "b6f20e98e5add158e1f91bc6eef3b441a5e2f6a4"
       },
       "printer": "rvdlaar",
       "printer_name": "Rick van de Laar",
@@ -11572,9 +11572,9 @@
       "path": "library/productivity/gmail",
       "release": {
         "cli_name": "gmail-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-02T01:02:07Z",
-        "source_commit": "370f658a95c6bdd1de2c17c5624b3abe654efa8e"
+        "version": "2026.10.2",
+        "released_at": "2026-10-27T23:27:19Z",
+        "source_commit": "b6f20e98e5add158e1f91bc6eef3b441a5e2f6a4"
       },
       "printer": "dmarketingllm",
       "printer_name": "Derik Parkinson",
