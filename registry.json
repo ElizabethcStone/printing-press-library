@@ -9602,6 +9602,12 @@
         "handle": "tmchow",
         "name": "Trevin Chow"
       },
+      "contributors": [
+        {
+          "handle": "jesseraasch",
+          "name": "Jesse Raasch"
+        }
+      ],
       "mcp": {
         "binary": "fedex-pp-mcp",
         "transports": [
