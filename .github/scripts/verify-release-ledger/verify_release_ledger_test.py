@@ -198,6 +198,36 @@ class ReleaseLedgerVerifierTest(unittest.TestCase):
         run(["git", "checkout", "feature"], self.repo)
         self.assertEqual(self.verifier_against("main").returncode, 0)
 
+    def test_allows_rewire_onto_stamp_literal_matching_ledger(self):
+        self.seed_existing_cli()
+        root = "library/social-and-messaging/x-twitter"
+        # HEAD~1 must be a non-stampable declaration. Rewriting the seeded
+        # literal in place would not touch `var version =`, so verify() would
+        # skip the CLI and this test would pass without the alignment exception.
+        self.write(f"{root}/internal/cli/root.go", 'package cli\n\nconst version = "0.1.0"\n')
+        run(["git", "add", "."], self.repo)
+        run(["git", "commit", "-m", "non-stampable const"], self.repo)
+
+        self.write(f"{root}/README.md", "# X Twitter\n\nRewire only.\n")
+        self.write(f"{root}/internal/cli/root.go", 'package cli\n\nvar version = "2026.6.1"\n')
+        run(["git", "add", "."], self.repo)
+        run(["git", "commit", "-m", "align stamp literal"], self.repo)
+
+        self.assertEqual(self.verifier().returncode, 0)
+
+    def test_blocks_stamp_literal_that_disagrees_with_ledger(self):
+        self.seed_existing_cli()
+        root = "library/social-and-messaging/x-twitter"
+        self.write(f"{root}/README.md", "# X Twitter\n\nRewire only.\n")
+        self.write(f"{root}/internal/cli/root.go", 'package cli\n\nvar version = "2026.6.2"\n')
+        run(["git", "add", "."], self.repo)
+        run(["git", "commit", "-m", "bump version with other edit"], self.repo)
+
+        result = self.verifier()
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("runtime version changed with normal CLI files", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

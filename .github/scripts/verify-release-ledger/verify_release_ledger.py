@@ -15,6 +15,7 @@ from pathlib import Path
 RELEASE_MANIFEST = ".printing-press-release.json"
 CHANGELOG = "CHANGELOG.md"
 VERSION_VAR_RE = re.compile(r"\bvar\s+version\s*=")
+STAMP_LITERAL_RE = re.compile(r'\bvar\s+version\s*=\s*"([^"]*)"')
 CHANGELOG_RELEASE_RE = re.compile(r"^##\s+\d{4}\.\d{1,2}\.\d+\b", re.MULTILINE)
 
 
@@ -131,6 +132,43 @@ def validate_new_cli_skeleton(root: str, rel: str) -> list[str]:
     return errors
 
 
+def added_stamp_literals(base_ref: str, path: str) -> list[str]:
+    result = git("diff", "--unified=0", f"{base_ref}...HEAD", "--", path)
+    literals: list[str] = []
+    for line in result.stdout.splitlines():
+        if not line.startswith("+") or line.startswith("+++"):
+            continue
+        match = STAMP_LITERAL_RE.search(line[1:])
+        if match:
+            literals.append(match.group(1))
+    return literals
+
+
+def aligns_with_current_ledger(change: CLIChange, base_ref: str) -> bool:
+    """True when new stamp literals equal the ledger version this PR did not bump.
+
+    Introducing `var version = "<ledger>"` so the release job can see it is not
+    a hand-bump. A literal that disagrees with .printing-press-release.json, or
+    any edit to the ledger files themselves, still fails.
+    """
+    if change.release_files or not change.runtime_version_files:
+        return False
+    ledger_path = Path(change.root) / RELEASE_MANIFEST
+    try:
+        version = json.loads(ledger_path.read_text(encoding="utf-8")).get("version") or ""
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not version:
+        return False
+    saw_literal = False
+    for rel in sorted(change.runtime_version_files):
+        for literal in added_stamp_literals(base_ref, f"{change.root}/{rel}"):
+            saw_literal = True
+            if literal != version:
+                return False
+    return saw_literal
+
+
 def verify(base_ref: str) -> list[str]:
     errors: list[str] = []
     for change in collect_changes(base_ref).values():
@@ -142,7 +180,7 @@ def verify(base_ref: str) -> list[str]:
                 errors.extend(validate_new_cli_skeleton(change.root, rel))
             continue
 
-        if change.non_release_files:
+        if change.non_release_files and not aligns_with_current_ledger(change, base_ref):
             files = ", ".join(sorted(change.release_files | change.runtime_version_files))
             normal = ", ".join(sorted(change.non_release_files)[:5])
             errors.append(
