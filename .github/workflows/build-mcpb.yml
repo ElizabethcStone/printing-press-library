@@ -6,11 +6,12 @@ name: Build CLI release artifacts
 #   - raw CLI binaries for terminal users (6 platforms: standard Go matrix)
 #
 # The README in each CLI links to releases/download/<slug>-current/<asset>,
-# so each push to main rebuilds and the URLs stay stable forever.
+# so each release rebuilds and the URLs stay stable forever.
 #
-# Triggers:
-#   - workflow_dispatch (manual): rebuild a specific CLI
-#   - push to main on library/** (excluding build/): rebuild affected CLIs
+# Triggers (workflow_dispatch only):
+#   - update-cli-release-ledger.yml dispatches this after its ledger commit, for
+#     every CLI it stamped, so binaries report the released version. Building
+#     on the merge-commit push compiled the previous version (issue #1908).
 #
 # Auth: requires GENERATOR_READ_TOKEN (fine-grained PAT with Contents:read on
 # mvanhorn/cli-printing-press) so the bundle job can `go install` the
@@ -21,33 +22,19 @@ on:
   workflow_dispatch:
     inputs:
       cli:
-        description: 'CLI to rebuild as <category>/<slug>'
+        description: 'CLIs to rebuild as space-separated <category>/<slug> (at most 42)'
         required: true
-  push:
-    branches: [main]
-    paths:
-      # Inputs that actually affect the compiled CLI binary or MCPB
-      # bundle: Go source, module files, and the MCPB manifest. The
-      # //go:embed directive can include any file type, but in practice
-      # those files live inside cmd/ or internal/ (e.g. dub's
-      # internal/mcp/embedded_manifest.json), so this whitelist still
-      # catches them.
-      #
-      # Anything else under library/<cat>/<slug>/ — README.md, SKILL.md,
-      # LICENSE, NOTICE, Makefile, .golangci.yml, .goreleaser.yaml,
-      # .printing-press.json, spec.{yaml,json}, dogfood-results.json,
-      # workflow-verify-report.json, .manuscripts/** — is documentation,
-      # provenance, archived input, or post-build artifact and does not
-      # belong in the rebuild trigger.
-      - 'library/**/cmd/**'
-      - 'library/**/internal/**'
-      - 'library/**/go.mod'
-      - 'library/**/go.sum'
-      - 'library/**/manifest.json'
-      - '.github/workflows/build-mcpb.yml'
+      ref:
+        description: 'Commit SHA to build (default: the dispatched ref)'
+        required: false
 
 permissions:
   contents: write  # for creating/updating releases
+
+env:
+  # The ledger passes its own commit so a sibling merge landing on main before
+  # this run starts is not built under the previous version.
+  BUILD_REF: ${{ inputs.ref || github.sha }}
 
 jobs:
   detect:
@@ -59,69 +46,34 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # need history to diff against parent commit
+          ref: ${{ env.BUILD_REF }}
       - id: detect
         name: Determine affected CLIs
         env:
-          EVENT_NAME: ${{ github.event_name }}
           INPUT_CLI: ${{ inputs.cli }}
-          BEFORE_SHA: ${{ github.event.before }}
-          AFTER_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            if [ -z "$INPUT_CLI" ]; then
-              echo "::error::No CLI target provided. Specify a target with cli=<category>/<slug>, for example cli=media-and-entertainment/substack."
-              exit 1
-            fi
-            if [ "$INPUT_CLI" = "all" ]; then
-              total=$(find library -mindepth 2 -maxdepth 2 -type d | wc -l | tr -d ' ')
-              echo "::error::Manual all-CLI rebuilds would expand to ${total} targets and exceed GitHub Actions' 256-combination matrix limit. Re-run with a specific CLI, for example cli=media-and-entertainment/substack."
-              exit 1
-            fi
-            if [ ! -d "library/$INPUT_CLI" ]; then
-              echo "::error::Unknown CLI target '${INPUT_CLI}'. Expected a path like media-and-entertainment/substack under library/."
-              exit 1
-            fi
-            affected=$(printf '%s' "$INPUT_CLI" | jq -R . | jq -s -c .)
-          else
-            # Push event: diff against parent commit. The all-zeros sentinel
-            # appears for initial branch pushes; fall back to HEAD^ then to
-            # listing all library entries so the workflow degrades gracefully.
-            #
-            # Pathspec is restricted to build-relevant files (Go source under
-            # cmd/ and internal/, module files, MCPB manifest). This mirrors
-            # the on.push.paths filter above so a mixed commit that touches
-            # build-relevant files in CLI A and only docs in CLI B rebuilds
-            # A only. Without this filter, the awk extraction would include
-            # B as affected because any path under library/<cat>/<slug>/
-            # surfaces the same <cat>/<slug>.
-            build_paths=(
-              'library/**/cmd/**'
-              'library/**/internal/**'
-              'library/**/go.mod'
-              'library/**/go.sum'
-              'library/**/manifest.json'
-            )
-            if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE_SHA" ]; then
-              changed_paths=$(git diff --name-only "HEAD^" "HEAD" -- "${build_paths[@]}" 2>/dev/null || git ls-files "${build_paths[@]}")
-            else
-              changed_paths=$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA" -- "${build_paths[@]}" || true)
-            fi
-            # Filter to directories that still exist in the merged tree so a
-            # rename (which surfaces in `git diff` as deletions under the old
-            # slug + additions under the new slug) doesn't spawn a spurious
-            # matrix branch for the now-deleted directory. Without this, the
-            # bundle/build/release jobs run vacuously or fail noisily for the
-            # old slug. See issue #250 for the flightgoat -> flight-goat case.
-            affected=$(printf '%s\n' "$changed_paths" \
-              | awk -F/ 'NF >= 3 && $1 == "library" { print $2"/"$3 }' \
-              | sort -u \
-              | while IFS= read -r entry; do
-                  [ -d "library/$entry" ] && printf '%s\n' "$entry"
-                done \
-              | jq -R . | jq -s -c .)
+          if [[ ! "$BUILD_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::ref must be a full commit SHA, got '${BUILD_REF}'."
+            exit 1
           fi
+          read -r -a targets <<< "$INPUT_CLI"
+          if [ "${#targets[@]}" -eq 0 ]; then
+            echo "::error::No CLI target provided. Specify a target with cli=<category>/<slug>, for example cli=media-and-entertainment/substack."
+            exit 1
+          fi
+          # build-cli runs each target on 6 platforms and a matrix caps at 256 jobs.
+          if [ "${targets[0]}" = "all" ] || [ "${#targets[@]}" -gt 42 ]; then
+            echo "::error::At most 42 CLIs per run (GitHub Actions' 256-job matrix limit across 6 platforms). Split the list into batches."
+            exit 1
+          fi
+          for target in "${targets[@]}"; do
+            if [[ ! "$target" =~ ^[a-z0-9-]+/[a-z0-9-]+$ ]] || [ ! -d "library/$target" ]; then
+              echo "::error::Unknown CLI target '${target}'. Expected a path like media-and-entertainment/substack under library/."
+              exit 1
+            fi
+          done
+          affected=$(printf '%s\n' "${targets[@]}" | sort -u | jq -R . | jq -s -c .)
           # Filter out empty/null entries
           affected=$(printf '%s' "$affected" | jq -c '[ .[] | select(. != null and . != "") ]')
           count=$(printf '%s' "$affected" | jq 'length')
@@ -154,6 +106,8 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_REF }}
       - uses: actions/setup-go@v6
         with:
           go-version-file: .go-version
@@ -235,6 +189,8 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_REF }}
       - uses: actions/setup-go@v6
         with:
           go-version-file: .go-version
@@ -305,6 +261,8 @@ jobs:
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_REF }}
       - name: Compute slug
         id: slug
         env:
@@ -351,7 +309,50 @@ jobs:
             echo "::warning::Skipping release for ${SLUG}: app declares manifest.json (expects MCPB) but no .mcpb produced (bundle matrix failed for this app)."
             exit 0
           fi
+      # A replayed or late run must not replace a newer release built from a
+      # later ledger commit.
+      - name: Skip if main has a newer release
+        id: current
+        env:
+          CLI_TARGET: ${{ matrix.target }}
+          SLUG: ${{ steps.slug.outputs.slug }}
+        run: |
+          set -euo pipefail
+          ledger="library/${CLI_TARGET}/.printing-press-release.json"
+          [ -f "$ledger" ] || exit 0
+          git fetch --no-tags --depth=1 origin main
+          built=$(jq -r .version "$ledger")
+          latest=$(git show "FETCH_HEAD:${ledger}" 2>/dev/null | jq -r .version || true)
+          if [ "$built" != "$latest" ]; then
+            echo "::notice::Not publishing ${SLUG} ${built}: main's release ledger is at '${latest:-removed}'."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify CLI version matches the release ledger
+        if: steps.current.outputs.skip != 'true'
+        env:
+          CLI_TARGET: ${{ matrix.target }}
+          SLUG: ${{ steps.slug.outputs.slug }}
+        run: |
+          set -euo pipefail
+          cli_dir="library/${CLI_TARGET}"
+          ledger="${cli_dir}/.printing-press-release.json"
+          # Read the version the build compiled (same checkout, no -X override)
+          # instead of running the binary in a job that holds the release PAT.
+          # Same pattern tools/release-ledger stamps; either file may be absent.
+          stamped=$({ cat "${cli_dir}/internal/cli/version.go" "${cli_dir}/internal/cli/root.go" 2>/dev/null || true; } \
+            | sed -nE 's/.*var[[:space:]]+version[[:space:]]*=[[:space:]]*"([^"]*)".*/\1/p' | head -n 1)
+          if [ ! -f "$ledger" ] || [ -z "$stamped" ]; then
+            echo "::notice::Skipping version check for ${SLUG}: no release ledger or stampable version var."
+            exit 0
+          fi
+          expected=$(jq -er .version "$ledger")
+          if [ "$stamped" != "$expected" ]; then
+            echo "::error::${SLUG} was built with version ${stamped} but the release ledger says ${expected}. Refusing to publish a mislabeled build."
+            exit 1
+          fi
+          echo "${SLUG} was built with ${expected}, matching the release ledger."
       - name: Verify release-write PAT
+        if: steps.current.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_WRITE_TOKEN }}
         run: |
@@ -378,6 +379,7 @@ jobs:
           fi
           echo "PAT confirmed for repo ${GITHUB_REPOSITORY}."
       - name: Publish release ${{ steps.slug.outputs.slug }}-current
+        if: steps.current.outputs.skip != 'true'
         env:
           # Use a fine-grained PAT (Contents:write on this repo) instead of
           # the default GITHUB_TOKEN. The workflow's GITHUB_TOKEN reports
@@ -397,17 +399,17 @@ jobs:
             exit 0
           fi
           # shellcheck disable=SC2016
-          notes=$(printf 'Auto-built artifacts for **%s** at commit %s.\n\n**Claude Desktop:** download the matching `.mcpb` file and double-click to install.\n\n**Terminal CLI:** download the binary matching your platform. On macOS you may need to clear the Gatekeeper quarantine: `xattr -d com.apple.quarantine <binary>`. On Unix, `chmod +x <binary>`.\n\n**Verify:** `checksums.txt` lists the SHA-256 of every asset on this release. Check the file you downloaded with `grep '"'"' <file>$'"'"' checksums.txt | sha256sum -c` (macOS: `shasum -a 256 -c`).\n\n_This is a moving tag — it always points at the latest build._' "${CLI_TARGET}" "${GITHUB_SHA}")
+          notes=$(printf 'Auto-built artifacts for **%s** at commit %s.\n\n**Claude Desktop:** download the matching `.mcpb` file and double-click to install.\n\n**Terminal CLI:** download the binary matching your platform. On macOS you may need to clear the Gatekeeper quarantine: `xattr -d com.apple.quarantine <binary>`. On Unix, `chmod +x <binary>`.\n\n**Verify:** `checksums.txt` lists the SHA-256 of every asset on this release. Check the file you downloaded with `grep '"'"' <file>$'"'"' checksums.txt | sha256sum -c` (macOS: `shasum -a 256 -c`).\n\n_This is a moving tag — it always points at the latest build._' "${CLI_TARGET}" "${BUILD_REF}")
           if gh release view "${tag}" >/dev/null 2>&1; then
             echo "Updating existing release ${tag}"
             gh release upload "${tag}" "${RUNNER_TEMP}"/dl/* --clobber
-            gh release edit "${tag}" --notes "${notes}" --target "${GITHUB_SHA}"
+            gh release edit "${tag}" --notes "${notes}" --target "${BUILD_REF}"
           else
             echo "Creating new release ${tag}"
             gh release create "${tag}" "${RUNNER_TEMP}"/dl/* \
               --title "${SLUG} (latest build)" \
               --notes "${notes}" \
-              --target "${GITHUB_SHA}" \
+              --target "${BUILD_REF}" \
               --latest=false
           fi
           python3 .github/scripts/release-checksums/release_checksums.py \
