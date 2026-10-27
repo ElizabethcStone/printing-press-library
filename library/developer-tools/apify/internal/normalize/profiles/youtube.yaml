@@ -1,4 +1,4 @@
-actor: apify/youtube-scraper
+actor: streamers/youtube-scraper
 title: [title]
 url: [url, videoUrl]
 body: [description, text]

@@ -206,3 +206,47 @@ func TestNormalizeBatch_EmbeddedGoogleNewsAPIProfile(t *testing.T) {
 		t.Errorf("empty news_results yielded %d items, want 0", len(gotEmpty))
 	}
 }
+
+// TestNormalize_EmbeddedYouTubeProfiles checks that the YouTube profiles are
+// keyed to Actors that exist and that a row of the shape both Actors return
+// maps onto the unified Item.
+func TestNormalize_EmbeddedYouTubeProfiles(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	r, err := NewRegistry()
+	if err != nil {
+		t.Fatalf("NewRegistry: %v", err)
+	}
+
+	row := decodeRows(t, `[{
+		"title": "A Short",
+		"url": "https://www.youtube.com/shorts/abc123",
+		"text": "Description text",
+		"channelName": "Example Channel",
+		"date": "2026-10-05T23:21:46.000Z",
+		"viewCount": 50828,
+		"likes": 971,
+		"commentsCount": null
+	}]`)[0]
+	wantPub := time.Date(2026, 10, 5, 23, 21, 46, 0, time.UTC)
+
+	for _, actor := range []string{"streamers/youtube-scraper", "johnvc/youtube-shorts-api"} {
+		if p := r.Lookup(actor); p.Actor != actor {
+			t.Errorf("Lookup(%q) = profile %q, want the embedded %q profile", actor, p.Actor, actor)
+			continue
+		}
+		got, err := r.Normalize(actor, row)
+		if err != nil {
+			t.Fatalf("Normalize(%q): %v", actor, err)
+		}
+		if got.Title != "A Short" || got.URL != "https://www.youtube.com/shorts/abc123" || got.Body != "Description text" || got.Author != "Example Channel" {
+			t.Errorf("%s: title=%q url=%q body=%q author=%q", actor, got.Title, got.URL, got.Body, got.Author)
+		}
+		if !got.PublishedAt.Equal(wantPub) {
+			t.Errorf("%s: published_at = %v, want %v", actor, got.PublishedAt, wantPub)
+		}
+		if got.EngagementScore != 50828 {
+			t.Errorf("%s: engagement_score = %d, want 50828 (viewCount)", actor, got.EngagementScore)
+		}
+	}
+}

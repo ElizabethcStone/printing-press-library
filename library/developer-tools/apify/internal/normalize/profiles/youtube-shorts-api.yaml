@@ -1,0 +1,7 @@
+actor: johnvc/youtube-shorts-api
+title: [title]
+url: [url]
+body: [text]
+author: [channelName]
+published_at: [date]
+engagement: [viewCount, likes, commentsCount]
