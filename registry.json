@@ -30185,9 +30185,9 @@
       "path": "library/commerce/teslatracker",
       "release": {
         "cli_name": "teslatracker-pp-cli",
-        "version": "2026.10.1",
-        "released_at": "2026-10-02T00:24:06Z",
-        "source_commit": "27886b500df4c2df87ef683642ee5b881720cf45"
+        "version": "2026.10.2",
+        "released_at": "2026-10-27T21:49:32Z",
+        "source_commit": "b9aed0886d933f862f1ce7959087e9ddae9cb0d7"
       },
       "printer": "michegz",
       "printer_name": "michegz",
