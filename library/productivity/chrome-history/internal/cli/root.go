@@ -16,7 +16,7 @@ import (
 )
 
 // version is the ledger stamp. CLIVersion is the alias the version command reads.
-var version = "2026.8.2"
+var version = "2026.10.1"
 
 const (
 	ExitOK              = 0

@@ -8,7 +8,7 @@ import (
 )
 
 // version is the ledger stamp. Release builds do not inject -X.
-var version = "2026.8.1"
+var version = "2026.10.1"
 
 // NewRoot builds the root command with all subcommands wired to reg.
 func NewRoot(reg *provider.Registry) *cobra.Command {

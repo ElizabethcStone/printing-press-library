@@ -3,4 +3,4 @@
 package cli
 
 // version is the printed CLI's version, overridable at build time via ldflags.
-var version = "2026.10.1"
+var version = "2026.10.2"

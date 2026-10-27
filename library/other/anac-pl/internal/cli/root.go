@@ -21,7 +21,7 @@ import (
 // version is the stampable ledger literal. Release builds pass no -X.
 // cliutil.Version stays the ldflags injection point: without an injection it
 // follows this literal, and an injected value still wins for --version.
-var version = "2026.10.1"
+var version = "2026.10.2"
 
 func init() {
 	if cliutil.Version == "" || cliutil.Version == "dev" {

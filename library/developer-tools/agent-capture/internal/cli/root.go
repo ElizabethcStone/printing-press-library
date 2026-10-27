@@ -9,7 +9,7 @@ import (
 
 var jsonOutput bool
 
-var version = "2026.10.1"
+var version = "2026.10.2"
 
 var rootCmd = &cobra.Command{
 	Use:         "agent-capture",
