@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.2 - 2026-10-27
+
+- fix(human-goat): restore TaskRabbit login and honest hire pricing (#2382).
+
 ## 2026.10.1 - 2026-10-01
 
 - Harden Human GOAT MCP intents and verifier writes (#2154).

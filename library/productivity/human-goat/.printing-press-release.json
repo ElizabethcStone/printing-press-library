@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "human-goat",
   "cli_name": "human-goat-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-01T21:44:18Z",
-  "source_commit": "8b87fada6bf7787c4f017070278d17ffb65c56b5",
+  "version": "2026.10.2",
+  "released_at": "2026-10-27T19:10:50Z",
+  "source_commit": "04b655354c15b92892a01b1c13ce2d42a17ee10e",
   "printing_press_version": "4.27.1",
   "run_id": "20260703-152050-dff84056",
   "changes": [
     {
-      "title": "Harden Human GOAT MCP intents and verifier writes",
-      "pr": 2154,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2154",
-      "commit": "8b87fada6bf7787c4f017070278d17ffb65c56b5"
+      "title": "fix(human-goat): restore TaskRabbit login and honest hire pricing",
+      "pr": 2382,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2382",
+      "commit": "04b655354c15b92892a01b1c13ce2d42a17ee10e"
     }
   ]
 }
