@@ -2319,6 +2319,12 @@
         "handle": "rk-labs-tech",
         "name": "Ryan Kelley"
       },
+      "contributors": [
+        {
+          "handle": "tmchow",
+          "name": "Trevin Chow"
+        }
+      ],
       "mcp": {
         "binary": "apptweak-pp-mcp",
         "transports": [
@@ -11261,6 +11267,12 @@
         "handle": "rvdlaar",
         "name": "Rick van de Laar"
       },
+      "contributors": [
+        {
+          "handle": "tmchow",
+          "name": "Trevin Chow"
+        }
+      ],
       "mcp": {
         "binary": "github-contents-pp-mcp",
         "transports": [
@@ -11574,6 +11586,10 @@
         {
           "handle": "cathrynlavery",
           "name": "Cathryn Lavery"
+        },
+        {
+          "handle": "tmchow",
+          "name": "Trevin Chow"
         }
       ],
       "mcp": {
