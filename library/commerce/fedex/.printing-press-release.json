@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "fedex",
   "cli_name": "fedex-pp-cli",
-  "version": "2026.10.1",
-  "released_at": "2026-10-22T01:19:55Z",
-  "source_commit": "36d85b8a38b45cbd4535152318fda5cd06003310",
+  "version": "2026.10.2",
+  "released_at": "2026-10-27T18:22:37Z",
+  "source_commit": "ff058254991dbca24dbda97a44e6ca00346fc4ea",
   "printing_press_version": "3.6.0",
   "run_id": "20260502-152509",
   "changes": [
     {
-      "title": "fix(fedex): gate MCP mutations and harden local storage (from @jesseraasch #1912, #1914)",
-      "pr": 2351,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2351",
-      "commit": "36d85b8a38b45cbd4535152318fda5cd06003310"
+      "title": "feat(fedex): complete label and pickup workflows (rebase of #1916)",
+      "pr": 2383,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2383",
+      "commit": "ff058254991dbca24dbda97a44e6ca00346fc4ea"
     }
   ]
 }

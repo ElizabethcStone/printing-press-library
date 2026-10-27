@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.2 - 2026-10-27
+
+- feat(fedex): complete label and pickup workflows (rebase of #1916) (#2383).
+
 ## 2026.10.1 - 2026-10-22
 
 - fix(fedex): gate MCP mutations and harden local storage (from @jesseraasch #1912, #1914) (#2351).
