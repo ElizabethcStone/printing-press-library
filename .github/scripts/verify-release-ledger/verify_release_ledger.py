@@ -49,13 +49,118 @@ def is_release_file(rel: str) -> bool:
     return rel in {RELEASE_MANIFEST, CHANGELOG}
 
 
-def is_runtime_version_candidate(rel: str) -> bool:
+_module_rel_cache: dict[str, str] = {}
+
+
+def is_direct_runtime_version(rel: str) -> bool:
     parts = Path(rel).parts
     if parts == ("internal", "cli", "root.go"):
         return True
     if parts == ("internal", "cli", "version.go"):
         return True
     return len(parts) == 3 and parts[0] == "cmd" and parts[2] == "main.go" and parts[1].endswith("-pp-mcp")
+
+
+def module_rel(root: str) -> str:
+    """Relative module dir under a catalog root, or "" when the module is the root.
+
+    Same rule as resolveModuleDir in tools/release-ledger/main.go. The logic
+    lives in this verifier, which CI overlays from the base branch. A PR cannot
+    replace it with a helper script, and a branch that never had
+    resolve-module-dir.sh still runs.
+    """
+    key = str(Path(root).resolve())
+    if key in _module_rel_cache:
+        return _module_rel_cache[key]
+    rel = _module_rel_uncached(Path(root))
+    _module_rel_cache[key] = rel
+    return rel
+
+
+def _module_rel_uncached(catalog: Path) -> str:
+    if (catalog / "go.mod").is_file():
+        return ""
+    rel = _goreleaser_module_rel(catalog)
+    if rel and (catalog / rel).is_dir():
+        return rel
+    return _sole_nested_module_rel(catalog)
+
+
+def _goreleaser_module_rel(catalog: Path) -> str:
+    path = catalog / ".goreleaser.yaml"
+    if not path.is_file():
+        return ""
+    dirs: list[str] = []
+    in_builds = False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        trimmed = line.strip()
+        if not trimmed or trimmed.startswith("#"):
+            continue
+        # Leading spaces only, matching indentOf in the Go stamper.
+        if len(line) - len(line.lstrip(" ")) == 0:
+            in_builds = trimmed == "builds:"
+            continue
+        if not in_builds:
+            continue
+        item = trimmed[2:].strip() if trimmed.startswith("- ") else trimmed
+        key, sep, val = item.partition(":")
+        if not sep or key.strip() != "dir":
+            continue
+        normalized = _normalize_build_dir(catalog, val)
+        if normalized:
+            dirs.append(normalized)
+    unique = list(dict.fromkeys(dirs))
+    if len(unique) > 1:
+        raise RuntimeError(
+            f"{catalog}: .goreleaser.yaml builds disagree on dir: {', '.join(unique)}"
+        )
+    return unique[0] if unique else ""
+
+
+def _normalize_build_dir(catalog: Path, raw: str) -> str:
+    val = raw.strip()
+    comment = val.find(" #")
+    if comment >= 0:
+        val = val[:comment].strip()
+    val = val.strip("'\"")
+    val = val.strip()
+    if val in ("", ".", "./"):
+        return ""
+    if val.startswith("./"):
+        val = val[2:]
+    val = val.rstrip("/")
+    if val in ("", "."):
+        return ""
+    if ".." in val or val.startswith("/") or any(ch in val for ch in " \t\\"):
+        raise RuntimeError(f"{catalog}: refusing goreleaser build dir {raw.strip()!r}")
+    return val
+
+
+def _sole_nested_module_rel(catalog: Path) -> str:
+    if not catalog.is_dir():
+        return ""
+    found: list[str] = []
+    for entry in catalog.iterdir():
+        name = entry.name
+        if not name or name.startswith(".") or not entry.is_dir():
+            continue
+        if (entry / "go.mod").is_file():
+            found.append(name)
+    if len(found) == 1:
+        return found[0]
+    return ""
+
+
+def is_runtime_version_candidate(root: str, rel: str) -> bool:
+    if is_direct_runtime_version(rel):
+        return True
+    nested = module_rel(root)
+    if not nested:
+        return False
+    prefix = nested + "/"
+    if not rel.startswith(prefix):
+        return False
+    return is_direct_runtime_version(rel[len(prefix):])
 
 
 def diff_line_kinds(base_ref: str, path: str) -> tuple[bool, bool]:
@@ -101,7 +206,7 @@ def collect_changes(base_ref: str) -> dict[str, CLIChange]:
         if is_release_file(rel):
             change.release_files.add(rel)
             continue
-        if is_runtime_version_candidate(rel):
+        if is_runtime_version_candidate(root, rel):
             version_change, other_change = diff_line_kinds(base_ref, path)
             if version_change:
                 change.runtime_version_files.add(rel)
@@ -171,7 +276,11 @@ def aligns_with_current_ledger(change: CLIChange, base_ref: str) -> bool:
 
 def verify(base_ref: str) -> list[str]:
     errors: list[str] = []
-    for change in collect_changes(base_ref).values():
+    try:
+        changes = collect_changes(base_ref)
+    except RuntimeError as exc:
+        return [str(exc)]
+    for change in changes.values():
         if not change.release_files and not change.runtime_version_files:
             continue
 

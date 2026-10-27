@@ -6,6 +6,7 @@ name: Update per-CLI release ledger
 # CLIs or fight changelog conflicts in feature PRs.
 #
 # Source of truth: tools/release-ledger/main.go.
+# `go run` is given that file alone, so the module resolver lives in it too.
 
 on:
   push:
@@ -205,7 +206,10 @@ jobs:
             fi
           } | awk -F/ 'NF >= 3 { print $2 "/" $3 }' | sort -u > "$RUNNER_TEMP/targets"
           targets=$(while IFS= read -r target; do
-            if [ -f "library/${target}/go.mod" ]; then
+            # Nested modules (library/ai/v0/vzero) have no catalog-root go.mod.
+            # Normal CLIs still resolve to library/<cat>/<slug>.
+            module_dir="$(bash tools/release-ledger/resolve-module-dir.sh "library/${target}")"
+            if [ -f "${module_dir}/go.mod" ]; then
               printf '%s ' "$target"
             fi
           done < "$RUNNER_TEMP/targets")
