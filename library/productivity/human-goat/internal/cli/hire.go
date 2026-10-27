@@ -117,17 +117,37 @@ func newNovelHireCmd(flags *rootFlags) *cobra.Command {
 				return classifyAPIError(err, flags)
 			}
 
-			best, ok := selectHireTasker(taskers, minRating, flagState)
-			if !ok {
-				return fmt.Errorf("no Tasker matches --min-rating")
+			ranked := rankHireTaskers(taskers, minRating, flagState)
+			if len(ranked) == 0 {
+				return fmt.Errorf("no Tasker with a known hourly rate matches --min-rating")
 			}
 
-			inviteeID, notes := hireInviteeID(best)
-			availableDates, err := tr.Schedule(ctx, category.CategoryID, inviteeID, "en-US", lat, lng, category.DefaultTemplateID)
-			if err != nil {
-				return classifyAPIError(err, flags)
+			// The cheapest Tasker is often booked on the requested day, so walk the
+			// ranking until one has an open slot that day. When none does, fall
+			// back to the top pick's nearest day: dry runs report it and a real
+			// checkout refuses it below.
+			var best taskrabbit.Tasker
+			var notes []string
+			var slotDate, slotLabel, availabilityNote string
+			var durationSeconds, offsetSeconds int
+			for i, candidate := range ranked {
+				if i == maxHireAvailabilityChecks {
+					break
+				}
+				candidateID, candidateNotes := hireInviteeID(candidate)
+				availableDates, err := tr.Schedule(ctx, category.CategoryID, candidateID, "en-US", lat, lng, category.DefaultTemplateID)
+				if err != nil {
+					return classifyAPIError(err, flags)
+				}
+				d, label, dur, off, note := firstTaskRabbitSlot(availableDates, date)
+				if i == 0 || (note == "" && d == date) {
+					best, notes = candidate, candidateNotes
+					slotDate, slotLabel, durationSeconds, offsetSeconds, availabilityNote = d, label, dur, off, note
+				}
+				if note == "" && d == date {
+					break
+				}
 			}
-			slotDate, slotLabel, durationSeconds, offsetSeconds, availabilityNote := firstTaskRabbitSlot(availableDates, date)
 			if availabilityNote != "" {
 				notes = append(notes, availabilityNote)
 			}
@@ -139,6 +159,13 @@ func newNovelHireCmd(flags *rootFlags) *cobra.Command {
 			}
 
 			allInHourly := pricing.AllIn(best.PosterHourlyRateCents, flagState).AllInCents
+			// TaskRabbit's own quoted total (rate plus trust-and-safety fee) can
+			// exceed the modeled fee; cap against whichever is higher.
+			if inviteeID, _ := hireInviteeID(best); inviteeID > 0 {
+				if quoted, err := tr.TaskerTotalHourlyCents(ctx, inviteeID, category.CategoryID, category.DefaultTemplateID, lat, lng); err == nil && quoted > allInHourly {
+					allInHourly = quoted
+				}
+			}
 			// Estimate the booking total from the actual slot duration rather than a
 			// flat 2-hour guess, so the spend cap does not reject in-budget bookings.
 			// Use float hours so a fractional slot (e.g. 1.5h) is not truncated by
@@ -177,6 +204,11 @@ func newNovelHireCmd(flags *rootFlags) *cobra.Command {
 			// real checkout against a slot the Schedule API did not actually offer.
 			if availabilityNote != "" {
 				return fmt.Errorf("no available slot for %q around %s; not booking (try a different date)", query, date)
+			}
+			// Never book a day the caller did not ask for: a substituted date can
+			// land inside TaskRabbit's late-cancellation fee window.
+			if slotDate != date {
+				return fmt.Errorf("%s has no open slot with %s; not booking %s instead (rerun with --on %s to accept it)", date, taskerDisplayName(best), slotDate, slotDate)
 			}
 
 			if recommendationID == "" {
@@ -359,16 +391,32 @@ func validateTaskRabbitAddress(name string, address taskrabbit.Address) error {
 	return nil
 }
 
+// maxHireAvailabilityChecks bounds the per-Tasker schedule lookups hire makes
+// while looking for someone free on the requested date.
+const maxHireAvailabilityChecks = 10
+
 func selectHireTasker(taskers []taskrabbit.Tasker, minRating float64, state string) (taskrabbit.Tasker, bool) {
+	ranked := rankHireTaskers(taskers, minRating, state)
+	if len(ranked) == 0 {
+		return taskrabbit.Tasker{}, false
+	}
+	return ranked[0], true
+}
+
+// rankHireTaskers filters to priced Taskers at or above minRating and orders
+// them by all-in rate, then rating.
+func rankHireTaskers(taskers []taskrabbit.Tasker, minRating float64, state string) []taskrabbit.Tasker {
 	candidates := make([]taskrabbit.Tasker, 0, len(taskers))
 	for _, tasker := range taskers {
 		if minRating > 0 && tasker.RabbitRating < minRating {
 			continue
 		}
+		// A Tasker without an hourly rate would sort first and slip under any
+		// spend cap at $0; never pick one.
+		if tasker.PosterHourlyRateCents <= 0 {
+			continue
+		}
 		candidates = append(candidates, tasker)
-	}
-	if len(candidates) == 0 {
-		return taskrabbit.Tasker{}, false
 	}
 	sort.SliceStable(candidates, func(i, j int) bool {
 		left := pricing.AllIn(candidates[i].PosterHourlyRateCents, state).AllInCents
@@ -378,7 +426,7 @@ func selectHireTasker(taskers []taskrabbit.Tasker, minRating float64, state stri
 		}
 		return candidates[i].RabbitRating > candidates[j].RabbitRating
 	})
-	return candidates[0], true
+	return candidates
 }
 
 func hireInviteeID(tasker taskrabbit.Tasker) (int, []string) {

@@ -61,8 +61,15 @@ func (r *Request) UnmarshalJSON(data []byte) error {
 
 // ConversationMessage is a single Magic conversation message.
 type ConversationMessage struct {
-	Content string `json:"content"`
+	Content    string `json:"content"`
+	SourceType string `json:"source_type"`
 }
+
+// apiRequestNotice is appended to every request's instructions. Magic
+// operators otherwise answer API requests from accounts without a 24/7 plan
+// with a subscription pitch; declining got the work done, so ask for that
+// up front instead of leaving an agent to negotiate.
+const apiRequestNotice = "This request comes through the Magic API. Please do not offer the Magic 24/7 subscription. If this cannot be done without one, cancel the request instead."
 
 // SendParams describes a Magic request to create.
 type SendParams struct {
@@ -139,7 +146,7 @@ func (c *Client) Send(ctx context.Context, params SendParams) (*Request, error) 
 
 	payload := sendPayload{
 		Title:        params.Title,
-		Instructions: params.Instructions,
+		Instructions: strings.TrimSpace(params.Instructions) + "\n\n" + apiRequestNotice,
 		Objective:    params.Objective,
 		MaxMinutes:   params.MaxMinutes,
 		Relaxed:      params.Relaxed,
@@ -241,11 +248,47 @@ func (r *Request) Answer() string {
 		return ""
 	}
 	for i := len(r.Conversation) - 1; i >= 0; i-- {
+		// CLIENT messages are our own instructions and replies, not the
+		// operator's answer.
+		if strings.EqualFold(r.Conversation[i].SourceType, "CLIENT") {
+			continue
+		}
 		if content := strings.TrimSpace(r.Conversation[i].Content); content != "" {
 			return r.Conversation[i].Content
 		}
 	}
 	return r.Result
+}
+
+// AsksForSubscription reports whether the latest operator message pitches a
+// paid Magic plan, so callers can warn instead of letting an agent accept it.
+func (r *Request) AsksForSubscription() bool {
+	if r == nil {
+		return false
+	}
+	for i := len(r.Conversation) - 1; i >= 0; i-- {
+		msg := r.Conversation[i]
+		if strings.EqualFold(msg.SourceType, "CLIENT") || strings.TrimSpace(msg.Content) == "" {
+			continue
+		}
+		return offersPaidPlan(msg.Content)
+	}
+	return false
+}
+
+// offersPaidPlan reports whether text offers a paid Magic plan: it names a plan
+// and either a price or an invitation to subscribe, and does not say that no
+// subscription is needed.
+func offersPaidPlan(text string) bool {
+	text = strings.ToLower(strings.ReplaceAll(text, "’", "'"))
+	for _, negation := range []string{"no subscription", "don't need", "do not need", "not need", "not required", "isn't required"} {
+		if strings.Contains(text, negation) {
+			return false
+		}
+	}
+	namesPlan := strings.Contains(text, "24/7") || strings.Contains(text, " plan")
+	offers := strings.Contains(text, "$") || strings.Contains(text, "subscribe to") || strings.Contains(text, "proceed with the subscription")
+	return namesPlan && offers
 }
 
 func (c *Client) do(ctx context.Context, method, path string, body any) ([]byte, error) {

@@ -4,10 +4,15 @@ package magic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
+	"strings"
 	"sync/atomic"
 	"testing"
+
+	"github.com/mvanhorn/printing-press-library/library/productivity/human-goat/internal/cliutil"
 )
 
 type magicRoundTripFunc func(*http.Request) (*http.Response, error)
@@ -91,6 +96,23 @@ func TestAnswer(t *testing.T) {
 		}
 	})
 
+	t.Run("skips client messages", func(t *testing.T) {
+		request := Request{
+			Conversation: []ConversationMessage{
+				{Content: "Look up the hours", SourceType: "CLIENT"},
+			},
+		}
+		if got := request.Answer(); got != "" {
+			t.Fatalf("Answer() = %q, want empty while only our instructions exist", got)
+		}
+		request.Conversation = append(request.Conversation,
+			ConversationMessage{Content: "10am to 5pm", SourceType: "OPERATOR"},
+			ConversationMessage{Content: "thanks", SourceType: "CLIENT"})
+		if got := request.Answer(); got != "10am to 5pm" {
+			t.Fatalf("Answer() = %q, want the operator reply", got)
+		}
+	})
+
 	t.Run("result fallback", func(t *testing.T) {
 		request := Request{Result: "from result", Conversation: []ConversationMessage{}}
 		if got := request.Answer(); got != "from result" {
@@ -104,4 +126,50 @@ func TestAnswer(t *testing.T) {
 			t.Fatalf("Answer() = %q, want empty", got)
 		}
 	})
+}
+
+func TestSendAppendsAPIRequestNotice(t *testing.T) {
+	var sent map[string]any
+	c := &Client{
+		baseURL: "https://example.invalid",
+		httpClient: &http.Client{Transport: magicRoundTripFunc(func(r *http.Request) (*http.Response, error) {
+			if err := json.NewDecoder(r.Body).Decode(&sent); err != nil {
+				return nil, err
+			}
+			return &http.Response{StatusCode: http.StatusOK, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(`{"id":"req_1","status":"PENDING"}`))}, nil
+		})},
+		limiter:     cliutil.NewAdaptiveLimiter(defaultRateLimit),
+		keyProvider: func() (string, error) { return "k", nil },
+	}
+	if _, err := c.Send(context.Background(), SendParams{Title: "t", Instructions: "Look up the hours.", Objective: "o"}); err != nil {
+		t.Fatal(err)
+	}
+	got, _ := sent["instructions"].(string)
+	if !strings.HasPrefix(got, "Look up the hours.") || !strings.HasSuffix(got, apiRequestNotice) {
+		t.Fatalf("instructions = %q, want caller text followed by the API notice", got)
+	}
+}
+
+func TestAsksForSubscription(t *testing.T) {
+	pitch := "You don't have an active Magic 24/7 plan. Would you like to proceed with the subscription?"
+	cases := []struct {
+		name string
+		conv []ConversationMessage
+		want bool
+	}{
+		{"operator pitch", []ConversationMessage{{Content: "hours?", SourceType: "CLIENT"}, {Content: pitch, SourceType: "ASSISTANT"}}, true},
+		{"our own decline after pitch", []ConversationMessage{{Content: pitch, SourceType: "ASSISTANT"}, {Content: "No subscription", SourceType: "CLIENT"}}, true},
+		{"answered after pitch", []ConversationMessage{{Content: pitch, SourceType: "ASSISTANT"}, {Content: "Open 10am to 5pm", SourceType: "ASSISTANT"}}, false},
+		{"no operator reply", []ConversationMessage{{Content: "subscription question", SourceType: "CLIENT"}}, false},
+		{"says no subscription needed", []ConversationMessage{{Content: "No subscription is needed; I'm working on it now.", SourceType: "ASSISTANT"}}, false},
+		{"confirms a cancellation", []ConversationMessage{{Content: "I've cancelled your Magic 24/7 plan subscription as requested.", SourceType: "ASSISTANT"}}, false},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			r := &Request{Conversation: tc.conv}
+			if got := r.AsksForSubscription(); got != tc.want {
+				t.Fatalf("AsksForSubscription() = %v, want %v", got, tc.want)
+			}
+		})
+	}
 }
