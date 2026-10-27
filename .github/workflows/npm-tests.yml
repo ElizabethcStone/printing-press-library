@@ -1,0 +1,42 @@
+name: npm package tests
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/npm-tests.yml'
+      - '.github/workflows/npm-publish.yml'
+      - 'npm/**'
+      # Files outside npm/ that npm/tests reads.
+      - 'library/**/go.mod'
+      - 'library/food-and-dining/texas-roadhouse/README.md'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-tests-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: npm test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      # Keep in step with npm-publish.yml so this proves what publish will run.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: npm/package-lock.json
+
+      - name: Install dependencies
+        working-directory: npm
+        run: npm ci
+
+      - name: Test
+        working-directory: npm
+        run: npm test
