@@ -196,7 +196,6 @@ jobs:
           out="${RUNNER_TEMP}/out/${slug}-pp-mcp-${os}-${arch}.mcpb"
           mkdir -p "$(dirname "$out")"
           bundle_args=()
-          # Stamp the CLI's release version over manifest.json's stale one.
           # The bundler rejects a zero-padded month that the ledger pattern allows.
           ledger="${cli_dir}/.printing-press-release.json"
           release_version=""
