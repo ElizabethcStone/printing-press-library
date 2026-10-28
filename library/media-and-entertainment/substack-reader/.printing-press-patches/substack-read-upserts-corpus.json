@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-23",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "substack-read-upserts-corpus",
+  "summary": "read keeps every post it fetched in the local corpus with its body (_pp_body_text, body_html, _pp_access, _pp_source_host), never replaces a stored full copy with a later preview, stamps the sync state of a corpus that has none, and archive re-runs keep the text read stored. --no-store and --db control it.",
+  "reason": "Audit finding (cli-improvements.md row 4): read wrote nothing to the database, so after an authenticated read of 1406 words the corpus resources table held 0 rows, and archive fetches bodies anonymously so a paid post stays a preview forever. corpusRecord adds the plain body text (the field the corpus indexes) and an access verdict to the post object; storeRead upserts it unless the stored record is already a verified full copy and this read is a preview (storedIsFull); markCorpusSynced stamps sync_state for a corpus that has none, otherwise search warns 'local store has not been synced yet' (found in the live run), and leaves an archive-stamped total alone; keepReadFields (called from archive.go before its Upsert) carries body_html, _pp_body_text and _pp_access over onto a fresh archive item, because archive's Upsert replaces the whole record. read no longer carries mcp:read-only (it writes the corpus, like archive and sync). Storing never fails a read: an unopenable database or a failed upsert is a stderr warning and stored:false in the envelope. NOT done here (still open, row 4 second half): archive does not use the session for paid posts; and the local master's archive lacks the published-only full-walk/short-page fix, so archive --limit 300 stored only 24 posts in the live run. tools-manifest.json and the generated docs still list read as read-only until the next reprint.",
+  "files": [
+    "internal/cli/read.go",
+    "internal/cli/read_store.go",
+    "internal/cli/read_store_test.go",
+    "internal/cli/archive.go"
+  ],
+  "validated_outcome": "go build, go vet and go test ./... green. Live, fresh absolute --home (UX Mentor Diaries, press 4.31.2 source-master build, not installed): one read of 4 posts left 4 rows in resources (2 entitled, 1 free, 1 preview) all with a body; search --data-source local found a word that exists only in a paid body and the negative control found nothing; in a second fresh home an anonymous re-read of an already-stored paid post printed the 'only a preview; the full copy ... was kept' note and left body_len unchanged (9621), and after reading a post that archive had stored as a preview (access null), re-running archive --limit 300 left it entitled with 18856 body characters. Tests written first and seen failing: TestStoreReadMakesAFreshCorpusTrusted (the stamp). TestStoreReadLeavesAnArchiveSyncStateAlone is a regression guard and passed on first run."
+}

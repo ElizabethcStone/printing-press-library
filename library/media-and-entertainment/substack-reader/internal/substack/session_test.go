@@ -95,8 +95,8 @@ func TestLoadSessionExplicitCookieFileBeatsDefault(t *testing.T) {
 	// explicit override and paid posts read as preview-only (Greptile P1).
 	home := t.TempDir()
 	t.Setenv("SUBSTACK_READER_HOME", home) // steers ConfigDir -> <home>/config
-	t.Setenv(EnvSession, "")      // no env session; exercise the file path
-	t.Setenv(EnvCookieFile, "")   // set below, after writing the default
+	t.Setenv(EnvSession, "")               // no env session; exercise the file path
+	t.Setenv(EnvCookieFile, "")            // set below, after writing the default
 
 	defaultPath, err := DefaultCookieFilePath()
 	if err != nil {

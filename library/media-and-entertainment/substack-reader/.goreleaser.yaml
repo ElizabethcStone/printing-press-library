@@ -8,6 +8,8 @@ builds:
     binary: substack-reader-pp-cli
     env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
     ldflags:
       - -s -w -X github.com/mvanhorn/printing-press-library/library/media-and-entertainment/substack-reader/internal/cli.version={{ .Version }}
     targets:
@@ -22,6 +24,8 @@ builds:
     binary: substack-reader-pp-mcp
     env:
       - CGO_ENABLED=0
+    flags:
+      - -trimpath
     ldflags:
       - -s -w -X main.version={{ .Version }}
     targets:

@@ -1,9 +1,9 @@
 // Copyright 2026 Maxime Delavergne and contributors. Licensed under Apache-2.0. See LICENSE.
-// Framework command `sql`, restored by hand. It was accidentally listed in
-// research.json novel_features in an earlier generation, which made the
-// generator emit a novel-command TODO stub that SHADOWED the real framework sql
-// (playbook Addendum 2026-07-07). research.json is now clean, but a hand-built
-// fork must never be regenerated, so the real command is restored here directly.
+// Framework command `sql`, restored by hand. It is declared in research.json
+// novel_features, so the generator emits a novel-command TODO stub that SHADOWS
+// the real framework sql (playbook Addendum 2026-07-07). The declaration is
+// deliberate — it is what wires the CLI command — so the real implementation is
+// restored here and re-applied over the stub on every reprint.
 //
 // mcp:hidden — a typed `sql` MCP tool already exists (internal/mcp/tools.go),
 // so this CLI command is hidden from the cobratree mirror to avoid a duplicate
@@ -40,14 +40,27 @@ driver rejects any write that slips past the parser.
 Archived posts live in the 'posts' resource type:
   substack-reader-pp-cli sql "SELECT COUNT(*) AS n FROM resources WHERE resource_type='posts'"
   substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) AS n FROM resources WHERE resource_type='posts' GROUP BY audience"`,
-		Example:     "  substack-reader-pp-cli sql \"SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience\"",
-		Annotations: map[string]string{"mcp:hidden": "true"},
+		Example: "  substack-reader-pp-cli sql \"SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience\"",
+		// pp:happy-args gives the live-dogfood probe a real positional; without it
+		// happy_path skips on the non-ID <query> and phase 5 reports this feature
+		// as hollow coverage.
+		Annotations: map[string]string{
+			"mcp:hidden": "true",
+			// sql is strictly read-only: validateReadOnlySQL rejects multi-statement
+			// input and allows only a leading SELECT or WITH (see sql_readonly_test.go,
+			// and mode=ro one layer down). Declaring it lets the
+			// live-dogfood harness run the happy path for real instead of dry-running
+			// it, which otherwise both breaks json_fidelity and excludes the command
+			// from phase-5 coverage.
+			"mcp:read-only": "true",
+			"pp:happy-args": "query=SELECT COUNT(*) AS n FROM resources",
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
 			}
 			if dryRunOK(flags) {
-				return nil
+				return writeDryRun(cmd.OutOrStdout(), flags, "sql")
 			}
 			query := strings.TrimSpace(strings.Join(args, " "))
 			if err := validateReadOnlySQL(query); err != nil {

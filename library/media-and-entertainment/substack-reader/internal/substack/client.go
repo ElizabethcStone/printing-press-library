@@ -36,13 +36,25 @@ const defaultUA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/5
 // io.LimitReader — this bounds the success path too.
 const maxResponseBytes = 50 << 20 // 50 MiB
 
+// maxRateLimitRetries is how many times get() asks again after a 429 before it
+// gives up with a RateLimitError. Each retry first waits out the server's
+// Retry-After (or a growing default), so a short burst of throttling costs a few
+// seconds instead of a post saved as its public preview.
+const maxRateLimitRetries = 2
+
 // Client fetches from a single Substack publication host.
+//
+// One Client holds one rate limiter, and a 429 lowers that limiter's pace. A
+// caller that makes many requests (a `read` batch) must therefore keep ONE
+// client for the whole run: a new client per request starts at full speed again
+// and the slow-down the server asked for is lost.
 type Client struct {
 	http     *http.Client
 	limiter  *cliutil.AdaptiveLimiter
 	ua       string
 	session  Session
 	maxBytes int64 // cap on a success-path body read; defaults to maxResponseBytes
+	pause    func(ctx context.Context, d time.Duration) error
 }
 
 // NewClient returns a Tier-0 (anonymous) client. The redirect policy follows
@@ -66,6 +78,7 @@ func newClient(sess Session) *Client {
 		ua:       defaultUA,
 		session:  sess,
 		maxBytes: maxResponseBytes,
+		pause:    sleepCtx,
 	}
 	c.http = &http.Client{
 		Timeout:       30 * time.Second,
@@ -76,6 +89,31 @@ func newClient(sess Session) *Client {
 
 // Authed reports whether this client carries Tier-1 session material.
 func (c *Client) Authed() bool { return !c.session.IsZero() }
+
+// Rate is the request pace (per second) the client's limiter currently allows.
+// It drops after a 429 and stays down for the life of the client.
+func (c *Client) Rate() float64 { return c.limiter.Rate() }
+
+// SetPause replaces how the client waits out a 429. It exists so tests do not
+// wait in real time; production code keeps the default context-aware sleep.
+func (c *Client) SetPause(fn func(ctx context.Context, d time.Duration) error) { c.pause = fn }
+
+// SetTransport replaces the HTTP transport. It exists so tests can serve
+// canned responses for the https hosts the commands build; production code
+// keeps the default transport.
+func (c *Client) SetTransport(rt http.RoundTripper) { c.http.Transport = rt }
+
+// sleepCtx waits for d, or returns the context's error as soon as it ends.
+func sleepCtx(ctx context.Context, d time.Duration) error {
+	t := time.NewTimer(d)
+	defer t.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-t.C:
+		return nil
+	}
+}
 
 // checkRedirect re-attaches the session cookie on redirects that STAY within
 // substack.com. This is the deliberately-narrow half of the Medium
@@ -141,13 +179,60 @@ func ResolveHost(input string) string {
 }
 
 func (c *Client) get(ctx context.Context, rawURL string) ([]byte, error) {
-	c.limiter.Wait()
+	return c.getAccepting(ctx, rawURL, "application/json")
+}
+
+// FetchImage downloads one image (or any binary file) with the client's
+// pacing, 429 retry and size cap. It does not ask for JSON, and the session
+// cookie only ever goes to substack.com hosts, never to an image CDN.
+func (c *Client) FetchImage(ctx context.Context, rawURL string) ([]byte, error) {
+	return c.getAccepting(ctx, rawURL, "image/avif,image/webp,image/*,*/*;q=0.8")
+}
+
+func (c *Client) getAccepting(ctx context.Context, rawURL, accept string) ([]byte, error) {
+	var limited *cliutil.RateLimitError // the 429 being retried, if any
+	for attempt := 0; ; attempt++ {
+		data, retryAfter, err := c.getOnce(ctx, rawURL, accept, attempt)
+		var rle *cliutil.RateLimitError
+		if !errors.As(err, &rle) {
+			// The retry of a 429 ran out of time (deadline or cancel): the
+			// verdict is still "rate limited, try later", with the context
+			// error inside, never a bare timeout a caller reads as another
+			// failure.
+			if err != nil && limited != nil && ctx.Err() != nil {
+				limited.Cause = err
+				return nil, limited
+			}
+			return data, err
+		}
+		// A 429 means "later", not "no". Wait as long as the server asked, then
+		// ask again; after maxRateLimitRetries the caller gets the RateLimitError
+		// (never empty data) with the pause that was last waited.
+		rle.RetryAfter = retryAfter
+		if attempt >= maxRateLimitRetries {
+			return nil, rle
+		}
+		if err := c.pause(ctx, retryAfter); err != nil {
+			rle.Cause = err
+			return nil, rle
+		}
+		limited = rle
+	}
+}
+
+// getOnce makes one request. On a 429 it returns a RateLimitError together with
+// the pause to wait before retrying: the server's Retry-After when it sent one,
+// otherwise a default that doubles with each retry of the same request.
+func (c *Client) getOnce(ctx context.Context, rawURL, accept string, attempt int) ([]byte, time.Duration, error) {
+	if err := c.limiter.Wait(ctx); err != nil {
+		return nil, 0, err
+	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	req.Header.Set("User-Agent", c.ua)
-	req.Header.Set("Accept", "application/json")
+	req.Header.Set("Accept", accept)
 	// Attach the Tier-1 session cookie on the initial request — but ONLY when the
 	// destination is first-party substack.com (isSubstackComHost). substack.sid
 	// is a .substack.com cookie; sending it to any other registrable domain
@@ -163,17 +248,23 @@ func (c *Client) get(ctx context.Context, rawURL string) ([]byte, error) {
 	}
 	resp, err := c.http.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusTooManyRequests {
 		c.limiter.OnRateLimit()
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return nil, &cliutil.RateLimitError{URL: rawURL, Body: strings.TrimSpace(string(body))}
+		wait := cliutil.RetryAfter(resp)
+		if strings.TrimSpace(resp.Header.Get("Retry-After")) == "" {
+			// No server guidance: RetryAfter returned its flat default. Back off
+			// harder on each consecutive 429 of the same request.
+			wait *= time.Duration(1 << attempt)
+		}
+		return nil, wait, &cliutil.RateLimitError{URL: rawURL, Body: strings.TrimSpace(string(body))}
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(io.LimitReader(resp.Body, 512))
-		return nil, fmt.Errorf("GET %s: HTTP %d: %s", rawURL, resp.StatusCode, strings.TrimSpace(string(body)))
+		return nil, 0, fmt.Errorf("GET %s: HTTP %d: %s", rawURL, resp.StatusCode, strings.TrimSpace(string(body)))
 	}
 	c.limiter.OnSuccess()
 	// Bound the success-path read: read at most maxBytes+1 and treat a body that
@@ -182,12 +273,12 @@ func (c *Client) get(ctx context.Context, rawURL string) ([]byte, error) {
 	// keeps an oversized or maliciously-redirected body from ballooning the heap.
 	data, err := io.ReadAll(io.LimitReader(resp.Body, c.maxBytes+1))
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	if int64(len(data)) > c.maxBytes {
-		return nil, fmt.Errorf("GET %s: response body exceeds %d bytes", rawURL, c.maxBytes)
+		return nil, 0, fmt.Errorf("GET %s: response body exceeds %d bytes", rawURL, c.maxBytes)
 	}
-	return data, nil
+	return data, 0, nil
 }
 
 // PostSummary is the minimal shape the CLI needs from an archive item; the full

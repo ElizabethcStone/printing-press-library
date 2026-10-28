@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-28",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "substack-reprint-4.34.2-research-inputs",
+  "summary": "Research inputs changed for the 4.34.2 reprint: read's novel-feature entry describes the corpus writer it became in 0fdfa24; the Audience mix recipe archives before it queries; discovery/observed-urls.txt records the hosts the novel features name; golang.org/x/net moves to v0.62.0.",
+  "reason": "(1) read stores what it fetched since 0fdfa24, and its research entry still described a read-only fetch, so the generated Highlights, README and SKILL said so too. (2) 4.34 turns every single-command research recipe into an MCP tool. The Audience mix recipe was `sql \"...\"`; sql is mcp:hidden because the typed sql MCP tool already exists, so the generated audience_mix_analytics tool was never registered at runtime and its four generated tests failed ('tool is not available'). Archiving first makes it a two-step recipe like the first one (recipes with && are not turned into tools), and it is also the honest recipe: sql on an empty corpus returns nothing. (3) The new novel-host gate refuses to generate when a host named in a novel feature (blog.bytebytego.com in author-compare) is not in a research artifact it reads; the July probe notes are Markdown, which it does not read. observed-urls.txt lists the three hosts, re-probed live on 2026-10-28 (all 200 application/json). (4) govulncheck in publish validate found GO-2026-6860 in golang.org/x/net v0.56.0, reached by substack.HTMLToMarkdown via html.ParseFragment; fixed in v0.62.0.",
+  "files": [
+    ".manuscripts/20261028-125048-1717acec/research.json",
+    ".manuscripts/20261028-125048-1717acec/discovery/observed-urls.txt",
+    "go.mod",
+    "go.sum"
+  ],
+  "validated_outcome": "generate passes the novel-host gate; the generated tree has no internal/mcp/intents.go; go build, go vet and go test ./... green; govulncheck no longer reports golang.org/x/net."
+}

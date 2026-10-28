@@ -189,20 +189,37 @@ func newNovelArchiveCmd(flags *rootFlags) *cobra.Command {
 			"preview (a full paid body requires your own session; see the read command). Bodies already " +
 			"in the corpus are never refetched, so re-runs are cheap and incremental. --metadata-only " +
 			"skips body fetching; search then covers titles and previews only.",
-		Example: "  substack-reader-pp-cli archive astralcodexten --limit 200",
+		Example: "  substack-reader-pp-cli archive astralcodexten --limit 0",
 		// No mcp:read-only annotation: archive WRITES the local SQLite corpus
 		// (db.Upsert + db.SaveSyncState below), so per the MCP readOnlyHint
 		// contract ("does not modify its environment") it is not read-only. It
 		// inherits the conservative default, matching the other store-writing
 		// command (sync). read/digest/author-compare stay read-only — they only
 		// read Substack or the local corpus, never write it.
+		//
+		// pp:happy-args gives the live-dogfood probe a real <publication> so
+		// happy_path/json_fidelity execute instead of skipping on the non-ID
+		// positional. On its own that is not coverage: the harness dry-runs a
+		// writer's happy path and discards dry-run results (cli-printing-press
+		// #4539). pp:live-happy-path (#4872) lets `dogfood --live
+		// --allow-destructive` run that happy path once for real from a scratch
+		// directory, which is safe here: five keyless GETs of a public archive
+		// and a write to the sandboxed local corpus.
+		Annotations: map[string]string{
+			"pp:happy-args":      "publication=astralcodexten;--limit=5",
+			"pp:live-happy-path": "true",
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 && cmd.Flags().NFlag() == 0 {
 				return cmd.Help()
 			}
 			if dryRunOK(flags) {
-				fmt.Fprintln(cmd.OutOrStdout(), "would archive publication posts into the local corpus")
-				return nil
+				return writeDryRun(cmd.OutOrStdout(), flags, "archive")
+			}
+			// archive exists to copy a publication into the local store, so it
+			// refuses under the operator's no-local-data switch, like sync.
+			if err := archiveAllowed(); err != nil {
+				return err
 			}
 			if len(args) == 0 {
 				_ = cmd.Usage()
@@ -308,7 +325,14 @@ func newNovelArchiveCmd(flags *rootFlags) *cobra.Command {
 						return false, bodyErr
 					}
 					raw = attachBodyText(raw, body)
-					if err := db.Upsert("posts", id, raw); err != nil {
+					// The write replaces the post's whole record: carry over the
+					// full text a `read` stored, or this re-run would turn it back
+					// into the anonymous preview the archive endpoint serves. The
+					// stored record is read inside the write, so a read that lands
+					// while this post's body is being fetched is kept too.
+					if _, err := db.UpsertWith("posts", id, func(prev json.RawMessage) (json.RawMessage, bool) {
+						return keepReadFields(prev, raw), true
+					}); err != nil {
 						return false, fmt.Errorf("storing post %s: %w", id, err)
 					}
 					return true, nil
@@ -361,4 +385,13 @@ func newNovelArchiveCmd(flags *rootFlags) *cobra.Command {
 	cmd.Flags().StringVar(&dbPath, "db", "", "database path (default: standard location)")
 	cmd.Flags().BoolVar(&metadataOnly, "metadata-only", false, "skip fetching post bodies (faster; search covers titles and previews only)")
 	return cmd
+}
+
+// archiveAllowed applies the operator's no-local-data switch to archive, with
+// the same wording root.go uses for sync and workflow archive.
+func archiveAllowed() error {
+	if localDataDisabled() {
+		return fmt.Errorf("archive is disabled while %s=1: it would save API data to the local store", noLocalDataEnvVar)
+	}
+	return nil
 }

@@ -2,10 +2,10 @@
 
 **Read any Substack publication as a local, full-text-searchable corpus — keyless for free posts, your own session for what you subscribe to.**
 
+Substack Reader archives whole publications into a local SQLite mirror you can search, SQL-query, and read offline. Free posts need no login; paid posts you're entitled to unlock with your own session cookie — never redistributed, always opt-in. Unlike every other Substack tool it builds a corpus that compounds instead of fetching live per call.
+
 Created by [@maxswinguy](https://github.com/maxswinguy) (Maxime Delavergne).
 Contributors: [@lagiosv](https://github.com/lagiosv) (Vasileios Lagios), [@giuseppebisemi](https://github.com/giuseppebisemi) (Giuseppe Bisemi).
-
-Substack Reader archives whole publications into a local SQLite mirror you can search, SQL-query, and read offline. Free posts need no login; paid posts you're entitled to unlock with your own session cookie — never redistributed, always opt-in. Unlike every other Substack tool it builds a corpus that compounds instead of fetching live per call.
 
 ## Install
 
@@ -36,7 +36,7 @@ npx -y @mvanhorn/printing-press-library install substack-reader --agent claude-c
 
 ### Without Node (Go fallback)
 
-If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.6 or newer):
+If `npx` isn't available (no Node, offline), install the CLI directly via Go (requires Go 1.26.10 or newer):
 
 ```bash
 go install github.com/mvanhorn/printing-press-library/library/media-and-entertainment/substack-reader/cmd/substack-reader-pp-cli@latest
@@ -103,7 +103,7 @@ If you can't use the MCPB bundle (older Claude Desktop, unsupported platform), i
 go install github.com/mvanhorn/printing-press-library/library/media-and-entertainment/substack-reader/cmd/substack-reader-pp-mcp@latest
 ```
 
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 
 ```json
 {
@@ -131,6 +131,17 @@ To unlock paid posts you subscribe to, add your own session cookie under `env`. 
 ```
 
 </details>
+
+### Remote MCP over HTTP
+
+`substack-reader-pp-mcp --transport http` (or `PP_MCP_TRANSPORT=http`) serves streamable HTTP at `http://127.0.0.1:7777/mcp`. It refuses to start until `SUBSTACK_READER_MCP_HTTP_TOKEN` is set to at least 32 characters, and every request must send `Authorization: Bearer <token>`. The command below prints 64 hex characters and meets that minimum. Plain HTTP is allowed only on a loopback `--addr`; any other bind, including `:7777` (every interface), also needs `--tls-cert` and `--tls-key`. Requests with no `Origin` header are accepted, as are loopback origins (`localhost`, `127.0.0.1`, or `[::1]`, any port). Any other `Origin` is refused unless it is listed in `SUBSTACK_READER_MCP_HTTP_ALLOWED_ORIGINS`, a comma-separated list of `scheme://host[:port]` values with no path. That list is not a CORS policy; the server does not emit CORS headers.
+
+```bash
+export SUBSTACK_READER_MCP_HTTP_TOKEN="$(openssl rand -hex 32)"
+substack-reader-pp-mcp --transport http
+```
+
+Set `SUBSTACK_READER_MCP_READ_ONLY=1` (exactly `1`) to drop mirrored commands that are not marked read-only and make the raw execute tool refuse state-changing calls. Commands marked local-write, which write only this CLI's own learn store, stay available.
 
 ## Authentication
 
@@ -173,11 +184,14 @@ Precedence is `SUBSTACK_SESSION`, then `SUBSTACK_COOKIE_FILE`, then the default 
 # confirm reachability and config before anything else
 substack-reader-pp-cli doctor --dry-run
 
+
 # mirror a publication's recent posts into the local corpus
 substack-reader-pp-cli archive astralcodexten --limit 50
 
+
 # full-text search the corpus offline
 substack-reader-pp-cli search "open thread"
+
 
 # read a single post's full text
 substack-reader-pp-cli read astralcodexten/open-thread-441
@@ -186,10 +200,9 @@ substack-reader-pp-cli read astralcodexten/open-thread-441
 
 ## Unique Features
 
-These capabilities aren't available in any other tool for this API.
-
 ### Local corpus that compounds
-- **`archive`** — Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `"exhausted": false`) — never treat a limit-stopped run as a complete archive.
+
+- **`archive`** — Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. Each new post's body is fetched and indexed for full-text search (--metadata-only skips that). `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `"exhausted": false`) — never treat a limit-stopped run as a complete archive.
 
   _Reach for this to turn a live newsletter into a durable, queryable knowledge base instead of re-fetching every time._
 
@@ -201,20 +214,21 @@ These capabilities aren't available in any other tool for this API.
   _Reach for this for ad-hoc analytics over what you've archived, without re-fetching or writing code._
 
   ```bash
-  substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience"
+  substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) AS n FROM resources WHERE resource_type='posts' GROUP BY audience"
   ```
 
 ### Entitlement-aware reading
-- **`read`** — Read one or more posts' full text in a single call; free posts keyless, and paid posts you subscribe to via your own session cookie — with an honest 'preview only, you're not entitled' signal. With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{"post", "error"}` entry and the rest still return); a single post keeps the single-object envelope.
+
+- **`read`** — Read one or more posts' full text: free posts keyless, paid posts you subscribe to via your own session cookie, with an honest 'preview only, you're not entitled' signal. Each post comes back as real Markdown and is kept in your local corpus, so an authenticated read upgrades a stored preview to the full text (--no-store skips it; --save <dir> writes Markdown files). With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{"post", "error"}` entry and the rest still return); a single post keeps the single-object envelope.
 
   _Use to pull posts' full text into an agent workflow — several slugs in one call, no shell loop — respecting exactly what the user is entitled to._
 
   ```bash
   substack-reader-pp-cli read astralcodexten/open-thread-441
-  substack-reader-pp-cli read astralcodexten/slug-one astralcodexten/slug-two --agent --select slug,subtitle
   ```
 
 ### Topic & comparative intelligence
+
 - **`digest`** — A time-windowed digest across every publication in your local corpus — what's new since you last synced, ranked, in one view.
 
   _Use as a personal 'what did I miss across my newsletters' briefing._
@@ -232,6 +246,7 @@ These capabilities aren't available in any other tool for this API.
 
 ## Recipes
 
+
 ### Build a searchable corpus
 
 ```bash
@@ -248,18 +263,10 @@ substack-reader-pp-cli read astralcodexten/open-thread-441 --agent --select titl
 
 Pull only the fields an agent needs from a verbose post object.
 
-### Read several posts in one call
-
-```bash
-substack-reader-pp-cli read astralcodexten/slug-one astralcodexten/slug-two astralcodexten/slug-three --agent --select slug,subtitle,audience
-```
-
-Batch-read a list of slugs without a shell loop; JSON mode returns an array of post envelopes, and one bad slug doesn't sink the rest.
-
 ### Audience mix analytics
 
 ```bash
-substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience"
+substack-reader-pp-cli archive astralcodexten --limit 200 && substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) AS n FROM resources WHERE resource_type='posts' GROUP BY audience"
 ```
 
 Read-only SQL over the local corpus for arbitrary analytics.
@@ -296,6 +303,15 @@ substack-reader-pp-cli doctor
 
 Under `SUBSTACK_READER_HOME=/srv/substack-reader`, the four dirs resolve to `/srv/substack-reader/config`, `/srv/substack-reader/data`, `/srv/substack-reader/state`, and `/srv/substack-reader/cache`.
 
+On Windows, set the same variable in PowerShell:
+
+```powershell
+$env:SUBSTACK_READER_HOME = "C:\srv\substack-reader"
+substack-reader-pp-cli doctor
+```
+
+Under `$env:SUBSTACK_READER_HOME = "C:\srv\substack-reader"`, the four dirs resolve to `C:\srv\substack-reader\config`, `C:\srv\substack-reader\data`, `C:\srv\substack-reader\state`, and `C:\srv\substack-reader\cache`.
+
 MCP servers do not receive CLI flags from the host. Put relocation in the host `env` block:
 
 ```json
@@ -316,6 +332,16 @@ Precedence matters in fleets: an ambient per-kind variable such as `SUBSTACK_REA
 Relocation is one-way. Unsetting `SUBSTACK_READER_HOME` does not move files back to platform defaults, and `doctor` cannot find files left under a former root. Move the files manually before unsetting relocation variables.
 
 Existing installs keep working because the platform-default rung matches the legacy layout. Run `substack-reader-pp-cli doctor --fail-on warn` to check path warnings in automation.
+
+### Local data
+
+Reads are saved locally by default: in `--data-source auto` mode every successful read is also written to the SQLite store (`data.db`, or `data-<hash>.db` per credential) in the data directory. GET responses are cached for five minutes under `http/` in the cache directory. The learn journal lives under `learn/` in the state directory. `substack-reader-pp-cli doctor` prints the resolved paths, every store file, and the response-cache size.
+
+None of it is encrypted. New files are created owner-only; beyond that the data relies on OS account permissions and full-disk encryption (FileVault, BitLocker, LUKS).
+
+- **Erase it:** `substack-reader-pp-cli local-data purge` lists the store files, response cache, and learn journal it would delete; add `--yes` to delete them, or `--only store|cache|journal` to narrow it. Config and credentials are kept.
+- **Run without a local copy:** set `SUBSTACK_READER_NO_LOCAL_DATA=1`. Reads go to the API (`--data-source live`; `--data-source local` still reads an existing store), the response cache is off (`--no-cache`), nothing new is written to the store, and `sync` and `workflow archive` refuse to run. Set it in an MCP host's `env` block and every command the server runs inherits it.
+- **Choose the read source without flags:** `SUBSTACK_READER_DATA_SOURCE=auto|live|local` sets the `--data-source` default; an explicit flag wins.
 
 ### Session environment variables
 
@@ -340,6 +366,38 @@ Browse Substack's publication categories
 Discover Substack publications
 
 - **`substack-reader-pp-cli publications <query>`** - Search Substack publications by name (best-effort; may return few results anonymously)
+
+
+### archive
+
+
+- **`substack-reader-pp-cli archive`** - Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. Each new post's body is fetched and indexed for full-text search (--metadata-only skips that). `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `'exhausted': false`) — never treat a limit-stopped run as a complete archive.
+
+
+### author-compare
+
+
+- **`substack-reader-pp-cli author-compare`** - Compare two publications' cadence, topics, and free/paid mix from the local corpus.
+
+
+### digest
+
+
+- **`substack-reader-pp-cli digest`** - A time-windowed digest across every publication in your local corpus — what's new since you last synced, ranked, in one view.
+
+
+### read
+
+
+- **`substack-reader-pp-cli read`** - Read one or more posts' full text: free posts keyless, paid posts you subscribe to via your own session cookie, with an honest 'preview only, you're not entitled' signal. Each post comes back as real Markdown and is kept in your local corpus, so an authenticated read upgrades a stored preview to the full text (--no-store skips it; --save <dir> writes Markdown files). With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{'post', 'error'}` entry and the rest still return); a single post keeps the single-object envelope.
+
+
+### sql
+
+
+- **`substack-reader-pp-cli sql`** - Run read-only SQL over your local Substack corpus for arbitrary analytics — post cadence, audience mix, longest posts — from data you've already archived.
+
+
 
 
 ### Self-learning loop
@@ -367,9 +425,8 @@ substack-reader-pp-cli categories list
 
 # JSON for scripting and agents
 substack-reader-pp-cli categories list --json
-
 # Filter to specific fields
-substack-reader-pp-cli categories list --json --select id,name,status
+substack-reader-pp-cli categories list --json --select id,name
 
 # Dry run — show the request without sending
 substack-reader-pp-cli categories list --dry-run
@@ -378,19 +435,21 @@ substack-reader-pp-cli categories list --dry-run
 substack-reader-pp-cli categories list --agent
 ```
 
+`--csv` prefixes a leading `'` on cells and header keys that start with `=`, `+`, `-`, `@`, a tab, or a line break (including fullwidth `＝＋－＠`) so a spreadsheet does not run them as formulas. Plain signed numbers such as `-5` and `+2.5e3` are left unchanged.
+
 ## Agent Usage
 
 This CLI is designed for AI agent consumption:
 
 - **Non-interactive** - never prompts, every input is a flag
 - **Pipeable** - `--json` output to stdout, errors to stderr
-- **Filterable** - `--select id,name` returns only fields you need
+- **Filterable** - `--select <field>[,<field>...]` returns only fields you need
 - **Previewable** - `--dry-run` shows the request without sending
 - **Read-only by default** - this CLI does not create, update, delete, publish, send, or mutate remote resources
 - **Offline-friendly** - sync/search commands can use the local SQLite store when available
 - **Agent-safe by default** - no colors or formatting unless `--human-friendly` is set
 
-Exit codes: `0` success, `2` usage error, `3` not found, `5` API error, `7` rate limited, `10` config error.
+Exit codes: `0` success, `2` usage error, `3` not found, `5` API error, `7` rate limited or blocked, `10` config error.
 
 ## Health Check
 
@@ -402,9 +461,11 @@ Verifies configuration and connectivity to the API.
 
 ## Configuration
 
-Run `substack-reader-pp-cli doctor` to see the resolved config, data, state, and cache directories. The platform-default config path is `~/.config/substack-reader-pp-cli/config.toml`; `--home`, `SUBSTACK_READER_HOME`, and per-kind env vars can relocate it.
+Run `substack-reader-pp-cli doctor` to see the resolved config, data, state, and cache directories. The platform-default config path is `~/.config/substack-reader-pp-cli/config.toml` on macOS/Linux and `%USERPROFILE%\.config\substack-reader-pp-cli\config.toml` on Windows; `--home`, `SUBSTACK_READER_HOME`, and per-kind env vars can relocate it.
 
 Static request headers can be configured under `headers`; per-command header overrides take precedence.
+
+`--ca-cert`, `SUBSTACK_READER_CA_CERT`, or `ca_cert` adds a PEM CA bundle to the system trust roots. `--tls-server-name`, `SUBSTACK_READER_TLS_SERVER_NAME`, or `tls_server_name` is the name checked against the certificate when the dialed address does not match it. Precedence is flag, then environment, then the config file. A config file other users can change does not supply these settings. Certificate verification failures are not retried.
 
 ## Troubleshooting
 **Not found errors (exit code 3)**
@@ -412,8 +473,11 @@ Static request headers can be configured under `headers`; per-command header ove
 - Run the `list` command to see available items
 
 ### API-specific
+
 - **A paid post reads as preview-only despite being subscribed** — Check that your substack.sid session cookie is set (SUBSTACK_SESSION or the config cookie file) and current — an expired or mistyped cookie silently falls back to the public preview. The reader unlocks paid posts through Substack's authenticated by-id endpoint, so a valid session is all that is needed; you never target a particular host yourself.
 - **Empty results / HTTP 429** — You are being rate-limited; slow down (archive is self-throttled) — Substack sets no rate headers, so pace requests.
+
+---
 
 ## Sources & Inspiration
 

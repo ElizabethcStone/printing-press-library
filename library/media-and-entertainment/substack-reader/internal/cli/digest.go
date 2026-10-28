@@ -35,8 +35,7 @@ the window.`,
 		Annotations: map[string]string{"mcp:read-only": "true"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if dryRunOK(flags) {
-				fmt.Fprintln(cmd.OutOrStdout(), "would summarize recent posts across the local corpus")
-				return nil
+				return writeDryRun(cmd.OutOrStdout(), flags, "digest")
 			}
 			window, err := cliutil.ParseDurationLoose(since)
 			if err != nil {

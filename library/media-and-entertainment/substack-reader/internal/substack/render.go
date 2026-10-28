@@ -36,8 +36,9 @@ var (
 
 // HTMLToText converts a Substack body_html into readable plain text, preserving
 // images as `![alt](src)` markdown and collapsing block structure into
-// paragraphs. Dependency-free (stdlib html + regexp) so no x/net/html is pulled
-// into the build.
+// paragraphs. Dependency-free (stdlib html + regexp): this is the text the word
+// count and the full-vs-preview verdict are taken from. The reading copy, with
+// links and headings, is HTMLToMarkdown (markdown.go).
 func HTMLToText(bodyHTML string) string {
 	if strings.TrimSpace(bodyHTML) == "" {
 		return ""

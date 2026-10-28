@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-23",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "substack-batch-read-paced-with-preview-signal",
+  "summary": "read is variadic (per-post errors, array envelope) and a whole batch shares ONE client pair, so the slow-down a 429 forces carries across posts; client.get retries a 429 after the server's Retry-After (growing default without one); and when a session is configured a batch that still returns previews exits non-zero with 'N of M posts are previews'.",
+  "reason": "The 2026-10-22 UX Mentor Diaries audit read 15 posts in one call and got exit 0 with 9 full, 2 previews and 4 errors: readOnePost built a new HTTP client pair per post, so the limiter slow-down after a 429 died with that post's client; a 429 was never retried; and a preview was not an error, so paid posts were silently saved as the public teaser. Batch read itself existed only in the published tree (module aa81bd36b150, patch compact-listings-stay-scalar-walks-declare-exhaustion-read-is-batch, press 4.28.0); the 4.31.2 source master carried a single-post read, so the read.go part of that published patch is ported here first (readResult, runReadBatch, readOnePost, array envelope with per-post error entries). Row 1 of audits/uxmentor-2026-10-22/followup/cli-improvements.md then sits on top: readClients (anon + authed, built once per batch), Client.get retry (maxRateLimitRetries=2, context-aware pause, Retry-After honoured, 5s/10s default without one), and previewReport (exit code 4 for previews, 7 when an authenticated fetch was rate limited). Reprint hazard: the other halves of the published patch (helpers.go compact projections, archive.go exhaustion reporting, root.go) are NOT in this tree and are still to be reconciled at publish time. read.go is further changed by substack-markdown-body-and-save (body_text/body_markdown, --save) and substack-read-upserts-corpus (corpus upsert); a reprint reconciles all three records against the same file. Reprint 2026-10-28 (press 4.34.2): the chassis no longer emits authErr for a spec with auth: none, so read.go defines previewErr (exit 4, same code) beside previewReport; and AdaptiveLimiter.Wait now takes a context, so client.getOnce calls Wait(ctx) and returns its error (a cancelled context stops the wait instead of sleeping it out).",
+  "files": [
+    "internal/cli/read.go",
+    "internal/cli/read_test.go",
+    "internal/substack/client.go",
+    "internal/substack/client_test.go"
+  ],
+  "validated_outcome": "go build ./..., go vet ./... and go test ./... green on the 4.31.2 source master (go1.27.2). New tests, each written before the code and seen failing first (compile failure: symbols undefined): TestRunReadBatchMintsFreshContextPerPost, TestReadBatchDryRun, TestGetRetries429AfterPause, TestGetGivesUpAfterMaxRetries, TestGetPauseHonoursContext, TestRateLimitSlowsTheSameClient, TestReadBatchKeepsRateLimitSlowdownAcrossPosts, TestPreviewReportNeedsASession, TestPreviewReportSeparatesRateLimitedPosts. Not covered by a test: the single line in read's RunE that builds the client pair once (newReadClients) is checked by reading, not by a test."
+}
