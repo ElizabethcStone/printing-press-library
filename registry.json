@@ -32166,7 +32166,7 @@
         "cli_name": "v0-pp-cli",
         "version": "2026.9.1",
         "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "source_commit": "2768e35b38e3edc3183bc5205f22d679a1428103"
       },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
