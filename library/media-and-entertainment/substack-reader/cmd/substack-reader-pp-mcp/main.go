@@ -54,7 +54,7 @@ const (
 const httpAllowedOriginsEnvVar = "SUBSTACK_READER_MCP_HTTP_ALLOWED_ORIGINS"
 
 // version is the printed MCP server's version, overridable at build time via ldflags.
-var version = "2026.9.3"
+var version = "2026.10.1"
 
 func main() {
 	// Pin the learn-event surface for this process and every walker
