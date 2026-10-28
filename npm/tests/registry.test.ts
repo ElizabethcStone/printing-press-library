@@ -44,6 +44,48 @@ test("parseRegistry validates and returns registry entries", () => {
   });
 });
 
+test("parseRegistry homepage handling matches the generator's shared corpus", async () => {
+  const corpusPath = join(process.cwd(), "..", "tools", "generate-registry", "testdata", "homepage-cases.json");
+  const corpus = JSON.parse(await readFile(corpusPath, "utf8")) as { valid: string[]; invalid: string[] };
+  const base = { category: "other", api: "X", description: "d", path: "library/other/x" };
+  const cases = [...corpus.valid.map((h) => [h, true] as const), ...corpus.invalid.map((h) => [h, false] as const)];
+  const registry = parseRegistry({
+    schema_version: 2,
+    entries: cases.map(([homepage], i) => ({ ...base, name: `case-${i}`, homepage })),
+  });
+
+  assert.equal(registry.entries.length, cases.length);
+  cases.forEach(([homepage, valid], i) => {
+    const got = registry.entries[i]?.homepage;
+    assert.equal(got, valid ? homepage : undefined, `homepage ${JSON.stringify(homepage)}`);
+  });
+});
+
+test("parseRegistry keeps a valid homepage and drops a malformed one without skipping the entry", () => {
+  const base = { category: "other", api: "X", description: "d", path: "library/other/x" };
+  const warnings: string[] = [];
+  const registry = parseRegistry(
+    {
+      schema_version: 2,
+      entries: [
+        { ...base, name: "site", homepage: "https://linear.app" },
+        { ...base, name: "none" },
+        { ...base, name: "bare", homepage: "linear.app" },
+        { ...base, name: "script", homepage: "javascript:alert(1)" },
+        { ...base, name: "number", homepage: 42 },
+      ],
+    },
+    (message) => warnings.push(message),
+  );
+
+  assert.equal(registry.entries.length, 5);
+  assert.deepEqual(warnings, []);
+  assert.equal(registry.entries[0]?.homepage, "https://linear.app");
+  for (const entry of registry.entries.slice(1)) {
+    assert.equal("homepage" in entry, false, `${entry.name} should have no homepage key`);
+  }
+});
+
 test("parseRegistry rejects mutable or malformed release source refs", () => {
   const warnings: string[] = [];
   const registry = parseRegistry(

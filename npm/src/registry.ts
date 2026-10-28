@@ -16,6 +16,7 @@ export interface RegistryEntry {
   category: string;
   api: string;
   description: string;
+  homepage?: string;
   search_terms?: string[];
   path: string;
   release?: ReleaseMetadata;
@@ -153,11 +154,13 @@ function parseRegistryEntry(value: unknown): RegistryEntry {
     throw new Error("registry entry must be an object");
   }
 
+  const homepage = optionalWebURL(value, "homepage");
   const entry = {
     name: requiredString(value, "name"),
     category: requiredString(value, "category"),
     api: requiredString(value, "api"),
     description: requiredString(value, "description"),
+    ...(homepage ? { homepage } : {}),
     search_terms: optionalStringArray(value, "search_terms"),
     path: requiredString(value, "path"),
     release: isRecord(value.release)
@@ -244,6 +247,33 @@ function optionalStringArray(value: Record<string, unknown>, key: string): strin
     out.push(item);
   }
   return out.length > 0 ? out : undefined;
+}
+
+// Same pattern text as homepageRE in tools/generate-registry/main.go, which
+// documents the rule. No URL parser on either side, so the generator's
+// --validate gate and this parser cannot disagree; both run
+// tools/generate-registry/testdata/homepage-cases.json.
+const HOMEPAGE_RE =
+  /^https?:\/\/(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})(?::([0-9]{1,5}))?(?:[/?#](?:[a-z0-9\-._~!$&'()*+,;=:@/?#]|%[0-9a-f]{2})*)?$/i;
+
+/**
+ * Catalog-only metadata: a missing or malformed value is dropped rather than
+ * skipping the entry, so a bad link never blocks an install.
+ */
+function optionalWebURL(value: Record<string, unknown>, key: string): string | undefined {
+  const raw = value[key];
+  if (typeof raw !== "string") {
+    return undefined;
+  }
+  // ASCII first, as in the generator's isWebURL.
+  if (/[^\x00-\x7f]/.test(raw)) {
+    return undefined;
+  }
+  const match = HOMEPAGE_RE.exec(raw);
+  if (!match || (match[1] !== undefined && Number(match[1]) > 65535)) {
+    return undefined;
+  }
+  return raw;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

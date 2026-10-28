@@ -390,6 +390,81 @@ func TestBuildEntryCatalogDisplayNameOverridesPriorAPI(t *testing.T) {
 	}
 }
 
+func TestBuildEntryPassesHomepageThrough(t *testing.T) {
+	dir := t.TempDir()
+	manifest := `{
+  "api_name": "linear",
+  "display_name": "Linear",
+  "description": "Issue tracking.",
+  "homepage": "  https://linear.app  "
+}`
+	if err := os.WriteFile(filepath.Join(dir, ".printing-press.json"), []byte(manifest), 0o644); err != nil {
+		t.Fatalf("write manifest: %v", err)
+	}
+
+	entry, err := buildEntry(dir, "project-management", "linear", map[string]RegistryEntry{}, nil)
+	if err != nil {
+		t.Fatalf("buildEntry: %v", err)
+	}
+	if entry == nil {
+		t.Fatal("buildEntry returned nil")
+	}
+	if got := entry.Homepage; got != "https://linear.app" {
+		t.Fatalf("entry Homepage = %q, want trimmed manifest homepage", got)
+	}
+}
+
+func TestMarshalRegistryOmitsEmptyHomepage(t *testing.T) {
+	out, err := marshalRegistry(Registry{SchemaVersion: schemaVersion, Entries: []RegistryEntry{
+		{Name: "no-site", Category: "other", API: "No Site", Description: "d", Path: "library/other/no-site"},
+		{Name: "site", Category: "other", API: "Site", Description: "d", Path: "library/other/site", Homepage: "https://site.example.com"},
+	}})
+	if err != nil {
+		t.Fatalf("marshalRegistry: %v", err)
+	}
+	if got := strings.Count(string(out), `"homepage"`); got != 1 {
+		t.Fatalf("homepage keys = %d, want 1 (omitted when empty):\n%s", got, out)
+	}
+	if !strings.Contains(string(out), `"homepage": "https://site.example.com"`) {
+		t.Fatalf("missing homepage value:\n%s", out)
+	}
+}
+
+// TestValidateEntriesHomepageCorpus runs the corpus npm/tests/registry.test.ts
+// also runs, so the generator gate and the installer accept the same values.
+func TestValidateEntriesHomepageCorpus(t *testing.T) {
+	data, err := os.ReadFile(filepath.Join("testdata", "homepage-cases.json"))
+	if err != nil {
+		t.Fatalf("read corpus: %v", err)
+	}
+	var corpus struct {
+		Valid   []string `json:"valid"`
+		Invalid []string `json:"invalid"`
+	}
+	if err := json.Unmarshal(data, &corpus); err != nil {
+		t.Fatalf("parse corpus: %v", err)
+	}
+	check := func(homepage string, valid bool) {
+		if got := isWebURL(homepage); got != valid {
+			t.Errorf("isWebURL(%q) = %v, want %v", homepage, got, valid)
+		}
+	}
+	for _, h := range corpus.Valid {
+		check(h, true)
+	}
+	for _, h := range corpus.Invalid {
+		check(h, false)
+	}
+
+	// validateEntries treats an empty homepage as absent and flags the rest.
+	for homepage, wantErr := range map[string]bool{"": false, "https://linear.app": false, "linear.app": true} {
+		e := RegistryEntry{Name: "x", Category: "other", API: "X", Description: "d", Path: "library/other/x", Homepage: homepage}
+		if gotErr := len(validateEntries([]RegistryEntry{e})) > 0; gotErr != wantErr {
+			t.Errorf("validateEntries homepage %q: error = %v, want %v", homepage, gotErr, wantErr)
+		}
+	}
+}
+
 func TestRepairDuplicateAPIDisplayNamesUsesSourceDisplay(t *testing.T) {
 	entries := []RegistryEntry{
 		{

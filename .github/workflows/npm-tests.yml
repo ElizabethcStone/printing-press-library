@@ -9,6 +9,7 @@ on:
       # Files outside npm/ that npm/tests reads.
       - 'library/**/go.mod'
       - 'library/food-and-dining/texas-roadhouse/README.md'
+      - 'tools/generate-registry/testdata/homepage-cases.json'
 
 permissions:
   contents: read

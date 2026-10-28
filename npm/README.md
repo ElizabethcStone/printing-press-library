@@ -71,6 +71,8 @@ npx -y @mvanhorn/printing-press-library update substack --bin-dir ~/.local/bin
 
 Read `release.version`, `release.cli_name`, `release.released_at`, and `release.source_commit` from `search --json` or `list --json`. Fall back to `go version -m` or direct repo inspection only when `release` is missing or the local version string looks suspicious.
 
+Entries also carry an optional `homepage`, the product's own website as an `http` or `https` URL on a domain name, for "open website" links and favicon lookups. It is absent when no homepage is recorded; the installer drops a malformed value rather than skipping the entry.
+
 ## Installing CLIs and skills
 
 Every install pulls down the Go binary **and** the focused skill in one shot. Use `--cli-only` or `--skill-only` (see [Options](#options)) if you want just one half.

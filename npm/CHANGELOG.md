@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.27
+
+- Pass the optional catalog `homepage` URL through to `search --json` and `list --json`. A malformed value is dropped instead of skipping the entry.
+
 ## 0.1.26
 
 - Fix the package test script so `npm test` runs every compiled test on Node 20 and later. Since 0.1.22 it passed `dist/tests` to `node --test`, which loads a directory as a module and fails, so 0.1.22 through 0.1.25 never published; it now also fails when no compiled tests are found instead of passing with none.

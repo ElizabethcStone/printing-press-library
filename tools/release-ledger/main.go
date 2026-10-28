@@ -21,6 +21,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -267,6 +268,20 @@ func changedCLIKeys(from, to string) (map[string]bool, error) {
 	if err != nil {
 		return out, err
 	}
+	// A deleted file never selects a CLI on its own (see --diff-filter above),
+	// but it does cancel the homepage-only exemption for that CLI, so a PR
+	// that edits homepage and deletes source still cuts a release.
+	// --no-renames reports a file moved out to another CLI as a deletion here.
+	deleted, err := gitOutput("diff", "--name-only", "--no-renames", "--diff-filter=D", from, to, "--", libraryDir)
+	if err != nil {
+		return out, err
+	}
+	hasDeletion := make(map[string]bool)
+	for _, name := range strings.Split(deleted, "\n") {
+		if key := cliKeyFromPath(strings.TrimSpace(name)); key != "" && !isReleaseLedgerGeneratedPath(name) {
+			hasDeletion[key] = true
+		}
+	}
 	for _, name := range strings.Split(diff, "\n") {
 		name = strings.TrimSpace(name)
 		if name == "" || isReleaseLedgerGeneratedPath(name) {
@@ -281,12 +296,30 @@ func changedCLIKeys(from, to string) (map[string]bool, error) {
 				continue
 			}
 		}
-		parts := strings.Split(name, "/")
-		if len(parts) >= 3 && parts[0] == libraryDir {
-			out[parts[1]+"/"+parts[2]] = true
+		if strings.HasSuffix(name, "/.printing-press.json") && !hasDeletion[cliKeyFromPath(name)] {
+			onlyHomepage, err := isHomepageOnlyChange(from, to, name)
+			if err != nil {
+				return out, err
+			}
+			if onlyHomepage {
+				continue
+			}
+		}
+		if key := cliKeyFromPath(name); key != "" {
+			out[key] = true
 		}
 	}
 	return out, nil
+}
+
+// cliKeyFromPath returns "<category>/<slug>" for a path under library/, or ""
+// for any other path.
+func cliKeyFromPath(name string) string {
+	parts := strings.Split(name, "/")
+	if len(parts) >= 3 && parts[0] == libraryDir {
+		return parts[1] + "/" + parts[2]
+	}
+	return ""
 }
 
 func isReleaseLedgerGeneratedPath(name string) bool {
@@ -323,6 +356,53 @@ func isRuntimeVersionOnlyChange(from, to, path string) (bool, error) {
 		}
 	}
 	return changed, nil
+}
+
+// isHomepageOnlyChange reports whether a .printing-press.json edit touches
+// nothing but the catalog-only `homepage` field. Such edits change registry
+// metadata, not the CLI, so they must not cut a release. Anything doubtful
+// counts as a real change: a manifest that did not exist at `from` (a new
+// CLI), or one that is not valid JSON on either side.
+func isHomepageOnlyChange(from, to, path string) (bool, error) {
+	if _, err := gitOutput("cat-file", "-e", from+":"+path); err != nil {
+		return false, nil
+	}
+	before, ok, err := manifestWithoutHomepage(from, path)
+	if err != nil || !ok {
+		return false, err
+	}
+	after, ok, err := manifestWithoutHomepage(to, path)
+	if err != nil || !ok {
+		return false, err
+	}
+	return bytes.Equal(before, after), nil
+}
+
+// manifestWithoutHomepage returns the manifest at rev with `homepage` removed,
+// re-encoded with sorted keys so formatting differences compare equal. ok is
+// false when the manifest is not a JSON object.
+func manifestWithoutHomepage(rev, path string) (out []byte, ok bool, err error) {
+	// Read untrimmed: gitOutput's TrimSpace would strip invalid bytes such as
+	// a non-breaking space after the closing brace before the EOF check.
+	cmd := exec.Command("git", "show", rev+":"+path)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	raw, err := cmd.Output()
+	if err != nil {
+		return nil, false, fmt.Errorf("git show %s:%s: %w: %s", rev, path, err, strings.TrimSpace(stderr.String()))
+	}
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	var fields map[string]any
+	if err := dec.Decode(&fields); err != nil || fields == nil {
+		return nil, false, nil
+	}
+	if _, err := dec.Token(); err != io.EOF {
+		return nil, false, nil // trailing data after the object
+	}
+	delete(fields, "homepage")
+	out, err = json.Marshal(fields)
+	return out, err == nil, err
 }
 
 func isRuntimeVersionStampLine(line string) bool {

@@ -29,6 +29,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -66,10 +67,16 @@ type Registry struct {
 }
 
 type RegistryEntry struct {
-	Name        string   `json:"name"`
-	Category    string   `json:"category"`
-	API         string   `json:"api"`
-	Description string   `json:"description"`
+	Name        string `json:"name"`
+	Category    string `json:"category"`
+	API         string `json:"api"`
+	Description string `json:"description"`
+	// Homepage is the product's own website, sourced from
+	// .printing-press.json's optional `homepage` field. Catalog clients use
+	// it for "open website" links and favicon lookups. Omitted when unset;
+	// an API host is often not the product's homepage, so leave it empty
+	// rather than guess.
+	Homepage    string   `json:"homepage,omitempty"`
 	SearchTerms []string `json:"search_terms,omitempty"`
 	Path        string   `json:"path"`
 	Release     *Release `json:"release,omitempty"`
@@ -153,6 +160,7 @@ type printingPressManifest struct {
 	CatalogDisplayName string   `json:"catalog_display_name"`
 	CatalogDescription string   `json:"catalog_description"`
 	Description        string   `json:"description"`
+	Homepage           string   `json:"homepage"`
 	Creator            *Person  `json:"creator"`
 	Contributors       []Person `json:"contributors"`
 	Printer            string   `json:"printer"`
@@ -436,6 +444,7 @@ func buildEntry(dir, category, slug string, existing map[string]RegistryEntry, r
 		pp.Description,
 		pp.CatalogDescription,
 	)
+	entry.Homepage = strings.TrimSpace(pp.Homepage)
 	entry.SearchTerms = searchTerms(pp)
 	if release, err := readRelease(filepath.Join(dir, ".printing-press-release.json")); err != nil {
 		return nil, err
@@ -645,6 +654,37 @@ func dedupeStrings(values []string) []string {
 //
 // Returns an empty slice when every entry validates. Caller decides how to
 // surface the result (the --validate flag prints them and exits 2).
+// homepageRE is the whole homepage rule: http or https, an ASCII domain name
+// whose last label is a real top-level domain (letters, or an xn-- IDN TLD),
+// an optional port, then an optional path, query and fragment of URL-safe
+// characters and well-formed percent escapes. IP addresses, userinfo,
+// whitespace and non-ASCII characters (write IDNs as xn--) are rejected.
+// npm/src/registry.ts optionalWebURL uses the same pattern text, with no URL
+// parser on either side, so the two cannot disagree; both run
+// testdata/homepage-cases.json.
+var homepageRE = regexp.MustCompile(`(?i)^https?://(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})(?::([0-9]{1,5}))?(?:[/?#](?:[a-z0-9\-._~!$&'()*+,;=:@/?#]|%[0-9a-f]{2})*)?$`)
+
+// isWebURL reports whether s is ASCII, satisfies homepageRE, and has a port of
+// at most 65535. The ASCII check comes first because RE2's (?i) lets the
+// Kelvin sign and long s match [a-z], which JavaScript's /i does not.
+func isWebURL(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] > 0x7f {
+			return false
+		}
+	}
+	m := homepageRE.FindStringSubmatch(s)
+	if m == nil {
+		return false
+	}
+	if m[1] != "" {
+		if n, err := strconv.Atoi(m[1]); err != nil || n > 65535 {
+			return false
+		}
+	}
+	return true
+}
+
 func validateEntries(entries []RegistryEntry) []string {
 	// isBlank matches the npm installer's requiredString semantics
 	// (`.trim() === ""`). Using == "" here would let an all-whitespace
@@ -677,6 +717,9 @@ func validateEntries(entries []RegistryEntry) []string {
 			// Source order mirrors the resolution chain in registryDescription:
 			// .printing-press.json description is checked before goreleaser brews.
 			errs = append(errs, fmt.Sprintf("%s: description is empty (sources checked: .printing-press.json description, .goreleaser.yaml brews description)", slug))
+		}
+		if !isBlank(e.Homepage) && !isWebURL(e.Homepage) {
+			errs = append(errs, fmt.Sprintf("%s: homepage %q is not an absolute http(s) URL", slug, e.Homepage))
 		}
 		if e.MCP != nil {
 			if isBlank(e.MCP.Binary) {

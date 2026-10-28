@@ -204,6 +204,91 @@ func TestChangedCLISlugsIgnoresReleaseLedgerFiles(t *testing.T) {
 	}
 }
 
+func TestChangedCLIKeysIgnoresHomepageOnlyManifestChanges(t *testing.T) {
+	repo := t.TempDir()
+	runGit(t, repo, "init")
+	runGit(t, repo, "config", "user.name", "Test")
+	runGit(t, repo, "config", "user.email", "test@example.com")
+
+	writeFile(t, repo, "library/social/added/.printing-press.json", "{\n  \"api_name\": \"added\"\n}\n")
+	writeFile(t, repo, "library/social/edited/.printing-press.json", "{\n  \"api_name\": \"edited\",\n  \"homepage\": \"https://old.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/mixed/.printing-press.json", "{\n  \"api_name\": \"mixed\",\n  \"description\": \"old\"\n}\n")
+	writeFile(t, repo, "library/social/dropped/.printing-press.json", "{\n  \"api_name\": \"dropped\"\n}\n")
+	writeFile(t, repo, "library/social/dropped/internal/cli/wiring.go", "package cli\n\nfunc init() {}\n")
+	writeFile(t, repo, "library/social/broken/.printing-press.json", "{\n  \"api_name\": \"broken\",\n")
+	writeFile(t, repo, "library/social/junk/.printing-press.json", "{\"api_name\": \"junk\"} trailing\n")
+	writeFile(t, repo, "library/social/nbsp/.printing-press.json", "{\"api_name\": \"nbsp\"} \n")
+	writeFile(t, repo, "library/social/giver/.printing-press.json", "{\n  \"api_name\": \"giver\"\n}\n")
+	writeFile(t, repo, "library/social/giver/internal/cli/shared.go", "package cli\n\n// A file long enough for git rename detection.\nfunc shared() string {\n\treturn \"shared helper body that git can match\"\n}\n")
+	writeFile(t, repo, "library/social/taker/.printing-press.json", "{\n  \"api_name\": \"taker\"\n}\n")
+	runGit(t, repo, "add", ".")
+	runGit(t, repo, "commit", "-m", "initial")
+	base := gitOutputIn(t, repo, "rev-parse", "HEAD")
+
+	writeFile(t, repo, "library/social/added/.printing-press.json", "{\n  \"api_name\": \"added\",\n  \"homepage\": \"https://added.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/edited/.printing-press.json", "{\n  \"api_name\": \"edited\",\n  \"homepage\": \"https://new.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/mixed/.printing-press.json", "{\n  \"api_name\": \"mixed\",\n  \"description\": \"new\",\n  \"homepage\": \"https://mixed.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/fresh/.printing-press.json", "{\n  \"api_name\": \"fresh\",\n  \"homepage\": \"https://fresh.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/dropped/.printing-press.json", "{\n  \"api_name\": \"dropped\",\n  \"homepage\": \"https://dropped.example.com\"\n}\n")
+	runGit(t, repo, "rm", "-q", "library/social/dropped/internal/cli/wiring.go")
+	writeFile(t, repo, "library/social/broken/.printing-press.json", "{\n  \"api_name\": \"broken\",\n  \"homepage\": \"https://broken.example.com\"\n}\n")
+	writeFile(t, repo, "library/social/junk/.printing-press.json", "{\"api_name\": \"junk\", \"homepage\": \"https://junk.example.com\"}\n")
+	writeFile(t, repo, "library/social/nbsp/.printing-press.json", "{\"api_name\": \"nbsp\", \"homepage\": \"https://nbsp.example.com\"}\n")
+	writeFile(t, repo, "library/social/giver/.printing-press.json", "{\n  \"api_name\": \"giver\",\n  \"homepage\": \"https://giver.example.com\"\n}\n")
+	if err := os.MkdirAll(filepath.Join(repo, "library/social/taker/internal/cli"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	runGit(t, repo, "mv", "library/social/giver/internal/cli/shared.go", "library/social/taker/internal/cli/shared.go")
+	runGit(t, repo, "add", ".")
+	runGit(t, repo, "commit", "-m", "update")
+	head := gitOutputIn(t, repo, "rev-parse", "HEAD")
+
+	oldWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chdir(repo); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := os.Chdir(oldWD); err != nil {
+			t.Fatalf("restore wd: %v", err)
+		}
+	})
+
+	got, err := changedCLIKeys(base, head)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got["social/added"] {
+		t.Fatalf("adding only homepage should be ignored: %#v", got)
+	}
+	if got["social/edited"] {
+		t.Fatalf("changing only homepage should be ignored: %#v", got)
+	}
+	if !got["social/mixed"] {
+		t.Fatalf("homepage plus another field change should select slug mixed: %#v", got)
+	}
+	if !got["social/fresh"] {
+		t.Fatalf("a newly added manifest should select slug fresh: %#v", got)
+	}
+	if !got["social/dropped"] {
+		t.Fatalf("homepage edit plus a deleted source file should select slug dropped: %#v", got)
+	}
+	if !got["social/broken"] {
+		t.Fatalf("a manifest that was invalid JSON before the edit should select slug broken: %#v", got)
+	}
+	if !got["social/junk"] {
+		t.Fatalf("a manifest with trailing data after its JSON object should select slug junk: %#v", got)
+	}
+	if !got["social/nbsp"] {
+		t.Fatalf("a manifest with a non-JSON space after its object should select slug nbsp: %#v", got)
+	}
+	if !got["social/giver"] {
+		t.Fatalf("homepage edit plus a file moved out to another CLI should select slug giver: %#v", got)
+	}
+}
+
 func TestInsertChangelogEntryPreservesPrologue(t *testing.T) {
 	existing := []byte(`# Changelog
 
