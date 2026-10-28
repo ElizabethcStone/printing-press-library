@@ -28703,7 +28703,7 @@
         "Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus.",
         "Entitlement-aware read",
         "read",
-        "Read a post's full text; free posts keyless, and paid posts you subscribe to via your own session cookie — with an honest 'preview only, you're not entitled' signal.",
+        "Read one or more posts' full text: free posts keyless, paid posts you subscribe to via your own session cookie, with an honest 'preview only, you're not entitled' signal. Each post comes back as real Markdown and is kept in your local corpus, so an authenticated read upgrades a stored preview to the full text (--no-store skips it; --save <dir> writes Markdown files).",
         "Cross-publication digest",
         "digest",
         "A time-windowed digest across every publication in your local corpus — what's new since you last synced, ranked, in one view.",
