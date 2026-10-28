@@ -34,7 +34,7 @@ This skill drives the `substack-reader-pp-cli` binary. **You must verify the CLI
 2. Verify: `substack-reader-pp-cli --version`
 3. Ensure the reported install directory is on `$PATH` for the agent/runtime that will invoke this skill.
 
-If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.6 or newer). This installs into `$GOPATH/bin` (default `$HOME/go/bin`), so add that directory to `$PATH` instead:
+If the `npx` install fails (no Node, offline, etc.), fall back to a direct Go install (requires Go 1.26.10 or newer). This installs into `$GOPATH/bin` (default `$HOME/go/bin`), so add that directory to `$PATH` instead:
 
 ```bash
 go install github.com/mvanhorn/printing-press-library/library/media-and-entertainment/substack-reader/cmd/substack-reader-pp-cli@latest
@@ -57,10 +57,9 @@ Do not use this CLI for:
 
 ## Unique Capabilities
 
-These capabilities aren't available in any other tool for this API.
-
 ### Local corpus that compounds
-- **`archive`** — Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `"exhausted": false`) — never treat a limit-stopped run as a complete archive.
+
+- **`archive`** — Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. Each new post's body is fetched and indexed for full-text search (--metadata-only skips that). `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `"exhausted": false`) — never treat a limit-stopped run as a complete archive.
 
   _Reach for this to turn a live newsletter into a durable, queryable knowledge base instead of re-fetching every time._
 
@@ -72,20 +71,21 @@ These capabilities aren't available in any other tool for this API.
   _Reach for this for ad-hoc analytics over what you've archived, without re-fetching or writing code._
 
   ```bash
-  substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience"
+  substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) AS n FROM resources WHERE resource_type='posts' GROUP BY audience"
   ```
 
 ### Entitlement-aware reading
-- **`read`** — Read one or more posts' full text in a single call; free posts keyless, and paid posts you subscribe to via your own session cookie — with an honest 'preview only, you're not entitled' signal. With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{"post", "error"}` entry and the rest still return); a single post keeps the single-object envelope.
+
+- **`read`** — Read one or more posts' full text: free posts keyless, paid posts you subscribe to via your own session cookie, with an honest 'preview only, you're not entitled' signal. Each post comes back as real Markdown and is kept in your local corpus, so an authenticated read upgrades a stored preview to the full text (--no-store skips it; --save <dir> writes Markdown files). With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{"post", "error"}` entry and the rest still return); a single post keeps the single-object envelope.
 
   _Use to pull posts' full text into an agent workflow — several slugs in one call, no shell loop — respecting exactly what the user is entitled to._
 
   ```bash
   substack-reader-pp-cli read astralcodexten/open-thread-441
-  substack-reader-pp-cli read astralcodexten/slug-one astralcodexten/slug-two --agent --select slug,subtitle
   ```
 
 ### Topic & comparative intelligence
+
 - **`digest`** — A time-windowed digest across every publication in your local corpus — what's new since you last synced, ranked, in one view.
 
   _Use as a personal 'what did I miss across my newsletters' briefing._
@@ -101,6 +101,8 @@ These capabilities aren't available in any other tool for this API.
   substack-reader-pp-cli author-compare astralcodexten blog.bytebytego.com
   ```
 
+`--ca-cert`, `SUBSTACK_READER_CA_CERT`, or `ca_cert` adds a PEM CA bundle to the system trust roots. `--tls-server-name`, `SUBSTACK_READER_TLS_SERVER_NAME`, or `tls_server_name` is the name checked against the certificate. Precedence is flag, then environment, then the config file. A config file other users can change does not supply these settings. `doctor` reports the trust in use and names the setting that fixes a chain or hostname failure.
+
 ## Command Reference
 
 **categories** — Browse Substack's publication categories
@@ -113,6 +115,38 @@ These capabilities aren't available in any other tool for this API.
 - `substack-reader-pp-cli publications <query>` — Search Substack publications by name (best-effort; may return few results anonymously)
 
 
+**archive**
+
+
+- `substack-reader-pp-cli archive` — Archive a whole Substack publication into a local SQLite mirror you can read, search, and query offline — no other Substack tool builds a persistent corpus. Each new post's body is fetched and indexed for full-text search (--metadata-only skips that). `--limit 0` walks the whole archive; when a run stops at `--limit` instead of exhausting the archive, the output says so (JSON carries `'exhausted': false`) — never treat a limit-stopped run as a complete archive.
+
+
+**author-compare**
+
+
+- `substack-reader-pp-cli author-compare` — Compare two publications' cadence, topics, and free/paid mix from the local corpus.
+
+
+**digest**
+
+
+- `substack-reader-pp-cli digest` — A time-windowed digest across every publication in your local corpus — what's new since you last synced, ranked, in one view.
+
+
+**read**
+
+
+- `substack-reader-pp-cli read` — Read one or more posts' full text: free posts keyless, paid posts you subscribe to via your own session cookie, with an honest 'preview only, you're not entitled' signal. Each post comes back as real Markdown and is kept in your local corpus, so an authenticated read upgrades a stored preview to the full text (--no-store skips it; --save <dir> writes Markdown files). With several posts, JSON mode emits an array of envelopes (a failed post becomes a `{'post', 'error'}` entry and the rest still return); a single post keeps the single-object envelope.
+
+
+**sql**
+
+
+- `substack-reader-pp-cli sql` — Run read-only SQL over your local Substack corpus for arbitrary analytics — post cadence, audience mix, longest posts — from data you've already archived.
+
+
+
+
 ### Finding the right command
 
 When you know what you want to do but not which command does it, ask the CLI directly:
@@ -121,9 +155,10 @@ When you know what you want to do but not which command does it, ask the CLI dir
 substack-reader-pp-cli which "<capability in your own words>"
 ```
 
-`which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query.
+`which` resolves a natural-language capability query to the best matching command from this CLI's curated feature index. Exit code `0` means at least one match; exit code `2` means no confident match — fall back to `--help` or use a narrower query. `--json` (and other machine formats) keep that exit-2 contract and write `{"matches":[]}` on stdout so agents can inspect the envelope without treating a miss as success.
 
 ## Recipes
+
 
 ### Build a searchable corpus
 
@@ -141,68 +176,36 @@ substack-reader-pp-cli read astralcodexten/open-thread-441 --agent --select titl
 
 Pull only the fields an agent needs from a verbose post object.
 
-### Read several posts in one call
-
-```bash
-substack-reader-pp-cli read astralcodexten/slug-one astralcodexten/slug-two astralcodexten/slug-three --agent --select slug,subtitle,audience
-```
-
-Batch-read a list of slugs without a shell loop; JSON mode returns an array of post envelopes, and one bad slug doesn't sink the rest.
-
 ### Audience mix analytics
 
 ```bash
-substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) FROM resources WHERE resource_type='posts' GROUP BY audience"
+substack-reader-pp-cli archive astralcodexten --limit 200 && substack-reader-pp-cli sql "SELECT json_extract(data,'$.audience') AS audience, COUNT(*) AS n FROM resources WHERE resource_type='posts' GROUP BY audience"
 ```
 
 Read-only SQL over the local corpus for arbitrary analytics.
 
 ## Auth Setup
 
-**Free and public posts are keyless — zero setup.** Every command works the moment the CLI is installed: no account, no API key, nothing to configure. Authentication only ever matters for paid posts.
-
-There is one **optional** layer: your own Substack **session cookie** (`substack.sid`). Substack decides entitlement server-side from the session you present, so handing the reader your own cookie unlocks exactly the paid posts you already subscribe to — and nothing else. This is **your own cookie, never an API key**, it is never required for free content, and one cookie covers every subscription on your account (entitlement is account-level, not per-publication).
-
-Provide it any of these three ways (first hit wins):
-
-```bash
-# 1. Environment variable — the bare substack.sid value...
-export SUBSTACK_SESSION="s%3A..."
-# ...or the whole cookie fragment, if that is what you copied
-export SUBSTACK_SESSION="substack.sid=s%3A..."
-
-# 2. A JSON cookie file at the default config-dir path
-#    (~/.config/substack-reader-pp-cli/cookie.json on the platform default).
-#    The directory does not exist on a clean install — create it first.
-mkdir -p ~/.config/substack-reader-pp-cli && chmod 700 ~/.config/substack-reader-pp-cli
-echo '{"substack.sid":"s%3A..."}' > ~/.config/substack-reader-pp-cli/cookie.json
-chmod 600 ~/.config/substack-reader-pp-cli/cookie.json
-
-# 3. The same JSON cookie file, kept anywhere on disk
-export SUBSTACK_COOKIE_FILE=/path/to/substack-cookie.json
-```
-
-Precedence is `SUBSTACK_SESSION`, then `SUBSTACK_COOKIE_FILE`, then the default config-dir file. `SUBSTACK_COOKIE_FILE` is **authoritative** once set: a missing, unreadable, unparseable or `substack.sid`-less file there is a hard error, never a silent fall-through to a stale default. The default config-dir file is **best-effort**: a file that exists but cannot be read or parsed degrades to anonymous *with* a warning, while an absent file — or one that parses but carries no `substack.sid` — degrades to anonymous *silently*. The config directory itself is relocatable with `SUBSTACK_READER_CONFIG_DIR` or `SUBSTACK_READER_HOME`.
-
-**Getting the cookie out of your browser.** Open DevTools → Application → Cookies → `https://substack.com`, and copy the value of `substack.sid`. Only `substack.sid` is needed — `connect.sid` is not. Copy it rather than retyping it: a single capital-`I`/lowercase-`l` slip yields a cookie that silently reads as anonymous.
-
-**With the MCP server.** The MCP server resolves the session exactly as the CLI does, so the cookie file in the config directory needs **no `env` block at all** — save `cookie.json` and the server picks it up. If you would rather configure it explicitly, set either variable under `env` in your Claude Desktop config (the MCPB bundle prompts for it as an optional field).
-
-**Your cookie stays yours.** It never leaves your machine except to Substack itself, is masked in every output path so scripted runs cannot leak it, and is never redistributed. Any copy the CLI persists is written `0600` under a `0700` parent, and a group/other-readable cookie file earns a warning.
-
-**Failure is honest, never silent.** With no session, a paid post returns Substack's public preview and says so: `access: preview`, `authenticated: false`, `full: false`, plus a `preview only (N of ~M words) — no session configured` line on stderr. A downgrade is always visible; it never passes itself off as a full read.
+No authentication required.
 
 Run `substack-reader-pp-cli doctor` to verify setup.
 
 ## Agent Mode
 
-Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color --yes`.
+Add `--agent` to any command. Expands to: `--json --compact --no-input --no-color`.
+
+Global format flags share one contract on promoted, novel, sync, and `--deliver` paths:
+
+- `--json` — one JSON document on stdout (sync progress events go to stderr)
+- `--compact` — keep identity/status/timestamp fields; does not change the document vs stream shape
+- `--csv` / `--plain` — tabular rows (collection envelopes unwrap to the row array). `--csv` prefixes `'` on a cell or header key that starts with `=`, `+`, `-`, `@`, tab, CR, or LF (fullwidth `＝＋－＠` too) so a spreadsheet does not run it as a formula; a plain signed number such as `-5` or `+2.5e3` is unchanged.
+- `--quiet` — one identity value per row, no envelope
 
 - **Pipeable** — JSON on stdout, errors on stderr
 - **Filterable** — `--select` keeps a subset of fields. Dotted paths descend into nested structures; arrays traverse element-wise. Critical for keeping context small on verbose APIs:
 
   ```bash
-  substack-reader-pp-cli categories list --agent --select id,name,status
+  substack-reader-pp-cli categories list --agent --select id,name
   ```
 - **Previewable** — `--dry-run` shows the request without sending
 - **Offline-friendly** — sync/search commands can use the local SQLite store when available
@@ -229,9 +232,8 @@ Agents should treat the CLI's path resolver as part of the runtime contract:
 - Use `--home <dir>` for one invocation, or set `SUBSTACK_READER_HOME=<dir>` to relocate all four path kinds under one root.
 - Use per-kind env vars only when a specific kind must diverge: `SUBSTACK_READER_CONFIG_DIR`, `SUBSTACK_READER_DATA_DIR`, `SUBSTACK_READER_STATE_DIR`, `SUBSTACK_READER_CACHE_DIR`.
 - Resolution order is per-kind env var, `--home`, `SUBSTACK_READER_HOME`, XDG (`XDG_CONFIG_HOME`, `XDG_DATA_HOME`, `XDG_STATE_HOME`, `XDG_CACHE_HOME`), then platform defaults.
-- `config` contains settings like `config.toml` and profiles. `data` contains `credentials.toml`, `data.db`, cookies, and auth sidecars. `state` contains persisted queries, jobs, and `teach.log`. `cache` contains regenerable HTTP/cache files.
-- Stored secrets live in `credentials.toml` under the data dir. Existing legacy `config.toml` secrets are read for compatibility and leave `config.toml` on the first auth write.
-- Run `substack-reader-pp-cli doctor --fail-on warn` to surface path and credential-location warnings. `agent-context` exposes a schema v4 `paths` block for agents that need the resolved dirs.
+- `config` contains settings like `config.toml` and profiles. `data` contains durable local data such as `data.db`. `state` contains persisted queries, jobs, and `teach.log`. `cache` contains regenerable HTTP/cache files.
+- Run `substack-reader-pp-cli doctor --fail-on warn` to surface path warnings. `agent-context` exposes a schema v4 `paths` block for agents that need the resolved dirs.
 - For MCP, pass relocation through the MCP host config. The MCP binary does not inherit CLI flags:
 
   ```json
@@ -247,7 +249,9 @@ Agents should treat the CLI's path resolver as part of the runtime contract:
   }
   ```
 
-Fleet precedence: an inherited per-kind env var overrides an explicit `--home` for that kind. Use `SUBSTACK_READER_HOME` or per-kind vars as durable fleet levers, and use `--home` only for a single invocation. Relocation is not reversible by unsetting env vars; move files manually before clearing `SUBSTACK_READER_HOME`, or `doctor` will not find credentials left under the former root.
+Fleet precedence: an inherited per-kind env var overrides an explicit `--home` for that kind. Use `SUBSTACK_READER_HOME` or per-kind vars as durable fleet levers, and use `--home` only for a single invocation. Relocation is not reversible by unsetting env vars; move files manually before clearing `SUBSTACK_READER_HOME`, or `doctor` will not find files left under the former root.
+
+Local data is unencrypted and relies on OS account permissions plus disk encryption. Reads in the default `--data-source auto` mode are written to the SQLite store; GET responses are cached for five minutes under the cache dir. `local-data purge` previews what it would erase (store files, response cache, learn journal) and deletes only with `--yes`; it is not exposed over MCP. `SUBSTACK_READER_NO_LOCAL_DATA=1` disables the response cache and store writes, turns `auto` reads into live reads, and blocks `sync` and `workflow archive`; `--data-source local` still reads an existing store, and `SUBSTACK_READER_DATA_SOURCE` sets the `--data-source` default.
 
 ## Automatic learning
 
@@ -255,11 +259,19 @@ This CLI ships a self-capturing learning loop. The CLI does its own bookkeeping:
 
 ### Step 1: `recall` before any discovery
 
-Before list/search/drill commands on a new user question, run:
+Before list/search/drill commands on a new user question, pass the question as an argv or MCP tool argument to `recall --agent`. Do not interpolate user-controlled text into a shell command line.
+
+Quoted `recall "<question>"` breaks on an apostrophe, which is ordinary English. A quoted heredoc breaks when a body line equals the delimiter, and that delimiter is published in these docs. Write the question with a non-shell file-writing tool, then read it back as data:
 
 ```bash
-substack-reader-pp-cli recall "<user's question>" --agent
+# Write the question verbatim with your file-writing tool (no shell involved).
+# Command substitution on a file only ever yields data — the shell never
+# parses the file's bytes as syntax.
+QUERY=$(cat /path/to/question.txt)
+substack-reader-pp-cli recall "$QUERY" --agent
 ```
+
+Prefer MCP: pass the question as the tool's query argument. `"$QUERY"` after a file read is argv-safe; putting the question itself in the command text is not.
 
 The response envelope:
 
@@ -363,10 +375,11 @@ Graceful degradation: if `learnings confirm` is an unknown command, you are driv
 
 ### Step 4: `teach &` after finalizing your response - always
 
-Teaching is unconditional. After resolving a query the store could not answer, background-teach the final resource mapping - no call-count threshold, no judging whether it was "worth" learning. The teach is the anchor of the loop: it triggers playbook synthesis for a family without a playbook, and same-referent phrasings fold into one family so near-duplicate teaches do not fragment the store. Fire it after assembling your user-facing response but BEFORE emitting it, with a shell `&` so the call returns immediately:
+Teaching is unconditional. After resolving a query the store could not answer, background-teach the final resource mapping - no call-count threshold, no judging whether it was "worth" learning. The teach is the anchor of the loop: it triggers playbook synthesis for a family without a playbook, and same-referent phrasings fold into one family so near-duplicate teaches do not fragment the store. Fire it after assembling your user-facing response but BEFORE emitting it, with a shell `&` so the call returns immediately. Pass the query the same way as recall — argv/MCP, or file-then-`$QUERY`. Do not splice the question into the command text:
 
 ```bash
-substack-reader-pp-cli teach --query "<user's question>" --resource-type <type> --resource <id1> --resource <id2>
+QUERY=$(cat /path/to/question.txt)
+substack-reader-pp-cli teach --query "$QUERY" --resource-type <type> --resource <id1> --resource <id2>
 # (append shell `&` to background it)
 ```
 
@@ -380,16 +393,18 @@ You do not need to decide whether a session "deserves" a playbook: a teach on a 
 
 ```bash
 # Common case: record both the resource learning AND the playbook in one call.
+QUERY=$(cat /path/to/question.txt)
 substack-reader-pp-cli teach \
-  --query "<user's question>" \
+  --query "$QUERY" \
   --resource <id> \
   --playbook-file ~/playbooks/<shape>.json \
   --playbook-notes-file ~/playbooks/<shape>-notes.md
 # (append shell `&` to background it)
 
 # Alternate: playbook-only (no resource to record alongside).
+QUERY=$(cat /path/to/question.txt)
 substack-reader-pp-cli teach-playbook \
-  --query "<user's question>" \
+  --query "$QUERY" \
   --playbook-file ~/playbooks/<shape>.json \
   --notes-file ~/playbooks/<shape>-notes.md
 ```
@@ -400,12 +415,14 @@ When you DO find a playbook on a future recall, treat it as ground truth: replay
 
 ### Step 6: `playbook amend &` when your debug response identifies a correction
 
-If your debug-protocol response identifies a concrete correction the notes or playbook should know — a workaround, an undocumented endpoint shape, a stale field name, observed schema drift, an empty-payload fallback — fire `playbook amend` BEFORE emitting your user-facing response. Same fire-and-forget posture as `teach`.
+If your debug-protocol response identifies a concrete correction the notes or playbook should know — a workaround, an undocumented endpoint shape, a stale field name, observed schema drift, an empty-payload fallback — fire `playbook amend` BEFORE emitting your user-facing response. Same fire-and-forget posture as `teach`. Pass the query and note as argv/MCP arguments, or write each with a non-shell file tool and read them back (`QUERY=$(cat ...)`, `NOTE=$(cat ...)`). Do not interpolate either string into the command text:
 
 ```bash
+QUERY=$(cat /path/to/question.txt)
+NOTE=$(cat /path/to/note.txt)
 substack-reader-pp-cli playbook amend \
-  --query "<exact recall query string>" \
-  --add-note "<your concrete correction>"
+  --query "$QUERY" \
+  --add-note "$NOTE"
 # (append shell `&` to background it)
 ```
 
@@ -462,10 +479,10 @@ Every command accepts `--deliver <sink>`. The output goes to the named sink in a
 | Sink | Effect |
 |------|--------|
 | `stdout` | Default; write to stdout only |
-| `file:<path>` | Atomically write output to `<path>` (tmp + rename) |
-| `webhook:<url>` | POST the output body to the URL (`application/json` or `application/x-ndjson` when `--compact`) |
+| `file:<path>` | Atomically write output to `<path>` as a private 0600 file (exclusive randomly named temp in the destination directory, then rename; a planted symlink is not followed). Binary-response commands write decoded payload bytes (not the base64 JSON envelope) and print a small JSON receipt on stdout; `--json`/`--csv` do not refuse when this sink is set. |
+| `webhook:<url>` | POST the output body to the URL (`application/json`). Redirects are not followed; a 3xx response fails the delivery and the body is not sent to the `Location`. |
 
-Unknown schemes are refused with a structured error naming the supported set. Webhook failures return non-zero and log the URL + HTTP status on stderr.
+Unknown schemes are refused with a structured error naming the supported set. Webhook failures, including redirects, return non-zero and log the URL and HTTP status on stderr.
 
 ## Named Profiles
 
@@ -489,7 +506,7 @@ Explicit flags always win over profile values; profile values win over defaults.
 | 2 | Usage error (wrong arguments) |
 | 3 | Resource not found |
 | 5 | API error (upstream issue) |
-| 7 | Rate limited (wait and retry) |
+| 7 | Rate limited or blocked by a firewall or bot challenge (back off; do not retry immediately) |
 | 10 | Config error |
 
 ## Argument Parsing
@@ -511,6 +528,8 @@ Parse `$ARGUMENTS`:
    claude mcp add substack-reader-pp-mcp -- substack-reader-pp-mcp
    ```
 3. Verify: `claude mcp list`
+
+For a remote host, `substack-reader-pp-mcp --transport http` requires `SUBSTACK_READER_MCP_HTTP_TOKEN` set to at least 32 characters (callers send `Authorization: Bearer <token>`; `openssl rand -hex 32` prints 64 hex characters and meets that minimum), binds `127.0.0.1:7777` by default, and needs `--tls-cert`/`--tls-key` for any non-loopback `--addr`. Requests with no `Origin` header are accepted. Loopback origins are accepted; any other `Origin` is refused unless listed in `SUBSTACK_READER_MCP_HTTP_ALLOWED_ORIGINS` (comma-separated `scheme://host[:port]` values). `SUBSTACK_READER_MCP_READ_ONLY=1` drops mirrored write commands (local-write commands that only touch the CLI's own learn store stay) and makes the raw execute tool refuse state-changing calls.
 
 ## Direct Use
 
