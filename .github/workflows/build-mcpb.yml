@@ -195,7 +195,20 @@ jobs:
           fi
           out="${RUNNER_TEMP}/out/${slug}-pp-mcp-${os}-${arch}.mcpb"
           mkdir -p "$(dirname "$out")"
-          prebuilt=()
+          bundle_args=()
+          # The bundler rejects a zero-padded month that the ledger pattern allows.
+          ledger="${cli_dir}/.printing-press-release.json"
+          release_version=""
+          if [ -f "$ledger" ]; then
+            release_version="$(jq -r '.version // empty' "$ledger")"
+          fi
+          if [ -n "$release_version" ]; then
+            if [[ ! "$release_version" =~ ^[0-9]{4}\.([1-9]|1[0-2])\.[1-9][0-9]*$ ]]; then
+              echo "::error::${cli_dir}: invalid release version '${release_version}' in .printing-press-release.json."
+              exit 1
+            fi
+            bundle_args+=(--version "$release_version")
+          fi
           if [ -n "$MODULE_DIR" ] && [ "$MODULE_DIR" != "$cli_dir" ]; then
             # bundle runs go build from the catalog root, which has no go.mod
             # for a nested module.
@@ -213,10 +226,10 @@ jobs:
             mkdir -p "$bin_dir"
             (cd "$MODULE_DIR" && GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags='-s -w -buildid=' \
               -o "${bin_dir}/" "./cmd/${mcp_name}" "./cmd/${cli_name}")
-            prebuilt=(--skip-build --binary "${bin_dir}/${mcp_name}${ext}" \
+            bundle_args+=(--skip-build --binary "${bin_dir}/${mcp_name}${ext}" \
               --cli-skip-build --cli-binary "${bin_dir}/${cli_name}${ext}")
           fi
-          cli-printing-press bundle "$cli_dir" --platform "${PLATFORM}" --output "$out" ${prebuilt[@]+"${prebuilt[@]}"}
+          cli-printing-press bundle "$cli_dir" --platform "${PLATFORM}" --output "$out" ${bundle_args[@]+"${bundle_args[@]}"}
           ls -lh "$out"
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v6
