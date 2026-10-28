@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-28",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "pr-2393-review-store-race-save-names-rate-limit",
+  "summary": "Three fixes from the Greptile review of printing-press-library PR #2393: read and archive decide what to write from the stored post inside the write transaction (store.UpsertWith), so a concurrent read can no longer replace a full copy with a preview; read --save names a note <publication>--<slug> when the slug's note holds another post, and refuses to overwrite when both names are taken; a 429 whose retry wait or retry is cut short by the context still returns the RateLimitError (exit 7), with the context error inside.",
+  "reason": "P1 'Concurrent reads lose full articles': storeRead read the stored access level with Get, then wrote with Upsert in a separate transaction, so a preview read in one process could check before a full read in another committed and overwrite it afterwards. archive had the same shape (keepReadFields read the stored record before a body fetch that can take seconds, then Upsert). store.UpsertWith (new hand-authored file internal/store/upsert_with.go) reads the record and writes the one its callback builds inside one transaction; the read-write DSN begins transactions IMMEDIATE, so a second writer waits on busy_timeout instead of committing in between. It calls the generated unexported helpers upsertGenericResourceTx and mergeIncomingResourceData and the lockForWrite/unlockAfterWrite pair from internal/store/store.go: a regeneration that renames them breaks the build, which is the intended fail-closed signal. keepReadFields now takes the stored record instead of the store. P1 'Saved articles overwrite each other': savePost named files from the slug alone, so read pub-a/welcome pub-b/welcome --save wrote both to welcome.md. saveName keeps <slug> when the note there is absent or carries the same source property, else <publication>--<slug> (publication = host without www. and .substack.com), else fails without writing. P2 'Rate limits look like session failures': getAccepting returned the bare context error when the Retry-After wait (or the retry after it) ran out of time, so previewReport exited 4 instead of 7; it now returns the RateLimitError with RetryAfter set and the context error as Cause (RateLimitError.Unwrap keeps errors.Is(err, context.DeadlineExceeded) true).",
+  "files": [
+    "internal/store/upsert_with.go",
+    "internal/store/upsert_with_test.go",
+    "internal/cli/read_store.go",
+    "internal/cli/read_store_test.go",
+    "internal/cli/archive.go",
+    "internal/cli/read_save.go",
+    "internal/cli/read_save_test.go",
+    "internal/cli/read.go",
+    "internal/substack/client.go",
+    "internal/substack/client_test.go"
+  ],
+  "findings_addressed": [
+    "greptile-pr2393-r4402322635",
+    "greptile-pr2393-r4402322650",
+    "greptile-pr2393-r4402322671"
+  ],
+  "validated_outcome": "go build, go vet, gofmt -l and go test ./... green (go1.27.2). Each new test was seen failing before its fix was trusted: TestUpsertWithHoldsTheWriteWhileItBuilds (two store handles on one file) failed with 'the other handle committed while UpsertWith was building' when the read was moved outside the transaction, and passed restored; TestSavePostKeepsSameSlugFromTwoPublications and TestSavePostRefusesToOverwriteAnotherPost failed with slug-only naming and passed restored; TestGetKeepsTheRateLimitWhenTheWaitIsCutShort and TestGetKeepsTheRateLimitWhenTheRetryIsCanceled failed on the unfixed client ('err = context deadline exceeded' / 'context canceled', want a *cliutil.RateLimitError) and passed fixed. The existing TestGetPauseHonoursContext still passes."
+}

@@ -208,3 +208,45 @@ func TestFetchImageAsksForAnImageAndKeepsTheBytes(t *testing.T) {
 		t.Errorf("Accept = %q, want an image Accept header", accept)
 	}
 }
+
+// TestGetKeepsTheRateLimitWhenTheWaitIsCutShort: a Retry-After longer than the
+// time left ends the request while it waits. The caller must still get the
+// RateLimitError (so read exits 7, "try later"), with the context error
+// inside, not a bare timeout that reads as a session problem (exit 4).
+// Greptile P2 on printing-press-library PR #2393.
+func TestGetKeepsTheRateLimitWhenTheWaitIsCutShort(t *testing.T) {
+	srv, _ := rateLimitedServer(t, 1000, "60", "")
+	c := fastClient()
+	c.SetPause(func(context.Context, time.Duration) error { return context.DeadlineExceeded })
+
+	_, err := c.get(context.Background(), srv.URL)
+	var rle *cliutil.RateLimitError
+	if !errors.As(err, &rle) {
+		t.Fatalf("err = %v, want a *cliutil.RateLimitError", err)
+	}
+	if rle.RetryAfter != 60*time.Second {
+		t.Errorf("RetryAfter = %v, want the server's 60s", rle.RetryAfter)
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("err = %v, want the deadline kept inside", err)
+	}
+}
+
+// TestGetKeepsTheRateLimitWhenTheRetryIsCanceled: the wait itself finished,
+// but the context ended before the retry could be sent. Still a rate limit.
+func TestGetKeepsTheRateLimitWhenTheRetryIsCanceled(t *testing.T) {
+	srv, _ := rateLimitedServer(t, 1000, "5", "")
+	c := fastClient()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	c.SetPause(func(context.Context, time.Duration) error { cancel(); return nil })
+
+	_, err := c.get(ctx, srv.URL)
+	var rle *cliutil.RateLimitError
+	if !errors.As(err, &rle) {
+		t.Fatalf("err = %v, want a *cliutil.RateLimitError", err)
+	}
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("err = %v, want the cancellation kept inside", err)
+	}
+}

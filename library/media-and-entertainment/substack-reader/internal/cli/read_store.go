@@ -53,14 +53,14 @@ func storedIsFull(rec json.RawMessage) bool {
 // storeRead upserts a post read into the corpus. A full copy is never replaced
 // by a preview (a later rate-limited read would otherwise delete the text a
 // good read stored), while a preview, from archive or from an earlier read, is
-// always replaced by a fuller one. It reports whether the record was written.
+// always replaced by a fuller one. The check runs inside the write, so a full
+// copy another process stores meanwhile is never overwritten by this preview.
+// It reports whether the record was written.
 func storeRead(db *store.Store, id string, rec json.RawMessage, access substack.Access) (bool, error) {
-	if !access.Full {
-		if prev, err := db.Get("posts", id); err == nil && storedIsFull(prev) {
-			return false, nil
-		}
-	}
-	if err := db.Upsert("posts", id, rec); err != nil {
+	stored, err := db.UpsertWith("posts", id, func(prev json.RawMessage) (json.RawMessage, bool) {
+		return rec, access.Full || !storedIsFull(prev)
+	})
+	if err != nil || !stored {
 		return false, err
 	}
 	markCorpusSynced(db)
@@ -83,11 +83,11 @@ func markCorpusSynced(db *store.Store) {
 
 // keepReadFields carries the fields read stored over onto a fresh archive item
 // for the same post, so re-archiving a publication does not turn the full texts
-// you read back into previews. The archive item's own fields win; a post read
-// never touched comes back unchanged.
-func keepReadFields(db *store.Store, id string, item json.RawMessage) json.RawMessage {
-	prev, err := db.Get("posts", id)
-	if err != nil || !storedIsFull(prev) {
+// you read back into previews. prev is the record stored now (nil when there is
+// none). The archive item's own fields win; a post read never touched comes
+// back unchanged.
+func keepReadFields(prev, item json.RawMessage) json.RawMessage {
+	if !storedIsFull(prev) {
 		return item
 	}
 	var old, fresh map[string]json.RawMessage

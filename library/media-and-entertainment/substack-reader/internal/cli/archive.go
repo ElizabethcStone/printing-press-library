@@ -293,10 +293,6 @@ func newNovelArchiveCmd(flags *rootFlags) *cobra.Command {
 					// resolves to the same host (playbook B5: store the
 					// user-facing identifier alongside the record).
 					raw = tagSourceHost(raw, sourceHost)
-					// Upsert replaces the post's whole record: carry over the full
-					// text a `read` stored, or this re-run would turn it back into
-					// the anonymous preview the archive endpoint serves.
-					raw = keepReadFields(db, id, raw)
 					body, bodyErr := bodyTextToStore(db, id, metadataOnly, func() (string, error) {
 						if s.Slug == "" {
 							return "", nil
@@ -329,7 +325,14 @@ func newNovelArchiveCmd(flags *rootFlags) *cobra.Command {
 						return false, bodyErr
 					}
 					raw = attachBodyText(raw, body)
-					if err := db.Upsert("posts", id, raw); err != nil {
+					// The write replaces the post's whole record: carry over the
+					// full text a `read` stored, or this re-run would turn it back
+					// into the anonymous preview the archive endpoint serves. The
+					// stored record is read inside the write, so a read that lands
+					// while this post's body is being fetched is kept too.
+					if _, err := db.UpsertWith("posts", id, func(prev json.RawMessage) (json.RawMessage, bool) {
+						return keepReadFields(prev, raw), true
+					}); err != nil {
 						return false, fmt.Errorf("storing post %s: %w", id, err)
 					}
 					return true, nil

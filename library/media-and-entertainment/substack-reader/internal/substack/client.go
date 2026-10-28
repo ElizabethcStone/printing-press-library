@@ -190,22 +190,33 @@ func (c *Client) FetchImage(ctx context.Context, rawURL string) ([]byte, error) 
 }
 
 func (c *Client) getAccepting(ctx context.Context, rawURL, accept string) ([]byte, error) {
+	var limited *cliutil.RateLimitError // the 429 being retried, if any
 	for attempt := 0; ; attempt++ {
 		data, retryAfter, err := c.getOnce(ctx, rawURL, accept, attempt)
 		var rle *cliutil.RateLimitError
 		if !errors.As(err, &rle) {
+			// The retry of a 429 ran out of time (deadline or cancel): the
+			// verdict is still "rate limited, try later", with the context
+			// error inside, never a bare timeout a caller reads as another
+			// failure.
+			if err != nil && limited != nil && ctx.Err() != nil {
+				limited.Cause = err
+				return nil, limited
+			}
 			return data, err
 		}
 		// A 429 means "later", not "no". Wait as long as the server asked, then
 		// ask again; after maxRateLimitRetries the caller gets the RateLimitError
 		// (never empty data) with the pause that was last waited.
+		rle.RetryAfter = retryAfter
 		if attempt >= maxRateLimitRetries {
-			rle.RetryAfter = retryAfter
 			return nil, rle
 		}
 		if err := c.pause(ctx, retryAfter); err != nil {
-			return nil, err
+			rle.Cause = err
+			return nil, rle
 		}
+		limited = rle
 	}
 }
 

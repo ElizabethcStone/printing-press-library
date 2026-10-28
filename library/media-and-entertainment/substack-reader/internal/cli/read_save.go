@@ -6,6 +6,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html"
 	"net/http"
@@ -47,15 +48,19 @@ func safeFileName(slug string) string {
 	return name
 }
 
-// savePost writes <slug>.md and <slug>.html into dir (created if missing). With
+// savePost writes <slug>.md and <slug>.html into dir (created if missing); see
+// saveName for the name when another post already holds that slug. With
 // images, every distinct image in the note is fetched through fetch from its
 // original address and saved as <slug>--images/NN.ext, and the note links it by
 // a path relative to itself. An image that cannot be fetched keeps its remote
 // link and is counted in ImageFailures; it never fails the save.
 func savePost(ctx context.Context, dir string, p savedPost, images bool, fetch func(ctx context.Context, url string) ([]byte, error)) (savedFiles, error) {
-	name := safeFileName(p.Slug)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return savedFiles{}, fmt.Errorf("creating %s: %w", dir, err)
+	}
+	name, err := saveName(dir, p)
+	if err != nil {
+		return savedFiles{}, err
 	}
 	out := savedFiles{
 		Markdown: filepath.Join(dir, name+".md"),
@@ -83,6 +88,69 @@ func savePost(ctx context.Context, dir string, p savedPost, images bool, fetch f
 		return out, fmt.Errorf("writing %s: %w", out.HTML, err)
 	}
 	return out, nil
+}
+
+// saveName picks the file name for p in dir: its slug, unless the note of that
+// name was saved from another post (two publications can both have a
+// "welcome"); then the publication's name goes in front, as
+// <publication>--<slug>. A note is recognised by its source property, so saving
+// the same post again overwrites its own files and nothing else. When both
+// names hold other posts, the save fails instead of overwriting one.
+func saveName(dir string, p savedPost) (string, error) {
+	slug := safeFileName(p.Slug)
+	names := []string{slug}
+	if pub := publicationName(p.Source); pub != "" {
+		names = append(names, pub+"--"+slug)
+	}
+	for _, name := range names {
+		if noteIsFreeFor(filepath.Join(dir, name+".md"), p.Source) {
+			return name, nil
+		}
+	}
+	return "", fmt.Errorf("%s already holds another post", filepath.Join(dir, names[len(names)-1]+".md"))
+}
+
+// publicationName is the publication part of a post address, as a file name:
+// "astralcodexten" for astralcodexten.substack.com, the host for a custom
+// domain, "" when the address has no host.
+func publicationName(source string) string {
+	u, err := url.Parse(source)
+	if err != nil || u.Hostname() == "" {
+		return ""
+	}
+	host := strings.TrimPrefix(strings.ToLower(u.Hostname()), "www.")
+	return safeFileName(strings.TrimSuffix(host, ".substack.com"))
+}
+
+// noteIsFreeFor reports whether a note may be written at path for the post at
+// source: nothing is there yet, or the note there was saved from that post.
+func noteIsFreeFor(path, source string) bool {
+	b, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return true
+	}
+	return err == nil && noteSource(string(b)) == source
+}
+
+// noteSource reads the source property of a saved note ("" when it has none).
+func noteSource(note string) string {
+	front, ok := strings.CutPrefix(note, "---\n")
+	if !ok {
+		return ""
+	}
+	front, _, _ = strings.Cut(front, "\n---\n")
+	for _, line := range strings.Split(front, "\n") {
+		v, ok := strings.CutPrefix(line, "source: ")
+		if !ok {
+			continue
+		}
+		var s string
+		if json.Unmarshal([]byte(v), &s) != nil {
+			return ""
+		}
+		return s
+	}
+	return ""
 }
 
 // markdownImageRE matches ![alt](http...) with the alt text escaping that

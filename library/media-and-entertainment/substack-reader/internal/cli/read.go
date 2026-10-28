@@ -229,7 +229,9 @@ check counts) and body_html (exactly as Substack sent it).
 --save <dir> writes every post as <slug>.md (title, source, date, access and word
 count as properties) plus <slug>.html, the untouched master copy to convert again
 later. Add --images to download the post's images into <slug>--images/ and link
-them from the note, so it reads offline.
+them from the note, so it reads offline. When the folder already holds a note of
+that slug from another publication, the files are named <publication>--<slug>
+instead; saving the same post again overwrites its own files.
 
 Every post read is also kept in the local corpus, body included, so search and
 sql find it; a full copy is never replaced by a later preview. --no-store skips
@@ -424,7 +426,7 @@ authenticated fetch was rate limited).`,
 			return previewReport(results, !sess.IsZero())
 		},
 	}
-	cmd.Flags().StringVar(&saveDir, "save", "", "save each post as <slug>.md (with properties) and <slug>.html in this folder")
+	cmd.Flags().StringVar(&saveDir, "save", "", "save each post as <slug>.md (with properties) and <slug>.html in this folder (<publication>--<slug> when another publication's post already has that slug)")
 	cmd.Flags().BoolVar(&saveImages, "images", false, "with --save, also download the post's images next to the note")
 	cmd.Flags().BoolVar(&noStore, "no-store", false, "do not keep the posts read in the local corpus")
 	cmd.Flags().StringVar(&dbPath, "db", "", "database path (default: standard location)")

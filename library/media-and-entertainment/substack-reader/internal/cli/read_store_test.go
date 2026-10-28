@@ -135,7 +135,11 @@ func TestKeepReadFieldsAcrossAnArchiveRerun(t *testing.T) {
 	}
 
 	item := json.RawMessage(`{"id":5,"title":"T (renamed)","description":"teaser"}`)
-	merged := keepReadFields(db, "5", item)
+	prev, err := db.Get("posts", "5")
+	if err != nil {
+		t.Fatal(err)
+	}
+	merged := keepReadFields(prev, item)
 	var m map[string]any
 	if err := json.Unmarshal(merged, &m); err != nil {
 		t.Fatal(err)
@@ -150,7 +154,7 @@ func TestKeepReadFieldsAcrossAnArchiveRerun(t *testing.T) {
 	}
 
 	// A post read never touched passes through unchanged.
-	if got := keepReadFields(db, "404", item); string(got) != string(item) {
+	if got := keepReadFields(nil, item); string(got) != string(item) {
 		t.Errorf("an unread post changed: %s", got)
 	}
 }

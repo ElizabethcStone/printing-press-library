@@ -177,3 +177,66 @@ func TestSavePostCannotEscapeTheFolder(t *testing.T) {
 		t.Error("wrote outside the save folder")
 	}
 }
+
+// TestSavePostKeepsSameSlugFromTwoPublications: two publications can both have
+// a post called "welcome". The second one saved must not overwrite the first
+// (Greptile P1 on printing-press-library PR #2393: "saved articles overwrite
+// each other"); it gets the publication's name in front. Saving the same posts
+// again rewrites each one's own files and creates nothing new.
+func TestSavePostKeepsSameSlugFromTwoPublications(t *testing.T) {
+	dir := t.TempDir()
+	a := testPost("# A\n")
+	a.Slug, a.Source = "welcome", "https://pub-a.substack.com/p/welcome"
+	b := testPost("# B\n")
+	b.Slug, b.Source = "welcome", "https://www.pub-b.com/p/welcome"
+
+	for round := 1; round <= 2; round++ {
+		gotA, err := savePost(context.Background(), dir, a, false, noImages)
+		if err != nil {
+			t.Fatalf("round %d, save a: %v", round, err)
+		}
+		gotB, err := savePost(context.Background(), dir, b, false, noImages)
+		if err != nil {
+			t.Fatalf("round %d, save b: %v", round, err)
+		}
+		if want := filepath.Join(dir, "welcome.md"); gotA.Markdown != want {
+			t.Errorf("round %d: a saved as %s, want %s", round, gotA.Markdown, want)
+		}
+		if want := filepath.Join(dir, "pub-b.com--welcome.md"); gotB.Markdown != want {
+			t.Errorf("round %d: b saved as %s, want %s", round, gotB.Markdown, want)
+		}
+		if !strings.Contains(readFile(t, gotA.Markdown), "# A") || !strings.Contains(readFile(t, gotB.Markdown), "# B") {
+			t.Errorf("round %d: a note holds the other post's text", round)
+		}
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 4 {
+		t.Errorf("files = %d, want 4 (two notes, two html copies)", len(entries))
+	}
+}
+
+// TestSavePostRefusesToOverwriteAnotherPost: when the slug and the
+// publication-prefixed name both hold other posts, the save fails and leaves
+// both notes as they were.
+func TestSavePostRefusesToOverwriteAnotherPost(t *testing.T) {
+	dir := t.TempDir()
+	other := substack.Properties(substack.PostProperties{Source: "https://other.substack.com/p/x"}) + "# other\n"
+	for _, name := range []string{"welcome.md", "pub-a--welcome.md"} {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(other), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	p := testPost("# A\n")
+	p.Slug, p.Source = "welcome", "https://pub-a.substack.com/p/welcome"
+	if _, err := savePost(context.Background(), dir, p, false, noImages); err == nil {
+		t.Fatal("savePost overwrote a note that belongs to another post")
+	}
+	for _, name := range []string{"welcome.md", "pub-a--welcome.md"} {
+		if got := readFile(t, filepath.Join(dir, name)); got != other {
+			t.Errorf("%s changed: %q", name, got)
+		}
+	}
+}
