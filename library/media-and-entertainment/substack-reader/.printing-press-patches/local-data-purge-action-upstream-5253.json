@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-28",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "local-data-purge-action-upstream-5253",
+  "summary": "Generated local-data purge JSON output gains the \"action\" key, the one-line upstream fix from cli-printing-press PR #5253. Drop this patch at the next reprint on a press that contains #5253 (4.34.3 or newer).",
+  "reason": "On press 4.34.2 the generated `local-data purge --dry-run --json` prints no action field, and the press's own live dogfood fails it (json_fidelity: 'empty dry-run action'), so every CLI printed on 4.34.2 fails `dogfood --live --level full` on a framework command. Upstream fixed the template in PR #5253 (merged 2026-10-26, one day after v4.34.2); as of 2026-10-28 no release contains it (release PR #5258 for 4.34.3 is open). The edit is the template change applied verbatim to the generated file.",
+  "files": [
+    "internal/cli/local_data.go"
+  ],
+  "validated_outcome": "Baseline dogfood on the reprinted tree: 104 passed, 1 failed (local-data purge, json_fidelity, 'empty dry-run action'). After the edit: local-data purge help, happy_path, json_fidelity and dry_run_json all pass."
+}

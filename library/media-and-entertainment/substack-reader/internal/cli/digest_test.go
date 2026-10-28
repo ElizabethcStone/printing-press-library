@@ -8,6 +8,8 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+
+	"github.com/mvanhorn/printing-press-library/library/media-and-entertainment/substack-reader/internal/cliutil/testenv"
 )
 
 // TestNovelDigestHelpWires smoke-tests that the digest command
@@ -15,6 +17,7 @@ import (
 // regressions (missing AddCommand, panicking RunE on --help, etc.) before
 // review. Keep this smoke test when adding behavior-specific cases.
 func TestNovelDigestHelpWires(t *testing.T) {
+	testenv.Isolate(t)
 	cmd := RootCmd()
 	cmd.SetArgs([]string{"digest", "--help"})
 	var out bytes.Buffer

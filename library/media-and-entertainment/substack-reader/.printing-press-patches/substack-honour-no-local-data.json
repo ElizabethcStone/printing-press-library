@@ -1,0 +1,15 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-28",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "substack-honour-no-local-data",
+  "summary": "The hand-written archive and read honour the SUBSTACK_READER_NO_LOCAL_DATA=1 switch the 4.34 chassis introduced: archive refuses, like sync and workflow archive, and read stores nothing, as if --no-store were given.",
+  "reason": "Press 4.34 (PR #5192) added an operator switch, and the generated README now promises that with it set 'nothing new is written to the store'. root.go enforces it only for the generated writers (localDataWriterCommands: sync, workflow archive) and the generated read paths. The novel commands never consulted it: measured on the reprinted tree with the switch set, archive --limit 2 and read both wrote posts to data.db and read reported stored:true. archiveAllowed() returns root.go's own error wording for archive; read ORs localDataDisabled() into noStore before the corpus is opened.",
+  "files": [
+    "internal/cli/archive.go",
+    "internal/cli/read.go",
+    "internal/cli/local_data_switch_test.go"
+  ],
+  "validated_outcome": "TestArchiveRefusesUnderNoLocalData written first and seen failing (undefined archiveAllowed), then passing; go test ./... green. Live, fresh SUBSTACK_READER_HOME with the switch: archive exits 1 with 'archive is disabled while SUBSTACK_READER_NO_LOCAL_DATA=1'; read exits 0, prints the post and stored:null, and the store holds 0 resources. Control without the switch: read reports stored:true. An empty data.db still appears under the switch: the generated learn loop (learn_init.go runLearnInitOnce) creates the schema; no API data is written. That part is chassis behaviour, not patched here."
+}

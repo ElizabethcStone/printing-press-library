@@ -1,13 +1,19 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/substack-reader-pp-cli
+/substack-reader-pp-cli.exe
+/substack-reader-pp-mcp
+/substack-reader-pp-mcp.exe
+/bin/
+/build/
+/dist/
+
+# Carried from the source master (hand-maintained)
 # binaries
 /substack
 /substack-pp-cli
 /substack-pp-mcp
 /substack-reader
-/substack-reader-pp-cli
-/substack-reader-pp-mcp
 *-dogfood
-/bin/
-/build/
 # local state
 *.db
 *.db-*
@@ -18,3 +24,5 @@ publish-live-gate.json
 *.log
 # macOS
 .DS_Store
+# Real post bodies from the audit (paid text and third-party text stay out of git)
+/internal/substack/testdata/real/

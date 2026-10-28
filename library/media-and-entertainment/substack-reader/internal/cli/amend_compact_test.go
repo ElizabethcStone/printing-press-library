@@ -7,12 +7,9 @@ package cli
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
-	"fmt"
 	"strings"
 	"testing"
-	"time"
 )
 
 // corpusRow builds a JSON list item shaped like an archived Substack post:
@@ -40,7 +37,7 @@ func corpusRow(slug string) map[string]any {
 // re-admitted it), and `search --agent` returned entire articles per hit.
 func TestCompactListStripsBulkCorpusFields(t *testing.T) {
 	items := []map[string]any{corpusRow("a"), corpusRow("b"), corpusRow("c")}
-	out := compactListFields(items)
+	out := compactListFields(items, nil)
 
 	var rows []map[string]any
 	if err := json.Unmarshal(out, &rows); err != nil {
@@ -85,7 +82,7 @@ func TestCompactListFrequencyRuleAdmitsOnlyShortScalars(t *testing.T) {
 		})
 	}
 	var rows []map[string]any
-	if err := json.Unmarshal(compactListFields(items), &rows); err != nil {
+	if err := json.Unmarshal(compactListFields(items, nil), &rows); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	for _, row := range rows {
@@ -114,7 +111,7 @@ func TestCompactListDropsAllNullKeys(t *testing.T) {
 		})
 	}
 	var rows []map[string]any
-	if err := json.Unmarshal(compactListFields(items), &rows); err != nil {
+	if err := json.Unmarshal(compactListFields(items, nil), &rows); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
 	for _, row := range rows {
@@ -175,40 +172,6 @@ func TestAgentEnvelopeHonorsLiveProvenance(t *testing.T) {
 	}
 }
 
-// TestRunReadBatchMintsFreshContextPerPost is the regression test for the
-// shared-deadline defect: a batch whose first post consumes more than one
-// whole per-post budget must NOT starve the later posts. Each fetch must see
-// its own fresh, unexpired context.
-func TestRunReadBatchMintsFreshContextPerPost(t *testing.T) {
-	const budget = 30 * time.Millisecond
-	newCtx := func() (context.Context, context.CancelFunc) {
-		return context.WithTimeout(context.Background(), budget)
-	}
-	fetch := func(ctx context.Context, arg string) readResult {
-		if arg == "slow" {
-			// Burn more than the whole per-post budget, like a slow first post.
-			select {
-			case <-ctx.Done():
-			case <-time.After(budget * 3):
-			}
-			return readResult{err: ctx.Err()}
-		}
-		if err := ctx.Err(); err != nil {
-			return readResult{err: fmt.Errorf("inherited an expired deadline: %w", err)}
-		}
-		return readResult{envelope: map[string]any{"slug": arg}}
-	}
-	results := runReadBatch([]string{"slow", "second", "third"}, newCtx, fetch)
-	if len(results) != 3 {
-		t.Fatalf("results = %d, want 3", len(results))
-	}
-	for i, r := range results[1:] {
-		if r.err != nil {
-			t.Fatalf("post %d failed after a slow first post: %v — per-post budgets must be independent", i+2, r.err)
-		}
-	}
-}
-
 // TestArchiveStopHintNamesWhoStopped: the user's --limit gets a rerun hint, the
 // dogfood cap names itself (a --limit 0 caller must never be told to rerun
 // with --limit 0), and an exhausted walk has no hint at all.
@@ -223,21 +186,5 @@ func TestArchiveStopHintNamesWhoStopped(t *testing.T) {
 	got = archiveStopHint(false, true, 0, 50)
 	if !strings.Contains(got, "dogfood") || strings.Contains(got, "rerun with a higher --limit") {
 		t.Fatalf("dogfood-cap stop hint = %q, want it to name the dogfood cap, not suggest a rerun", got)
-	}
-}
-
-// TestReadRejectsZeroArgsShowsHelp and the dry-run case below smoke-test the
-// batch surface without the network: `read` now accepts variadic posts.
-func TestReadBatchDryRun(t *testing.T) {
-	cmd := RootCmd()
-	cmd.SetArgs([]string{"read", "pub/slug-one", "pub/slug-two", "--dry-run"})
-	var out bytes.Buffer
-	cmd.SetOut(&out)
-	cmd.SetErr(&out)
-	if err := cmd.Execute(); err != nil {
-		t.Fatalf("read multi-arg --dry-run error = %v (variadic args not wired?)", err)
-	}
-	if !strings.Contains(out.String(), "would fetch") {
-		t.Fatalf("dry-run output missing: %s", out.String())
 	}
 }

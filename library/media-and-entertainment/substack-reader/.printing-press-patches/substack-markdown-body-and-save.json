@@ -1,0 +1,25 @@
+{
+  "schema_version": 2,
+  "applied_at": "2026-10-23",
+  "base_run_id": "20261028-125048-1717acec",
+  "base_printing_press_version": "4.34.2",
+  "id": "substack-markdown-body-and-save",
+  "summary": "read returns a real Markdown body (links, headings, lists, images, YouTube, PDF attachments, embedded-post cards) as body_markdown, keeps the flat text the full-vs-preview check counts as body_text, and --save <dir> [--images] writes <slug>.md (with properties) plus <slug>.html, saving the post's images beside the note.",
+  "reason": "The 2026-10-22 audit measured that the CLI's body_markdown was plain text, not Markdown: on five samples it kept 0 of 100 links, 0 of 107 headings, 0 of 3 videos and 0 of 4 PDF links, and nothing saved a post as a file (audits/uxmentor-2026-10-22/followup/format-decision.md, cli-improvements.md row 2). HTMLToText stays the word-count input, now exposed as body_text (replaying it on 306 saved bodies flipped 0 verdicts, evidence/wordcount-impact.txt, so the detector is unchanged). HTMLToMarkdown (internal/substack/markdown.go) does what followup/substack_to_md.py did, in Go: one pass over the golang.org/x/net/html tree, Substack blocks recognised by class (captioned images keep a link only when it points somewhere other than the image CDN, youtube-wrap, file-embed-wrapper, digest-post-embed, subscription-widget-wrap, poll-embed, pullquote/callout-block, paywall-jump), the rest by tag, unknown blocks falling back to their text. It is written on x/net/html and not on html-to-markdown/pandoc: no pandoc dependency at run time and every Substack-specific form is under the repo's tests. savePost (internal/cli/read_save.go) writes the note and the untouched HTML master copy and, with --images, fetches each distinct image from its ORIGINAL address (OriginalImageURL decodes the CDN fetch URL) into <slug>--images/NN.ext with note-relative links; a failed image keeps its remote link, the slug is sanitised so a hostile slug cannot write outside --save. Client.FetchImage reuses the client's pacing, 429 retry and size cap. NEW DEPENDENCY: golang.org/x/net v0.56.0 (go.mod, go.sum). BREAKING for consumers: body_markdown used to be plain text. DOCS LAG: README.md, SKILL.md, tools-manifest.json and research.json novel_features still describe the old read; research.json (the source of the generated docs) must be updated at the next reprint.",
+  "files": [
+    "internal/substack/markdown.go",
+    "internal/substack/markdown_test.go",
+    "internal/substack/testdata/README.md",
+    "internal/substack/client.go",
+    "internal/substack/client_test.go",
+    "internal/substack/render.go",
+    "internal/cli/read.go",
+    "internal/cli/read_save.go",
+    "internal/cli/read_save_test.go",
+    "internal/cli/read_test.go",
+    "go.mod",
+    "go.sum",
+    ".gitignore"
+  ],
+  "validated_outcome": "go build, go vet and go test ./... green (go1.27.2, 4.31.2 source master). Converter output on the five audit samples, counted with followup/coverage.py count_md itself (not only the Go port in the test), equals the 'D pandoc + clean' rows of evidence/coverage-table.md on every column: links 20/12/20/8/41, empty 0/2/0/0/0, perk 0/0/10/0/0, headings 17/16/15/18/41, list 0/23/32/30/128, images 3/1/13/1/0, youtube 2/1/0/0/0, pdf 0/0/0/4/0. Mutation check: dropping link output makes TestHTMLToMarkdownMatchesFormatD fail on all five samples. Live: one paced read of 4 UX Mentor Diaries posts with --save --images into a fresh absolute --home gave notes whose counts equal the 'E local images' rows (local images 3/1/13) with 0 missing image files. The real post bodies are in internal/substack/testdata/real (git-ignored; the paid text and third-party text stay out of git; the test skips when absent, README.md says how to refill it). Not covered: images of posts whose CDN returns non-image error pages are not content-checked; polls are a placeholder (the saved HTML holds only the poll id)."
+}

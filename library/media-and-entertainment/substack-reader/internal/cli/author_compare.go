@@ -39,15 +39,20 @@ mirrored, their date range, publishing cadence (posts/week), and free/paid mix.
 Reads only the local corpus — archive both publications first
 ('substack-reader-pp-cli archive <pub>'). Each publication is matched by the host it
 was archived under, so pass the same handle/host you archived with.`,
-		Example:     "  substack-reader-pp-cli author-compare astralcodexten blog.bytebytego.com",
-		Annotations: map[string]string{"mcp:read-only": "true"},
+		Example: "  substack-reader-pp-cli author-compare astralcodexten blog.bytebytego.com",
+		// pp:happy-args gives the live-dogfood probe a real positional; without it
+		// happy_path skips on the non-ID <pub-a> <pub-b> and phase 5 reports this feature
+		// as hollow coverage.
+		Annotations: map[string]string{
+			"mcp:read-only": "true",
+			"pp:happy-args": "pub-a=astralcodexten;pub-b=blog.bytebytego.com",
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 0 {
 				return cmd.Help()
 			}
 			if dryRunOK(flags) {
-				fmt.Fprintln(cmd.OutOrStdout(), "would compare two publications from the local corpus")
-				return nil
+				return writeDryRun(cmd.OutOrStdout(), flags, "author-compare")
 			}
 			if len(args) != 2 {
 				return usageErr(fmt.Errorf("author-compare needs exactly two publications; got %d", len(args)))
