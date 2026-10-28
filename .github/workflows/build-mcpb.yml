@@ -413,6 +413,7 @@ jobs:
           pattern: cli-${{ steps.slug.outputs.slug }}__*
           merge-multiple: true
       - name: List downloaded artifacts and enforce per-app gate
+        id: gate
         env:
           CLI_TARGET: ${{ matrix.target }}
           SLUG: ${{ steps.slug.outputs.slug }}
@@ -433,16 +434,19 @@ jobs:
           # ship without a bundle.
           if [ "$cli_count" = "0" ]; then
             echo "::warning::Skipping release for ${SLUG}: no CLI binaries produced (build-cli matrix failed for this app)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ -f "library/${CLI_TARGET}/manifest.json" ] && [ "$mcpb_count" = "0" ]; then
             echo "::warning::Skipping release for ${SLUG}: app declares manifest.json (expects MCPB) but no .mcpb produced (bundle matrix failed for this app)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
       # A replayed or late run must not replace a newer release built from a
       # later ledger commit.
       - name: Skip if main has a newer release
         id: current
+        if: steps.gate.outputs.skip != 'true'
         env:
           CLI_TARGET: ${{ matrix.target }}
           SLUG: ${{ steps.slug.outputs.slug }}
@@ -458,7 +462,7 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
       - name: Verify CLI version matches the release ledger
-        if: steps.current.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.current.outputs.skip != 'true'
         env:
           CLI_TARGET: ${{ matrix.target }}
           SLUG: ${{ steps.slug.outputs.slug }}
@@ -488,7 +492,7 @@ jobs:
           fi
           echo "${SLUG} was built with ${expected}, matching the release ledger."
       - name: Verify release-write PAT
-        if: steps.current.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.current.outputs.skip != 'true'
         env:
           GH_TOKEN: ${{ secrets.RELEASE_WRITE_TOKEN }}
         run: |
@@ -515,7 +519,7 @@ jobs:
           fi
           echo "PAT confirmed for repo ${GITHUB_REPOSITORY}."
       - name: Publish release ${{ steps.slug.outputs.slug }}-current
-        if: steps.current.outputs.skip != 'true'
+        if: steps.gate.outputs.skip != 'true' && steps.current.outputs.skip != 'true'
         env:
           # Use a fine-grained PAT (Contents:write on this repo) instead of
           # the default GITHUB_TOKEN. The workflow's GITHUB_TOKEN reports
