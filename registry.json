@@ -28717,9 +28717,9 @@
       "path": "library/media-and-entertainment/substack-reader",
       "release": {
         "cli_name": "substack-reader-pp-cli",
-        "version": "2026.9.3",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "version": "2026.10.1",
+        "released_at": "2026-10-28T18:24:18Z",
+        "source_commit": "28752497793d35171679fcfe1eb2f70ef0e2d336"
       },
       "printer": "maxswinguy",
       "printer_name": "Maxime Delavergne",
