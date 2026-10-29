@@ -6982,6 +6982,12 @@
         "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run."
       ],
       "path": "library/maps/delhivery-maps",
+      "release": {
+        "cli_name": "delhivery-maps-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-29T08:57:32Z",
+        "source_commit": "b94d57c6008c671c5c4efd518f3b6a709809fa8e"
+      },
       "printer": "SomSamantray",
       "printer_name": "Som Samantray",
       "creator": {
