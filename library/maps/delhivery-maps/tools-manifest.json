@@ -1,0 +1,636 @@
+{
+  "api_name": "delhivery-maps",
+  "base_url": "https://gateway-maps-pub-int.delhivery.com",
+  "description": "Every Delhivery Maps endpoint, plus quota-aware address cleaning, trip costing and fleet planning.",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "auth": {
+    "type": "bearer_token",
+    "header": "Authorization",
+    "env_vars": [
+      "DELHIVERY_MAPS_TOKEN"
+    ],
+    "env_var_specs": [
+      {
+        "name": "DELHIVERY_MAPS_TOKEN",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ]
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "autosuggest_search-suggest",
+      "description": "Returns ranked location suggestions for a text query across India. Optional `latitude ` and `longitude` bias ranking toward the user's location. Special handling: - 6-digit pin code → filters to pin code polygons - Lat/Long pair → returns a single synthetic coordinate result. Required: query. Optional: lat, lng.",
+      "method": "GET",
+      "path": "/search",
+      "params": [
+        {
+          "name": "query",
+          "type": "string",
+          "location": "query",
+          "description": "Search text - address, place name, pin code, or lat/long pair.",
+          "required": true
+        },
+        {
+          "name": "lat",
+          "type": "float",
+          "location": "query",
+          "description": "Latitude for geo-biased ranking."
+        },
+        {
+          "name": "lng",
+          "type": "float",
+          "location": "query",
+          "description": "Longitude for geo-biased ranking."
+        }
+      ]
+    },
+    {
+      "name": "geocode_address",
+      "description": "Accepts a raw or semi-structured Indian address and returns geographic coordinates with an error radius indicating positional confidence. Required: address. Optional: req_id.",
+      "method": "POST",
+      "path": "/geocode",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "location": "body",
+          "description": "Raw address string (max ~500 chars).",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional request identifier."
+        }
+      ]
+    },
+    {
+      "name": "isochrone_compute",
+      "description": "Returns a GeoJSON polygon covering everywhere reachable from an origin within a single cost budget. One endpoint serves both products — the `cost_type` field in the body selects which: | Cost Type | Product | Cost Value Unit | Question answered | | --- | --- | --- | --- | | `time` | IsoChrone | seconds | 'How far can I get in 10 minutes?' | | `distance` | IsoDistance | metres | 'How far can I get within 5 km of road travel?' | Everything else — request shape, validation, response shape, error codes — is identical between the two modes. The response echoes the mode back in `features[0].properties.cost_type`. `direction` flips the direction of travel: `outbound` (default) is where you can reach from the origin; `inbound` is who can reach the origin. The two differ on one-ways, restricted turns and time-dependent costing. Exactly one contour is requested per call, so the response always contains exactly one feature. **SERVICE LIMITS** | Cost Type | Unit | Min (exclusive) | Max | | --- | --- | --- | --- | | `time` | seconds | 0 | 7,200 | | `distance` | metres | 0 | 100,000 | | Travel Mode | Supported | | --- | --- | | auto | Yes | | motorcycle | Yes | | truck | Yes | | pedestrian | Yes | `cost_value` must satisfy `0 \u003c cost_value \u003c= max`. A value of `0`, a negative value, or a value above the max returns HTTP 400. A larger `cost_value` explores a larger area and costs more latency; the max caps worst-case compute time. The origin must lie inside the India boundary. **RESPONSE GEOMETRY FORMAT** By default, or when `encode_geojson` is omitted, the response uses encoded polyline strings to reduce response size. If you want standard GeoJSON coordinates directly, send `encode_geojson: false`. | `encode_geojson` | Response geometry | | --- | --- | | omitted or `true` (default) | Encoded polyline strings | | `false` | Standard GeoJSON numeric coordinate arrays in `[longitude, latitude]` order |. Required: cost_type, cost_value, origin. Optional: departure_time, direction (default: outbound), enable_smoothing (default: false) (plus 6 more).",
+      "method": "POST",
+      "path": "/isochrone",
+      "params": [
+        {
+          "name": "cost_type",
+          "type": "string",
+          "location": "body",
+          "description": "Selects the product: `time` → isochrone (budget in seconds), `distance` → isodistance (budget in metres).",
+          "required": true
+        },
+        {
+          "name": "cost_value",
+          "type": "float",
+          "location": "body",
+          "description": "The budget. Seconds when `cost_type` is `time` (max 7,200 = 120 min); metres when `cost_type` is `distance` (max 100,000 = 100 km). Must be greater than 0.",
+          "required": true
+        },
+        {
+          "name": "departure_time",
+          "type": "string",
+          "location": "body",
+          "description": "Departure time in IST, `YYYY-MM-DDTHH:MM`. Only used when `traffic_aware` is `true`."
+        },
+        {
+          "name": "direction",
+          "type": "string",
+          "location": "body",
+          "description": "`outbound` = area reachable from the origin; `inbound` = area that can reach the origin."
+        },
+        {
+          "name": "enable_smoothing",
+          "type": "bool",
+          "location": "body",
+          "description": "Reserved. Accepted and type-validated, but currently has no effect on the returned geometry."
+        },
+        {
+          "name": "encode_geojson",
+          "type": "bool",
+          "location": "body",
+          "description": "Response geometry format. The default is `true` when this field is omitted, which returns encoded geometry to reduce response size. Set to `false` to receive standard GeoJSON numeric coordinate arrays in `[longitude, latitude]` order. This changes only the response representation, not the computed reachable area."
+        },
+        {
+          "name": "origin",
+          "type": "array",
+          "location": "body",
+          "description": "Origin point as `[latitude, longitude]`. Must be inside India.",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional client correlation id — echoed back in the response and recorded in logs."
+        },
+        {
+          "name": "resolution",
+          "type": "string",
+          "location": "body",
+          "description": "Polygon detail. `high` returns more vertices and a tighter boundary at a small latency cost; `low` returns a coarser, lighter polygon."
+        },
+        {
+          "name": "route-modifiers-avoid-highways",
+          "wire_name": "route_modifiers.avoid_highways",
+          "type": "bool",
+          "location": "body",
+          "description": "Penalise highways."
+        },
+        {
+          "name": "route-modifiers-avoid-tolls",
+          "wire_name": "route_modifiers.avoid_tolls",
+          "type": "bool",
+          "location": "body",
+          "description": "Penalise tolled roads."
+        },
+        {
+          "name": "traffic_aware",
+          "type": "bool",
+          "location": "body",
+          "description": "Enables time-dependent costing for `cost_type: time`."
+        },
+        {
+          "name": "travel_mode",
+          "type": "string",
+          "location": "body",
+          "description": "Vehicle profile used for the expansion."
+        }
+      ]
+    },
+    {
+      "name": "matrix_compute",
+      "description": "Computes distance (km) and duration (seconds) for every source→target pair. Returns a 2D matrix indexed as `[source_index][target_index]`. **SERVICE LIMITS** | Travel Mode | Max Location Pairs | Max Distance | | --- | --- | --- | | auto | 40,000 | 6,000 km | | motorcycle | 40,000 | 6,000 km | | truck | 40,000 | 6,000 km | | pedestrian | 40,000 | 200 km |. Required: sources, targets. Optional: route_modifiers, travel_mode (default: auto).",
+      "method": "POST",
+      "path": "/matrix",
+      "params": [
+        {
+          "name": "route-modifiers-avoid-highways",
+          "wire_name": "route_modifiers.avoid_highways",
+          "type": "bool",
+          "location": "body",
+          "description": "Avoid highways"
+        },
+        {
+          "name": "route-modifiers-avoid-tolls",
+          "wire_name": "route_modifiers.avoid_tolls",
+          "type": "bool",
+          "location": "body",
+          "description": "Avoid tolls"
+        },
+        {
+          "name": "sources",
+          "type": "array",
+          "location": "body",
+          "description": "List of `[lat, lng]` source coordinates. All within India.",
+          "required": true
+        },
+        {
+          "name": "targets",
+          "type": "array",
+          "location": "body",
+          "description": "List of `[lat, lng]` target coordinates. All within India.",
+          "required": true
+        },
+        {
+          "name": "travel_mode",
+          "type": "string",
+          "location": "body",
+          "description": "Travel mode"
+        }
+      ]
+    },
+    {
+      "name": "raster-tiles_get",
+      "description": "Serves pre-rendered WebP map tiles of India (XYZ slippy map convention). **Zoom coverage:** 0–4 country · 5–7 state · 8–10 district · 11–13 city · 14–16 neighborhood · 17–20 street level. Required: size, z, x, y.",
+      "method": "GET",
+      "path": "/raster_tiles/india/{size}/{z}/{x}/{y}.webp",
+      "params": [
+        {
+          "name": "size",
+          "type": "int",
+          "location": "path",
+          "description": "Tile pixel dimensions (256 or 512).",
+          "required": true
+        },
+        {
+          "name": "z",
+          "type": "int",
+          "location": "path",
+          "description": "Zoom level (0–20).",
+          "required": true
+        },
+        {
+          "name": "x",
+          "type": "int",
+          "location": "path",
+          "description": "Tile column index.",
+          "required": true
+        },
+        {
+          "name": "y",
+          "type": "int",
+          "location": "path",
+          "description": "Tile row index.",
+          "required": true
+        }
+      ],
+      "header_overrides": [
+        {
+          "name": "Accept",
+          "value": "image/webp"
+        }
+      ]
+    },
+    {
+      "name": "route_compute",
+      "description": "Calculates the optimal route between 2+ waypoints within India. Supports multiple travel modes, alternate routes, and route modifiers. **BREAKING CHANGE (v4.7):** Geometry is now **encoded** by default. Unless you send `output_format: { 'encode_polyline': false }`, both `geometry` and every `legs[].shape` are returned as encoded polyline strings (precision 6). Maneuvers are **off** by default — send `output_format: { 'maneuvers': true }` to include them. The old `decode_geometry` query parameter has been removed; use `output_format.encode_polyline` in the request body instead. **SERVICE LIMITS** | Travel Mode | Max Locations | | --- | --- | | auto | 20 | | motorcycle | 50 | | truck | 20 | | pedestrian | 50 | Requests exceeding the max location count return HTTP 400. There is no pre-check for maximum distance. Required: geo_coords. Optional: alternate_routes (default: false), departure_time, output_format (plus 3 more). Returns array of RouteComputeItem.",
+      "method": "POST",
+      "path": "/route",
+      "params": [
+        {
+          "name": "alternate_routes",
+          "type": "bool",
+          "location": "body",
+          "description": "Include alternate routes in response."
+        },
+        {
+          "name": "departure_time",
+          "type": "string",
+          "location": "body",
+          "description": "Specifies the planned departure time (for example, `2026-06-03T18:00`) in ISO-8601 format. Defaults to the current time. This parameter is considered only when `traffic_aware` is set to `true`."
+        },
+        {
+          "name": "geo_coords",
+          "type": "array",
+          "location": "body",
+          "description": "Ordered `[lat, lng]` waypoints. Minimum 2, all within India.",
+          "required": true
+        },
+        {
+          "name": "output-format-encode-polyline",
+          "wire_name": "output_format.encode_polyline",
+          "type": "bool",
+          "location": "body",
+          "description": "`true` → `geometry` and each `legs[].shape` are encoded polyline strings (precision 6). `false` → both are decoded `[[lat, lng], ...]` point lists. Replaces the old `decode_geometry` query parameter."
+        },
+        {
+          "name": "output-format-maneuvers",
+          "wire_name": "output_format.maneuvers",
+          "type": "bool",
+          "location": "body",
+          "description": "`false` → the `maneuvers` key is absent from every leg. `true` → each leg includes a `maneuvers` array (with `bearing_after`, `bearing_before`, `cost`, `travel_type`, `travel_mode`, and `time` removed from each maneuver)."
+        },
+        {
+          "name": "route-modifiers-avoid-highways",
+          "wire_name": "route_modifiers.avoid_highways",
+          "type": "bool",
+          "location": "body",
+          "description": "Avoid highways"
+        },
+        {
+          "name": "route-modifiers-avoid-tolls",
+          "wire_name": "route_modifiers.avoid_tolls",
+          "type": "bool",
+          "location": "body",
+          "description": "Avoid tolls"
+        },
+        {
+          "name": "traffic_aware",
+          "type": "bool",
+          "location": "body",
+          "description": "Enables hour-of-day traffic-aware ETA calculations."
+        },
+        {
+          "name": "travel_mode",
+          "type": "string",
+          "location": "body",
+          "description": "One of auto, motorcycle, truck, pedestrian."
+        }
+      ]
+    },
+    {
+      "name": "route-plan_plan-routes",
+      "description": "Solves the Vehicle Routing Problem (VRP) by assigning delivery orders across a fleet of vehicles from a central depot to generate optimized, stop-by-stop routes. Accepts location data as exact coordinates or text addresses with automatic geocoding. The engine minimizes total transit distance and duration while enforcing per-vehicle weight and volume limits. **ORDER LOCATION** Each order must specify either a order coordinate pair (`lat, long`) or an order address. If an address is provided, it is automatically geocoded, and the resolved coordinates are returned in the resulting route stop payload. **SERVICE LIMITS** | Constraint | Description | | --- | --- | | Orders | Must be between 1 and 50. | | Order Address | Order address must be located in India. | | Order Location | Order Location must be within Indian territory. |. Required: depot_lat, depot_lng, num_vehicles, orders. Optional: max_distance, max_stops, max_time (plus 5 more). Returns the new PlanResponse.",
+      "method": "POST",
+      "path": "/route-plan",
+      "params": [
+        {
+          "name": "depot_lat",
+          "type": "float",
+          "location": "body",
+          "description": "Depot latitude.",
+          "required": true
+        },
+        {
+          "name": "depot_lng",
+          "type": "float",
+          "location": "body",
+          "description": "Depot longitude.",
+          "required": true
+        },
+        {
+          "name": "max_distance",
+          "type": "float",
+          "location": "body",
+          "description": "Maximum distance in kilometers till which the vehicle can be used. Defaults to 1000 km."
+        },
+        {
+          "name": "max_stops",
+          "type": "int",
+          "location": "body",
+          "description": "Maximum number of unique locations a vehicle can visit in a route apart from its starting location. Defaults to 100."
+        },
+        {
+          "name": "max_time",
+          "type": "float",
+          "location": "body",
+          "description": "Maximum time in seconds till which the vehicle can be used. Defaults to 86400 seconds (1 day)."
+        },
+        {
+          "name": "num_vehicles",
+          "type": "int",
+          "location": "body",
+          "description": "Number of vehicles available at the depot.",
+          "required": true
+        },
+        {
+          "name": "orders",
+          "type": "array",
+          "location": "body",
+          "description": "A list of dictionaries where each dictionary contains the metadata of an order.",
+          "required": true
+        },
+        {
+          "name": "plan_start_time",
+          "type": "string",
+          "location": "body",
+          "description": "Absolute wall-clock time at which the vehicle shift begins (e.g., '2026-06-03 09:00+05:30'). If missing, order time windows are dropped."
+        },
+        {
+          "name": "return_to_depot",
+          "type": "bool",
+          "location": "body",
+          "description": "Controls whether vehicles must return to the depot after serving their last order."
+        },
+        {
+          "name": "vehicle_max_volume",
+          "type": "float",
+          "location": "body",
+          "description": "Maximum volume in cubic centimeters that one vehicle in this contract can serve. Defaults to 100000 cm³."
+        },
+        {
+          "name": "vehicle_max_weight",
+          "type": "float",
+          "location": "body",
+          "description": "Maximum weight in kilograms that one vehicle in this contract can serve. Defaults to 1000 kg."
+        },
+        {
+          "name": "vehicle_mode",
+          "type": "string",
+          "location": "body",
+          "description": "Travel mode passed through to the distance-matrix API. Allowed values: 'auto', 'truck', 'bike', 'foot'."
+        }
+      ]
+    },
+    {
+      "name": "rvg_reverse-geocode",
+      "description": "Converts a latitude and longitude into a structured address (Google Geocoding format). Returns a precise `ROOFTOP` result or multiple `APPROXIMATE` results at descending granularity. Required: lat, lng, req_id. Optional: steps (default: false).",
+      "method": "POST",
+      "path": "/rvg",
+      "params": [
+        {
+          "name": "steps",
+          "type": "string",
+          "location": "query",
+          "description": "Set to `'true'` to include pipeline step logs."
+        },
+        {
+          "name": "lat",
+          "type": "float",
+          "location": "body",
+          "description": "Lat",
+          "required": true
+        },
+        {
+          "name": "lng",
+          "type": "float",
+          "location": "body",
+          "description": "Lng",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Unique request identifier.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "standarize_standardize-address",
+      "description": "Accepts a raw or semi-structured Indian address and returns a cleaned, standardised version with structured components and applied corrections. Required: address. Optional: req_id.",
+      "method": "POST",
+      "path": "/standarize",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "location": "body",
+          "description": "Raw address string (max ~500 chars).",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional request identifier."
+        }
+      ]
+    },
+    {
+      "name": "toll-charges-by-od_toll_charges_by_od",
+      "description": "Calculates toll charges for a journey between an origin and destination coordinate pair. The system computes the route internally and identifies toll plazas along the route. Supports multiple vehicle types and optionally returns alternate routes with their toll breakdowns. **SERVICE LIMITS** | Constraint | Value | | --- | --- | | Waypoints | Optional ordered intermediate stops between origin \u0026 destination | | Vehicle types | `motorcycle`, `car_jeep_van`, `lcv`, `bus_truck`, `upto_3_axle`, `axle_4_to_6`, `hcm_eme`, `axle_7_plus` | | Max routes returned | 1 recommended + alternates | \u003e When `waypoints` are supplied, the routing engine returns a single stitched route (no alternates), regardless of `include_alternates`. Required: destination, origin, vehicle_type. Optional: include_alternates (default: true), include_polyline (default: false), req_id (plus 1 more).",
+      "method": "POST",
+      "path": "/toll_charges_by_od",
+      "params": [
+        {
+          "name": "destination-lat",
+          "wire_name": "destination.lat",
+          "type": "float",
+          "location": "body",
+          "description": "Destination latitude.",
+          "required": true
+        },
+        {
+          "name": "destination-lng",
+          "wire_name": "destination.lng",
+          "type": "float",
+          "location": "body",
+          "description": "Destination longitude.",
+          "required": true
+        },
+        {
+          "name": "include_alternates",
+          "type": "bool",
+          "location": "body",
+          "description": "If true, returns toll breakdowns for alternate routes in addition to the recommended route. Ignored when waypoints are supplied."
+        },
+        {
+          "name": "include_polyline",
+          "type": "bool",
+          "location": "body",
+          "description": "If true, each route in the response includes a `polyline` field with the ordered `[lat, lon]` route geometry."
+        },
+        {
+          "name": "origin-lat",
+          "wire_name": "origin.lat",
+          "type": "float",
+          "location": "body",
+          "description": "Origin latitude.",
+          "required": true
+        },
+        {
+          "name": "origin-lng",
+          "wire_name": "origin.lng",
+          "type": "float",
+          "location": "body",
+          "description": "Origin longitude.",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional request id for tracing. If provided it must be non-empty; if omitted, the service auto-generates a UUID and returns it in the response."
+        },
+        {
+          "name": "vehicle_type",
+          "type": "string",
+          "location": "body",
+          "description": "Vehicle category for toll rate lookup.",
+          "required": true
+        },
+        {
+          "name": "waypoints",
+          "type": "array",
+          "location": "body",
+          "description": "Optional ordered list of intermediate stops between origin and destination. The route visits them in order. When supplied, a single stitched route is returned (no alternates)."
+        }
+      ]
+    },
+    {
+      "name": "toll-charges-by-route_toll_charges_by_route",
+      "description": "Calculates toll charges for one or more route polylines provided by the user. **SERVICE LIMITS** | Constraint | Value | | --- | --- | | Max polylines per request | 3 | | Min polylines per request | 1 | | Minimum Polyline Coordinates | 2 coordinate pairs per route | | Polyline format | Array of `[lat, lon]` pairs | | Vehicle types | `motorcycle`, `car_jeep_van`, `lcv`, `bus_truck`, `upto_3_axle`, `axle_4_to_6`, `hcm_eme`, `axle_7_plus` |. Required: routes, vehicle_type. Optional: req_id. Returns the new TollByRouteResponse.",
+      "method": "POST",
+      "path": "/toll_charges_by_route",
+      "params": [
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional request id for tracing. If provided it must be non-empty; if omitted, the service auto-generates a UUID and returns it in the response."
+        },
+        {
+          "name": "routes",
+          "type": "array",
+          "location": "body",
+          "description": "Array of route objects with user-provided geometry.",
+          "required": true
+        },
+        {
+          "name": "vehicle_type",
+          "type": "string",
+          "location": "body",
+          "description": "Vehicle category for toll rate lookup.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "validate_address",
+      "description": "Validates an Indian delivery address against a database of historically delivered addresses. Returns quality assessment, granularity, corrected address, and inline diff. Required: address. Optional: req_id.",
+      "method": "POST",
+      "path": "/validate",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "location": "body",
+          "description": "Raw delivery address string (Indian addresses only)",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional client tracking ID — echoed in response"
+        }
+      ]
+    },
+    {
+      "name": "verify_address",
+      "description": "Checks whether a confirmed delivery has reached a specific address within the last N months. Address validation runs first — the history lookup only proceeds on a valid, premise-level match. `is_verified=false` can mean: address could not be resolved, no delivery recorded in the window, address not specific enough (PREMISE level required), or no delivery records found at this location. **SERVICE LIMITS** | Parameter | Range | | --- | --- | | `months` min | 1 | | `months` max | 24 |. Required: address, months. Optional: req_id. Returns the new VerifyAddressResponse.",
+      "method": "POST",
+      "path": "/verify",
+      "params": [
+        {
+          "name": "address",
+          "type": "string",
+          "location": "body",
+          "description": "Raw delivery address to verify",
+          "required": true
+        },
+        {
+          "name": "months",
+          "type": "int",
+          "location": "body",
+          "description": "Lookback window in months. Checks if address was delivered to within this period.",
+          "required": true
+        },
+        {
+          "name": "req_id",
+          "type": "string",
+          "location": "body",
+          "description": "Optional client tracking ID — echoed in response"
+        }
+      ]
+    }
+  ],
+  "novel_features": [
+    {
+      "name": "Bulk address cleaning",
+      "command": "address clean",
+      "description": "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred."
+    },
+    {
+      "name": "Trip quote",
+      "command": "trip quote",
+      "description": "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll)."
+    },
+    {
+      "name": "Service-area coverage check",
+      "command": "coverage check",
+      "description": "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address."
+    },
+    {
+      "name": "Fleet plan from orders file",
+      "command": "fleet plan",
+      "description": "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each."
+    },
+    {
+      "name": "Cached-address quality report",
+      "command": "address report",
+      "description": "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run."
+    },
+    {
+      "name": "Duplicate-doorstep finder",
+      "command": "address dupes",
+      "description": "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run."
+    }
+  ]
+}

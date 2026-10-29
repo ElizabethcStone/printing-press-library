@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "delhivery-maps-pp-mcp",
+  "display_name": "Delhivery Maps",
+  "version": "1.0.0",
+  "description": "Every Delhivery Maps endpoint, plus bulk address cleaning, trip costing and fleet planning that survive rate limits and token expiry.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/delhivery-maps-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/delhivery-maps-pp-mcp",
+      "args": [],
+      "env": {
+        "DELHIVERY_MAPS_TOKEN": "${user_config.delhivery_maps_token}"
+      }
+    }
+  },
+  "user_config": {
+    "delhivery_maps_token": {
+      "type": "string",
+      "title": "DELHIVERY_MAPS_TOKEN",
+      "description": "Sets DELHIVERY_MAPS_TOKEN for the Delhivery Maps MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

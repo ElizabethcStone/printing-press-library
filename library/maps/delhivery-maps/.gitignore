@@ -1,0 +1,8 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/delhivery-maps-pp-cli
+/delhivery-maps-pp-cli.exe
+/delhivery-maps-pp-mcp
+/delhivery-maps-pp-mcp.exe
+/bin/
+/build/
+/dist/

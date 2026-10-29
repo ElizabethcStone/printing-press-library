@@ -1,0 +1,20 @@
+{
+  "file": "<tmp>/addr.csv",
+  "out": "<tmp>/clean.csv",
+  "steps": [
+    "standardize",
+    "validate",
+    "geocode"
+  ],
+  "rows": 1,
+  "ok": 1,
+  "cached": 0,
+  "errors": 0,
+  "deferred": 0,
+  "planned_calls": 3,
+  "calls_made": 3,
+  "cache_hits": 0,
+  "max_calls": 47,
+  "budget_remaining_before": 47,
+  "rate_limited": false
+}

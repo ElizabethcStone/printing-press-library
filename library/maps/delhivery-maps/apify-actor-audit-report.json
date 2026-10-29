@@ -1,0 +1,9 @@
+{
+  "dir": "\u003ccli-dir\u003e/delhivery-maps-pp-cli",
+  "research_dir": "\u003ccli-dir\u003e/20261027-223621-db82b035",
+  "verdict": "pass",
+  "actors": null,
+  "issues": [
+    "no Apify actor references found, skipping"
+  ]
+}

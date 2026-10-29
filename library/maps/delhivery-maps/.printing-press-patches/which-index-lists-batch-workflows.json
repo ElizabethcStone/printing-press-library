@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "id": "which-index-lists-batch-workflows",
+  "applied_at": "2026-10-29",
+  "base_run_id": "20261027-223621-db82b035",
+  "base_printing_press_version": "4.34.2",
+  "summary": "The which capability index must list the hand-written batch workflows (address clean, trip quote, coverage check, fleet plan, address report, address dupes) ahead of the promoted endpoint commands, so discovery finds them.",
+  "reason": "The generated index only seeds promoted endpoints, so a regen makes which return no match for the batch workflows and hides them from capability listings. Agents then miss the higher-level features this CLI exists to provide.",
+  "files": ["internal/cli/which.go"]
+}

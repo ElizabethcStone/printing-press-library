@@ -1,0 +1,63 @@
+{
+  "data": {
+    "results": [
+      {
+        "address_components": [
+          {
+            "long_name": "MDU",
+            "short_name": "MDU",
+            "types": [
+              "premise"
+            ]
+          },
+          {
+            "long_name": "Rohtak",
+            "short_name": "Rohtak",
+            "types": [
+              "administrative_area_level_2",
+              "political"
+            ]
+          },
+          {
+            "long_name": "Haryana",
+            "short_name": "Haryana",
+            "types": [
+              "administrative_area_level_1",
+              "political"
+            ]
+          },
+          {
+            "long_name": "124001",
+            "short_name": "124001",
+            "types": [
+              "postal_code"
+            ]
+          },
+          {
+            "long_name": "India",
+            "short_name": "IN",
+            "types": [
+              "country",
+              "political"
+            ]
+          }
+        ],
+        "formatted_address": "MDU, Rohtak, Haryana 124001, India",
+        "geometry": {
+          "location": {
+            "lat": 28.877074,
+            "lng": 76.619739
+          },
+          "location_type": "ROOFTOP"
+        },
+        "types": [
+          "street_address"
+        ]
+      }
+    ],
+    "status": "OK"
+  },
+  "req_id": "smoke-1",
+  "request_id": "d1c5bd10-ec72-43c8-8cf2-054d13efe123",
+  "status": "success"
+}

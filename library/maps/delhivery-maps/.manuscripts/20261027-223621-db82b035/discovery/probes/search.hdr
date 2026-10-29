@@ -1,0 +1,11 @@
+HTTP/2 200 
+date: Tue, 27 Oct 2026 17:07:47 GMT
+content-type: application/json
+content-length: 4259
+server: uvicorn
+access-control-allow-origin: *
+vary: Origin
+x-ratelimit-limit: 50
+x-ratelimit-remaining: 43
+x-ratelimit-reset: 1793207242
+

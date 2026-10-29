@@ -1,0 +1,16 @@
+# agentcookie.toml: secrets-bus adoption manifest v2
+# See docs/spec-agentcookie-secrets-bus-v2-adoption.md
+schema_version = 2
+name = "delhivery-maps-pp-cli"
+display_name = "Delhivery Maps"
+description = "Every Delhivery Maps endpoint, plus bulk address cleaning, trip costing and fleet planning that survive rate limits and token expiry."
+project_kind = "cli"
+
+[secrets.file]
+path = "~/.config/delhivery-maps-pp-cli/config.toml"
+
+[sync]
+default = false
+
+[sync.keys]
+DELHIVERY_MAPS_TOKEN = true

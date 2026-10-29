@@ -1,0 +1,23 @@
+{
+  "orders": 3,
+  "chunks": 1,
+  "assigned": 3,
+  "unassigned": 0,
+  "unassigned_orders": [],
+  "vehicles_used": 1,
+  "total_distance": 22.169,
+  "total_duration": 3815,
+  "planned_calls": 1,
+  "calls_made": 1,
+  "fetch_failures": 0,
+  "failed_chunks": [],
+  "deferred_chunks": 0,
+  "deferred_orders": 0,
+  "failed_orders": 0,
+  "max_calls": 5,
+  "rate_limited": false,
+  "plan_statuses": [
+    "true"
+  ],
+  "out": "<tmp>/plan.csv"
+}

@@ -1,0 +1,4340 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Delhivery Maps API",
+    "version": "1.0.0",
+    "description": "Public API documentation for the Delhivery Maps Gateway.\n\nAll requests must be routed through this gateway.\n\n## Authentication\n\nAll endpoints require a Bearer JWT in the `Authorization` header:\n\n```\nAuthorization: Bearer <your-jwt-token>\n```\n\nThe token must carry a `data.ucid` claim used for rate limiting and traceability.\n\n| Scenario | Response |\n| --- | --- |\n| Missing/malformed header | `401 { \"detail\": \"Missing or invalid Authorization header\" }` |\n| Expired token | `401 { \"detail\": \"Token has expired\" }` |\n| Invalid token | `401 { \"detail\": \"Invalid token\" }` |\n\n## Rate Limiting\n\nRequests are rate-limited per user (50 requests / 24 hours). Response headers:\n\n| Header | Description |\n| --- | --- |\n| `X-RateLimit-Limit` | Max requests in the window |\n| `X-RateLimit-Remaining` | Requests remaining |\n| `X-RateLimit-Reset` | Unix epoch when the window resets |\n\nWhen exhausted: `429 Too Many Requests` with `Retry-After` header.\n\n## Coverage\n\nAll coordinate-based endpoints operate within India only.\n"
+  },
+  "servers": [
+    {
+      "url": "https://gateway-maps-pub-int.delhivery.com",
+      "description": "Production gateway"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Routing",
+      "description": "Route computation and distance/time matrices."
+    },
+    {
+      "name": "Route Planning",
+      "description": "Multi-vehicle route planning and order assignment (VRP)."
+    },
+    {
+      "name": "Geocoding",
+      "description": "Forward geocoding, reverse geocoding, and address standardization."
+    },
+    {
+      "name": "Search",
+      "description": "Location-aware address and entity autosuggest."
+    },
+    {
+      "name": "Tiles",
+      "description": "Pre-rendered raster map tiles."
+    },
+    {
+      "name": "Tolls",
+      "description": "Toll charge estimation by origin-destination pair or by user-provided route geometry."
+    },
+    {
+      "name": "Isochrone",
+      "description": "Reachability polygons — time-based (isochrone) and distance-based (isodistance)."
+    }
+  ],
+  "paths": {
+    "/route": {
+      "post": {
+        "tags": [
+          "Routing"
+        ],
+        "operationId": "computeRoute",
+        "summary": "Compute an optimal driving route",
+        "description": "Calculates the optimal route between 2+ waypoints within India.\nSupports multiple travel modes, alternate routes, and route modifiers.\n\n**BREAKING CHANGE (v4.7):** Geometry is now **encoded** by default. Unless you send `output_format: { \"encode_polyline\": false }`, both `geometry` and every `legs[].shape` are returned as encoded polyline strings (precision 6). Maneuvers are **off** by default — send `output_format: { \"maneuvers\": true }` to include them. The old `decode_geometry` query parameter has been removed; use `output_format.encode_polyline` in the request body instead.\n\n**SERVICE LIMITS**\n\n| Travel Mode | Max Locations |\n| --- | --- |\n| auto | 20 |\n| motorcycle | 50 |\n| truck | 20 |\n| pedestrian | 50 |\n\nRequests exceeding the max location count return HTTP 400. There is no pre-check for maximum distance.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RouteRequest"
+              },
+              "example": {
+                "geo_coords": [
+                  [
+                    28.5954,
+                    77.0319
+                  ],
+                  [
+                    28.5957,
+                    77.037
+                  ]
+                ],
+                "travel_mode": "motorcycle",
+                "alternate_routes": true,
+                "traffic_aware": true,
+                "departure_time": "2026-06-03T09:00",
+                "route_modifiers": {
+                  "avoid_tolls": false,
+                  "avoid_highways": false
+                },
+                "output_format": {
+                  "encode_polyline": true,
+                  "maneuvers": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Route computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteResponse"
+                },
+                "example": {
+                  "status": true,
+                  "request_id": "59fd2d15-0704-4c1a-b71d-8095b2988ba3",
+                  "recommended_route": {
+                    "distance": 12.45,
+                    "duration": 1523.4,
+                    "geometry": "gedvW}gp~rCbFu[|@{Fte@}d@}MiNgFtEuY{]cd@...",
+                    "waypoints": [
+                      {
+                        "lat": 28.5954,
+                        "lng": 77.0319,
+                        "snap_distance_m": 3.21
+                      },
+                      {
+                        "lat": 28.5957,
+                        "lng": 77.037,
+                        "snap_distance_m": 1.85
+                      }
+                    ],
+                    "legs": [
+                      {
+                        "shape": "gedvW}gp~rCbFu[|@{Fte@}d@}MiNgFtEuY{]cd@...",
+                        "summary": {
+                          "has_ferry": false,
+                          "has_highway": false,
+                          "has_time_restrictions": false,
+                          "has_toll": false,
+                          "length": 12.45,
+                          "max_lat": 28.5957,
+                          "max_lon": 77.037,
+                          "min_lat": 28.5954,
+                          "min_lon": 77.0319,
+                          "time": 1523.4
+                        }
+                      }
+                    ]
+                  },
+                  "alternates": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingError"
+                },
+                "examples": {
+                  "missingField": {
+                    "value": {
+                      "error": "Missing required field: geo_coords"
+                    }
+                  },
+                  "invalidTravelMode": {
+                    "value": {
+                      "error": "Invalid travel mode: bicycle. Supported modes: motorcycle, auto, truck, pedestrian"
+                    }
+                  },
+                  "outsideIndia": {
+                    "value": {
+                      "error": "Coordinate at index 0 is outside India boundary: (51.5074, -0.1278)",
+                      "error_code": 1002
+                    }
+                  },
+                  "limitExceeded": {
+                    "value": {
+                      "error": "Route API limit exceeded: 25 locations provided but max allowed for 'auto' is 20",
+                      "error_code": 1002
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error (rare — most errors surface as 400).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "Unexpected internal error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'route' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'route' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/matrix": {
+      "post": {
+        "tags": [
+          "Routing"
+        ],
+        "operationId": "computeMatrix",
+        "summary": "Compute a source-to-target distance/time matrix",
+        "description": "Computes distance (km) and duration (seconds) for every source→target pair.\nReturns a 2D matrix indexed as `[source_index][target_index]`.\n\n**SERVICE LIMITS**\n\n| Travel Mode | Max Location Pairs | Max Distance |\n| --- | --- | --- |\n| auto | 40,000 | 6,000 km |\n| motorcycle | 40,000 | 6,000 km |\n| truck | 40,000 | 6,000 km |\n| pedestrian | 40,000 | 200 km |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatrixRequest"
+              },
+              "example": {
+                "sources": [
+                  [
+                    28.6562,
+                    77.241
+                  ],
+                  [
+                    28.6129,
+                    77.2295
+                  ]
+                ],
+                "targets": [
+                  [
+                    28.5244,
+                    77.1855
+                  ],
+                  [
+                    28.5535,
+                    77.2588
+                  ]
+                ],
+                "travel_mode": "auto",
+                "route_modifiers": {
+                  "avoid_tolls": false,
+                  "avoid_highways": false
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matrix computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatrixResponse"
+                },
+                "example": {
+                  "status": true,
+                  "sources_to_targets": [
+                    [
+                      {
+                        "distance": 18.234,
+                        "time": 1523.4,
+                        "from_index": 0,
+                        "to_index": 0
+                      },
+                      {
+                        "distance": 14.567,
+                        "time": 1102.8,
+                        "from_index": 0,
+                        "to_index": 1
+                      }
+                    ],
+                    [
+                      {
+                        "distance": 12.891,
+                        "time": 987.2,
+                        "from_index": 1,
+                        "to_index": 0
+                      },
+                      {
+                        "distance": 8.345,
+                        "time": 654.1,
+                        "from_index": 1,
+                        "to_index": 1
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoutingError"
+                },
+                "examples": {
+                  "missingField": {
+                    "value": {
+                      "error": "Missing required field: sources"
+                    }
+                  },
+                  "invalidTravelMode": {
+                    "value": {
+                      "error": "Invalid travel mode: bicycle. Supported modes: motorcycle, auto, truck, pedestrian"
+                    }
+                  },
+                  "outsideIndia": {
+                    "value": {
+                      "error": "Coordinate at index 0 is outside India boundary: (51.5074, -0.1278)",
+                      "error_code": 1002
+                    }
+                  },
+                  "limitExceeded": {
+                    "value": {
+                      "error": "Matrix API limit exceeded: 3000 location pairs (50x60) but max allowed for 'auto' is 40000",
+                      "error_code": 1002
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error (rare — most errors surface as 400).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "Unexpected internal error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'matrix' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'matrix' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rvg": {
+      "post": {
+        "tags": [
+          "Geocoding"
+        ],
+        "operationId": "reverseGeocode",
+        "summary": "Reverse geocode a coordinate to a structured address",
+        "description": "Converts a latitude and longitude into a structured address (Google Geocoding format).\nReturns a precise `ROOFTOP` result or multiple `APPROXIMATE` results at descending granularity.\n",
+        "parameters": [
+          {
+            "name": "steps",
+            "in": "query",
+            "required": false,
+            "description": "Set to `\"true\"` to include pipeline step logs.",
+            "schema": {
+              "type": "string",
+              "default": "false"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RvgRequest"
+              },
+              "example": {
+                "req_id": "order-12345",
+                "lat": 28.877074,
+                "lng": 76.619739
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reverse geocoding successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RvgResponse"
+                },
+                "example": {
+                  "status": "success",
+                  "req_id": "order-12345",
+                  "data": {
+                    "status": "OK",
+                    "results": [
+                      {
+                        "formatted_address": "Sunrise Apartments, Sector 14, Gurugram, Haryana 122001, India",
+                        "types": [
+                          "address"
+                        ],
+                        "geometry": {
+                          "location": {
+                            "lat": 28.877074,
+                            "lng": 76.619739
+                          },
+                          "location_type": "ROOFTOP"
+                        },
+                        "address_components": [
+                          {
+                            "long_name": "Sunrise Apartments",
+                            "short_name": "Sunrise Apartments",
+                            "types": [
+                              "premise"
+                            ]
+                          },
+                          {
+                            "long_name": "Sector 14",
+                            "short_name": "Sector 14",
+                            "types": [
+                              "sublocality_level_1",
+                              "sublocality",
+                              "political"
+                            ]
+                          },
+                          {
+                            "long_name": "Gurugram",
+                            "short_name": "Gurugram",
+                            "types": [
+                              "locality",
+                              "political"
+                            ]
+                          },
+                          {
+                            "long_name": "Haryana",
+                            "short_name": "HR",
+                            "types": [
+                              "administrative_area_level_1",
+                              "political"
+                            ]
+                          },
+                          {
+                            "long_name": "122001",
+                            "short_name": "122001",
+                            "types": [
+                              "postal_code"
+                            ]
+                          },
+                          {
+                            "long_name": "India",
+                            "short_name": "IN",
+                            "types": [
+                              "country",
+                              "political"
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RvgErrorResponse"
+                },
+                "example": {
+                  "status": "error",
+                  "req_id": null,
+                  "data": null,
+                  "error": "validation error",
+                  "errors": [
+                    {
+                      "field": "req_id",
+                      "message": "Field required"
+                    },
+                    {
+                      "field": "lat",
+                      "message": "Field required"
+                    },
+                    {
+                      "field": "lng",
+                      "message": "Field required"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RvgErrorResponse"
+                },
+                "example": {
+                  "status": "error",
+                  "req_id": "order-12345",
+                  "data": null,
+                  "error": "internal server error",
+                  "errors": []
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'rvg' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'rvg' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/geocode": {
+      "post": {
+        "tags": [
+          "Geocoding"
+        ],
+        "operationId": "geocodeAddress",
+        "summary": "Geocode a raw address to coordinates",
+        "description": "Accepts a raw or semi-structured Indian address and returns geographic\ncoordinates with an error radius indicating positional confidence.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressRequest"
+              },
+              "example": {
+                "req_id": "order-98765",
+                "address": "flat 4b, lotus apt, sec 45, gurgaon, haryana 122003"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Geocoding successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeocodeResponse"
+                },
+                "example": {
+                  "req_id": "order-98765",
+                  "lat": 28.422437,
+                  "lng": 77.053849,
+                  "error_radius": 45,
+                  "metadata": {
+                    "pincode": "122003"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing address field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "address field is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressError"
+                },
+                "example": {
+                  "error": "internal server error",
+                  "req_id": "order-98765"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'geocode' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'geocode' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/standarize": {
+      "post": {
+        "tags": [
+          "Geocoding"
+        ],
+        "operationId": "standardizeAddress",
+        "summary": "Standardise a raw Indian address",
+        "description": "Accepts a raw or semi-structured Indian address and returns a cleaned,\nstandardised version with structured components and applied corrections.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddressRequest"
+              },
+              "example": {
+                "req_id": "order-98765",
+                "address": "flat 4b, lotus apt, sec 45, gurgaon, haryana 122003"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address standardized successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StandardizeResponse"
+                },
+                "example": {
+                  "req_id": "order-98765",
+                  "formatted_address": "Flat 4B, Lotus Apartments, Sector 45, Gurugram, Haryana 122003",
+                  "address_components": {
+                    "rooftop": "Flat 4B",
+                    "building": "Lotus Apartments",
+                    "sub_locality": "Sector 45",
+                    "city": "Gurugram",
+                    "state": "Haryana",
+                    "pincode": "122003"
+                  },
+                  "corrections": [
+                    "Expanded 'sec' → 'Sector'",
+                    "Corrected 'gurgaon' → 'Gurugram'",
+                    "Expanded 'apt' → 'Apartments'"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing address field.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "address field is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AddressError"
+                },
+                "example": {
+                  "error": "internal server error",
+                  "req_id": "order-98765"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'standardise' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'standardise' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/validate": {
+      "post": {
+        "summary": "Validate an Indian delivery address",
+        "description": "Validates an Indian delivery address against a database of historically delivered addresses. Returns quality assessment, granularity, corrected address, and inline diff.",
+        "tags": ["Address Validation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address"],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Raw delivery address string (Indian addresses only)",
+                    "example": "H-36 1st floor residency greens sector 46 gurgaon"
+                  },
+                  "req_id": {
+                    "type": "string",
+                    "description": "Optional client tracking ID — echoed in response",
+                    "example": "ORDER-12345"
+                  }
+                }
+              },
+              "example": {
+                "address": "H-36 1st floor residency greens sector 46 gurgaon",
+                "req_id": "ORDER-12345"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quality": {
+                      "type": "string",
+                      "enum": ["ok", "not_ok"],
+                      "description": "ok = deliverable, not_ok = has issues"
+                    },
+                    "granularity_level": {
+                      "type": "string",
+                      "enum": ["PREMISE", "STREET_LANDMARK", "SUBLOCALITY_VILLAGE", "LOCALITY", "CITY_PINCODE", "NONE"],
+                      "description": "Deepest verified geographic component"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": ["valid", "incomplete", "correction_needed", "invalid_or_junk"],
+                      "description": "Why the address got its quality rating"
+                    },
+                    "formatted_address": {
+                      "type": "string",
+                      "description": "Cleaned corrected address. Empty if invalid_or_junk."
+                    },
+                    "corrections": {
+                      "type": "string",
+                      "description": "Full address with inline diffs. `<old|new>` = replacement, `<old|>` = deletion, `<|new>` = addition"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "description": "Internal UUID for log tracing"
+                    },
+                    "req_id": {
+                      "type": "string",
+                      "description": "Echoed from request body (only present if sent)"
+                    }
+                  }
+                },
+                "example": {
+                  "quality": "ok",
+                  "granularity_level": "PREMISE",
+                  "reason": "valid",
+                  "formatted_address": "H-36, 1st Floor, Residency Greens, Sector 46, Gurugram, Haryana, 122003",
+                  "corrections": "<h36|H-36>, <1st floor|1st Floor>, <residency greens|Residency Greens>, Sector 46, <gurgaon|Gurugram>, <|Haryana, 122003>",
+                  "request_id": "a1b2c3d4-5678-90ab-cdef-1234567890ab",
+                  "req_id": "ORDER-12345"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "no_address": {
+                    "value": {"error": "No address provided", "request_id": "uuid"}
+                  },
+                  "bad_json": {
+                    "value": {"error": "Invalid or malformed JSON in request body"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Timeout",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Request timed out",
+                  "detail": "OpenSearch search timed out (10.0s budget)",
+                  "request_id": "uuid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "example": {"error": "Internal Server Error", "request_id": "uuid"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify": {
+      "post": {
+        "summary": "Verify delivery history at an address",
+        "description": "Checks whether a confirmed delivery has reached a specific address within the last N months. Address validation runs first — the history lookup only proceeds on a valid, premise-level match.\n\n`is_verified=false` can mean: address could not be resolved, no delivery recorded in the window, address not specific enough (PREMISE level required), or no delivery records found at this location.\n\n**SERVICE LIMITS**\n\n| Parameter | Range |\n| --- | --- |\n| `months` min | 1 |\n| `months` max | 24 |\n",
+        "tags": ["Address Verification"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["address", "months"],
+                "properties": {
+                  "address": {
+                    "type": "string",
+                    "description": "Raw delivery address to verify",
+                    "example": "H-36 1st floor residency greens sector 46 gurgaon"
+                  },
+                  "months": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 24,
+                    "description": "Lookback window in months. Checks if address was delivered to within this period.",
+                    "example": 6
+                  },
+                  "req_id": {
+                    "type": "string",
+                    "description": "Optional client tracking ID — echoed in response",
+                    "example": "VERIFY-98765"
+                  }
+                }
+              },
+              "example": {
+                "address": "H-36 1st floor residency greens sector 46 gurgaon",
+                "months": 6,
+                "req_id": "VERIFY-98765"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "quality": {
+                      "type": "string",
+                      "enum": ["ok", "not_ok"],
+                      "description": "Same as /validate — ok or not_ok"
+                    },
+                    "granularity_level": {
+                      "type": "string",
+                      "enum": ["PREMISE", "STREET_LANDMARK", "SUBLOCALITY_VILLAGE", "LOCALITY", "CITY_PINCODE", "NONE"],
+                      "description": "Same as /validate — deepest verified component"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "enum": ["valid", "incomplete", "correction_needed", "invalid_or_junk"],
+                      "description": "Same as /validate — why the validation quality rating"
+                    },
+                    "formatted_address": {
+                      "type": "string",
+                      "description": "Corrected address from validation step"
+                    },
+                    "corrections": {
+                      "type": "string",
+                      "description": "Inline diff from validation step"
+                    },
+                    "is_verified": {
+                      "type": "boolean",
+                      "description": "true if a delivery was confirmed at this exact doorstep within the months window"
+                    },
+                    "last_visited_date": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Date of last confirmed delivery (YYYY-MM-DD) or null if not verified"
+                    },
+                    "verification_reasoning": {
+                      "type": "string",
+                      "description": "LLM explanation of the doorstep match decision (max ~20 words)"
+                    },
+                    "request_id": {
+                      "type": "string",
+                      "description": "Internal UUID for log tracing"
+                    },
+                    "req_id": {
+                      "type": "string",
+                      "description": "Echoed from request body (only present if sent)"
+                    }
+                  }
+                },
+                "examples": {
+                  "verified": {
+                    "summary": "Address verified",
+                    "value": {
+                      "quality": "ok",
+                      "granularity_level": "PREMISE",
+                      "reason": "valid",
+                      "formatted_address": "H-36, 1st Floor, Residency Greens, Sector 46, Gurugram, Haryana, 122003",
+                      "corrections": "<h36|H-36>, <1st floor|1st Floor>, <residency greens|Residency Greens>, Sector 46, <gurgaon|Gurugram>, <|Haryana, 122003>",
+                      "is_verified": true,
+                      "last_visited_date": "2026-05-14",
+                      "verification_reasoning": "Candidate 2: same H-36, same Residency Greens, same sector, pincode matches.",
+                      "request_id": "b2c3d4e5-uuid",
+                      "req_id": "VERIFY-98765"
+                    }
+                  },
+                  "not_verified": {
+                    "summary": "Address not verified — no recent delivery",
+                    "value": {
+                      "quality": "ok",
+                      "granularity_level": "PREMISE",
+                      "reason": "valid",
+                      "formatted_address": "H-36, 1st Floor, Residency Greens, Sector 46, Gurugram, Haryana, 122003",
+                      "corrections": "<h36|H-36>, <residency greens|Residency Greens>, Sector 46, <gurgaon|Gurugram>",
+                      "is_verified": false,
+                      "last_visited_date": null,
+                      "verification_reasoning": "No candidates found within 6-month window.",
+                      "request_id": "uuid",
+                      "req_id": "VERIFY-98765"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "months_missing": {
+                    "value": {"error": "'months' is a required field.", "request_id": "uuid"}
+                  },
+                  "months_invalid": {
+                    "value": {"error": "Invalid 'months' value. Must be integer between 1 and 24.", "request_id": "uuid"}
+                  },
+                  "no_address": {
+                    "value": {"error": "No address provided", "request_id": "uuid"}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Timeout",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Request timed out",
+                  "detail": "OpenSearch verification search timed out (10.0s budget)",
+                  "request_id": "uuid"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "example": {"error": "Internal Server Error", "request_id": "uuid"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify-visit": {
+      "post": {
+        "tags": [
+          "Geocoding"
+        ],
+        "operationId": "verifyVisit",
+        "summary": "Verify a delivery visit against the historical address cluster",
+        "description": "Checks whether a raw address string and a GPS coordinate match a known historical address cluster within a target radius. A match or a verified no-match returns 200. Errors return `{\"detail\": \"...\"}`; the HTTP status is the machine-readable part, and every response carries an `X-Request-ID` header for support.\n\n**GRANULARITY LEVELS**\n\n| Level | Meaning |\n| --- | --- |\n| `PREMISE` | Exact plot / flat / building |\n| `STREET_LANDMARK` | Same road or landmark |\n| `SUBLOCALITY_VILLAGE` | Same sector / phase / colony / village |\n| `LOCALITY` | Same broad city area / pincode |\n\n**SERVICE LIMITS**\n\n| Parameter | Range |\n| --- | --- |\n| `radius_meters` min | 10 |\n| `radius_meters` max | 1000 |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyVisitRequest"
+              },
+              "example": {
+                "req_id": "order-12345",
+                "address_text": "B-36 Mubarak Society, Juhapura, Royal Akber Tower Juhapura",
+                "latitude": 22.99428293,
+                "longitude": 72.524758034,
+                "radius_meters": 500
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visit verification completed (match or no-match; see is_within_target_radius).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyVisitResponse"
+                },
+                "examples": {
+                  "matched": {
+                    "summary": "Visit confirmed within target radius",
+                    "value": {
+                      "is_within_target_radius": true,
+                      "granularity_level": "PREMISE",
+                      "estimated_distance_meters": 42.6
+                    }
+                  },
+                  "no_match": {
+                    "summary": "No matching historical address cluster found",
+                    "value": {
+                      "is_within_target_radius": false,
+                      "granularity_level": null,
+                      "estimated_distance_meters": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body missing, malformed, not a JSON object, or not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Body must be a JSON object with Content-Type: application/json"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized (gateway).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input: missing field, blank address_text, invalid coordinates, or radius_meters outside 10-1000.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "latitude: Input should be less than or equal to 90; radius_meters: Input should be less than or equal to 1000"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded (gateway).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected application failure; no internals are exposed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Internal server error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable (gateway).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'verify-visit' unavailable"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A required dependency (search backend or LLM) is unavailable. Safe to retry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Service temporarily unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out (gateway).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'verify-visit' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/isochrone": {
+      "post": {
+        "tags": [
+          "Isochrone"
+        ],
+        "operationId": "computeIsochrone",
+        "summary": "Compute a reachability polygon (isochrone / isodistance)",
+        "description": "Returns a GeoJSON polygon covering everywhere reachable from an origin within a single cost budget.\n\nOne endpoint serves both products — the `cost_type` field in the body selects which:\n\n| Cost Type | Product | Cost Value Unit | Question answered |\n| --- | --- | --- | --- |\n| `time` | IsoChrone | seconds | \"How far can I get in 10 minutes?\" |\n| `distance` | IsoDistance | metres | \"How far can I get within 5 km of road travel?\" |\n\nEverything else — request shape, validation, response shape, error codes — is identical between the two modes. The response echoes the mode back in `features[0].properties.cost_type`.\n\n`direction` flips the direction of travel: `outbound` (default) is where you can reach from the origin; `inbound` is who can reach the origin. The two differ on one-ways, restricted turns and time-dependent costing.\n\nExactly one contour is requested per call, so the response always contains exactly one feature.\n\n**SERVICE LIMITS**\n\n| Cost Type | Unit | Min (exclusive) | Max |\n| --- | --- | --- | --- |\n| `time` | seconds | 0 | 7,200 |\n| `distance` | metres | 0 | 100,000 |\n\n| Travel Mode | Supported |\n| --- | --- |\n| auto | Yes |\n| motorcycle | Yes |\n| truck | Yes |\n| pedestrian | Yes |\n\n`cost_value` must satisfy `0 < cost_value <= max`. A value of `0`, a negative value, or a value above the max returns HTTP 400. A larger `cost_value` explores a larger area and costs more latency; the max caps worst-case compute time.\n\nThe origin must lie inside the India boundary.\n\n**RESPONSE GEOMETRY FORMAT**\n\nBy default, or when `encode_geojson` is omitted, the response uses encoded polyline strings to reduce response size. If you want standard GeoJSON coordinates directly, send `encode_geojson: false`.\n\n| `encode_geojson` | Response geometry |\n| --- | --- |\n| omitted or `true` (default) | Encoded polyline strings |\n| `false` | Standard GeoJSON numeric coordinate arrays in `[longitude, latitude]` order |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IsochroneRequest"
+              },
+              "examples": {
+                "timeBased": {
+                  "summary": "Isochrone — 10 minutes by car",
+                  "value": {
+                    "origin": [
+                      28.6139,
+                      77.209
+                    ],
+                    "cost_type": "time",
+                    "cost_value": 600,
+                    "travel_mode": "auto",
+                    "direction": "outbound",
+                    "resolution": "medium",
+                    "traffic_aware": false,
+                    "encode_geojson": true,
+                    "route_modifiers": {
+                      "avoid_tolls": true,
+                      "avoid_highways": false
+                    },
+                    "req_id": "iso-123"
+                  }
+                },
+                "distanceBased": {
+                  "summary": "Isodistance — 5 km by motorcycle",
+                  "value": {
+                    "origin": [
+                      29.6139,
+                      76.209
+                    ],
+                    "cost_type": "distance",
+                    "cost_value": 5000,
+                    "travel_mode": "motorcycle",
+                    "direction": "outbound",
+                    "resolution": "high",
+                    "traffic_aware": false,
+                    "encode_geojson": false,
+                    "route_modifiers": {
+                      "avoid_tolls": true,
+                      "avoid_highways": false
+                    },
+                    "req_id": "isodist-456"
+                  }
+                },
+                "inbound": {
+                  "summary": "Inbound isochrone — who can reach this hub in 30 minutes",
+                  "value": {
+                    "origin": [
+                      28.4551,
+                      77.0701
+                    ],
+                    "cost_type": "time",
+                    "cost_value": 1800,
+                    "travel_mode": "truck",
+                    "direction": "inbound",
+                    "resolution": "low",
+                    "traffic_aware": true,
+                    "departure_time": "2026-06-03T09:00"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reachability polygon computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IsochroneResponse"
+                },
+                "examples": {
+                  "timeBased": {
+                    "summary": "Isochrone response (cost_type: time, encode_geojson: true)",
+                    "value": {
+                      "status": true,
+                      "type": "FeatureCollection",
+                      "features": [
+                        {
+                          "type": "Feature",
+                          "properties": {
+                            "cost_type": "time",
+                            "cost_value": 600,
+                            "travel_mode": "auto",
+                            "area_sq_km": 8.4
+                          },
+                          "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [
+                              "gkzpu@wuyfrCfw@wr_@oo[g`N_zMf~XvzL~pYnvZg{C"
+                            ]
+                          }
+                        }
+                      ],
+                      "req_id": "iso-123",
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "distanceBased": {
+                    "summary": "Isodistance response (cost_type: distance, encode_geojson: false)",
+                    "value": {
+                      "status": true,
+                      "type": "FeatureCollection",
+                      "features": [
+                        {
+                          "type": "Feature",
+                          "properties": {
+                            "cost_type": "distance",
+                            "cost_value": 5000,
+                            "travel_mode": "motorcycle",
+                            "area_sq_km": 21.67
+                          },
+                          "geometry": {
+                            "type": "Polygon",
+                            "coordinates": [
+                              [
+                                [
+                                  76.1821,
+                                  29.5904
+                                ],
+                                [
+                                  76.2287,
+                                  29.5876
+                                ],
+                                [
+                                  76.2419,
+                                  29.6312
+                                ],
+                                [
+                                  76.2013,
+                                  29.6488
+                                ],
+                                [
+                                  76.1764,
+                                  29.6201
+                                ],
+                                [
+                                  76.1821,
+                                  29.5904
+                                ]
+                              ]
+                            ]
+                          }
+                        }
+                      ],
+                      "req_id": "isodist-456",
+                      "request_id": "c81d04f3-2a77-4ee9-9f0b-1d3a6e5b7c22"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IsochroneError"
+                },
+                "examples": {
+                  "noPayload": {
+                    "summary": "Empty or unparseable body",
+                    "value": {
+                      "error": "No JSON payload provided",
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "notAnObject": {
+                    "summary": "Body is valid JSON but not an object",
+                    "value": {
+                      "error": "JSON payload must be an object",
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "missingField": {
+                    "summary": "Required field absent (origin | cost_value | cost_type)",
+                    "value": {
+                      "error": "Missing required field: cost_value",
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "invalidTravelMode": {
+                    "summary": "Unsupported travel mode",
+                    "value": {
+                      "error": "Invalid travel mode: bicycle. Supported modes: motorcycle, auto, truck, pedestrian",
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "invalidCostType": {
+                    "summary": "cost_type outside the allowed enum",
+                    "value": {
+                      "error": "cost_type must be one of ['time', 'distance'] but found 'banana'",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "costValueOutOfRangeTime": {
+                    "summary": "cost_value above the time limit (7,200 s)",
+                    "value": {
+                      "error": "cost_value for cost_type='time' must be in (0, 7,200] but found 8000",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "costValueOutOfRangeDistance": {
+                    "summary": "cost_value above the distance limit (100,000 m)",
+                    "value": {
+                      "error": "cost_value for cost_type='distance' must be in (0, 100,000] but found 200000",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "costValueWrongType": {
+                    "summary": "cost_value is not a number",
+                    "value": {
+                      "error": "cost_value must be of type Float but found <class 'str'>",
+                      "error_code": 1001,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "outsideIndia": {
+                    "summary": "Origin outside the India boundary",
+                    "value": {
+                      "error": "Coordinate at index 0 is outside India boundary: (51.5074, -0.1278)",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "invalidDirection": {
+                    "summary": "direction outside the allowed enum",
+                    "value": {
+                      "error": "direction must be one of ['outbound', 'inbound'] but found 'sideways'",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "invalidResolution": {
+                    "summary": "resolution outside the allowed enum",
+                    "value": {
+                      "error": "resolution must be one of ['low', 'medium', 'high'] but found 'ultra'",
+                      "error_code": 1002,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "noReachableArea": {
+                    "summary": "Nothing reachable from the origin",
+                    "value": {
+                      "error": "No reachable area found for origin",
+                      "error_code": 1003,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "upstreamRequestFailed": {
+                    "summary": "Upstream isochrone engine failed or timed out (30 s budget)",
+                    "value": {
+                      "error": "Isochrone API request failed: status_code=503",
+                      "error_code": 1003,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  },
+                  "malformedUpstreamResponse": {
+                    "summary": "Upstream returned an unexpected shape",
+                    "value": {
+                      "error": "Isochrone API response not in expected format",
+                      "error_code": 1003,
+                      "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error (rare — validation and upstream failures surface as 400).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "Internal server error: unexpected internal error",
+                  "request_id": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'isochrone' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'isochrone' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "operationId": "searchSuggest",
+        "summary": "Location-aware address and entity autosuggest",
+        "description": "Returns ranked location suggestions for a text query across India.\nOptional `latitude ` and `longitude` bias ranking toward the user's location.\n\nSpecial handling:\n- 6-digit pin code → filters to pin code polygons\n- Lat/Long pair → returns a single synthetic coordinate result\n",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "description": "Search text - address, place name, pin code, or lat/long pair.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "lat",
+            "in": "query",
+            "required": false,
+            "description": "Latitude for geo-biased ranking.",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "required": false,
+            "description": "Longitude for geo-biased ranking.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ranked suggestions (may be empty array).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                },
+                "example": [
+                  {
+                    "entity_id": "785136240",
+                    "entity_name": "Delhivery Hub Sector 44",
+                    "display_text": "Delhivery Hub, Sector 44, Gurugram, Haryana, 122003",
+                    "full_address": "delhivery hub | delhivery hub, sector 44, gurugram, haryana, 122003",
+                    "shape": "POLYGON ((77.069 28.454, 77.071 28.454, 77.071 28.456, 77.069 28.456, 77.069 28.454))",
+                    "lat": 28.4551,
+                    "long": 77.0701,
+                    "entity_type": "building",
+                    "score": 5210.332
+                  }
+                ]
+              }
+            }
+          },
+          "400": {
+            "description": "Missing query parameter.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "query parameter is required"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Search backend error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "ConnectionTimeout: connection timed out"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'search' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'search' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/raster_tiles/india/{size}/{z}/{x}/{y}.webp": {
+      "get": {
+        "tags": [
+          "Tiles"
+        ],
+        "operationId": "getRasterTile",
+        "summary": "Fetch a pre-rendered raster map tile",
+        "description": "Serves pre-rendered WebP map tiles of India (XYZ slippy map convention).\n\n**Zoom coverage:** 0–4 country · 5–7 state · 8–10 district · 11–13 city ·\n14–16 neighborhood · 17–20 street level.\n",
+        "parameters": [
+          {
+            "name": "size",
+            "in": "path",
+            "required": true,
+            "description": "Tile pixel dimensions (256 or 512).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "z",
+            "in": "path",
+            "required": true,
+            "description": "Zoom level (0–20).",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "x",
+            "in": "path",
+            "required": true,
+            "description": "Tile column index.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "y",
+            "in": "path",
+            "required": true,
+            "description": "Tile row index.",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tile image (binary WebP).",
+            "content": {
+              "image/webp": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tile parameters.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Invalid zoom level"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Style not found.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Style not found"
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Rendering error.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Internal rendering error"
+              }
+            }
+          },
+          "503": {
+            "description": "Upstream tile source unavailable.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                },
+                "example": "Service temporarily unavailable"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/toll_charges_by_od": {
+      "post": {
+        "tags": [
+          "Tolls"
+        ],
+        "operationId": "tollChargesByOd",
+        "summary": "Estimate toll charges between an origin-destination pair",
+        "description": "Calculates toll charges for a journey between an origin and destination coordinate pair.\nThe system computes the route internally and identifies toll plazas along the route.\nSupports multiple vehicle types and optionally returns alternate routes with their toll breakdowns.\n\n**SERVICE LIMITS**\n\n| Constraint | Value |\n| --- | --- |\n| Waypoints | Optional ordered intermediate stops between origin & destination |\n| Vehicle types | `motorcycle`, `car_jeep_van`, `lcv`, `bus_truck`, `upto_3_axle`, `axle_4_to_6`, `hcm_eme`, `axle_7_plus` |\n| Max routes returned | 1 recommended + alternates |\n\n> When `waypoints` are supplied, the routing engine returns a single stitched route (no alternates), regardless of `include_alternates`.\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TollByOdRequest"
+              },
+              "example": {
+                "origin": {
+                  "lat": 24.5713,
+                  "lng": 73.6915
+                },
+                "destination": {
+                  "lat": 28.4089,
+                  "lng": 77.3178
+                },
+                "vehicle_type": "bus_truck",
+                "include_alternates": true,
+                "include_polyline": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Toll charges computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TollByOdResponse"
+                },
+                "example": {
+                  "req_id": "550e8400-e29b-41d4-a716-446655440000",
+                  "status": 200,
+                  "data": {
+                    "request_params": {
+                      "origin": {
+                        "lat": 24.5713,
+                        "lng": 73.6915
+                      },
+                      "destination": {
+                        "lat": 28.4089,
+                        "lng": 77.3178
+                      },
+                      "vehicle_type": "bus_truck",
+                      "include_alternates": true,
+                      "include_polyline": false
+                    },
+                    "routes": [
+                      {
+                        "route_name": "Recommended Route",
+                        "route_type": "recommended",
+                        "distance_km": 653.35,
+                        "duration_sec": 44861.7,
+                        "origin_state": {
+                          "state_code": "RJ",
+                          "state_name": "Rajasthan"
+                        },
+                        "states_entered": [
+                          {
+                            "sequence_no": 1,
+                            "state_code": "HR",
+                            "state_name": "Haryana"
+                          }
+                        ],
+                        "summary": {
+                          "toll_plaza_count": 8,
+                          "total_toll_inr": 3887.44,
+                          "total_cost_inr": 3887.44
+                        },
+                        "toll_plazas": [
+                          {
+                            "toll_id": "dlv_00317",
+                            "name": "Narayanpura",
+                            "lat": 24.613469,
+                            "lon": 74.23173,
+                            "address": "",
+                            "city": "",
+                            "state": "",
+                            "pincode": "",
+                            "toll_type": "flat",
+                            "toll_rate_inr": 510.0
+                          },
+                          {
+                            "toll_type": "close_loop",
+                            "toll_rate_inr": 1067.44,
+                            "entry_toll": {
+                              "toll_id": "dlv_06145",
+                              "name": "Barkapara",
+                              "lat": 26.52829037,
+                              "lon": 76.24764258,
+                              "address": "",
+                              "city": "",
+                              "state": "",
+                              "pincode": ""
+                            },
+                            "exit_toll": {
+                              "toll_id": "dlv_00845",
+                              "name": "Alwar Interchange Toll Plaza",
+                              "lat": 27.4854298,
+                              "lon": 76.8448412,
+                              "address": "",
+                              "city": "",
+                              "state": "",
+                              "pincode": ""
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TollErrorResponse"
+                },
+                "examples": {
+                  "invalidRequest": {
+                    "summary": "Body is not valid JSON",
+                    "value": {
+                      "status": 400,
+                      "code": "INVALID_REQUEST",
+                      "message": "Body is not valid JSON"
+                    }
+                  },
+                  "validationError": {
+                    "summary": "Missing or invalid required fields",
+                    "value": {
+                      "status": 400,
+                      "code": "VALIDATION_ERROR",
+                      "message": "Missing required field: origin"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream routing API error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TollErrorResponse"
+                },
+                "example": {
+                  "status": 502,
+                  "code": "ROUTING_API_ERROR",
+                  "message": "Upstream Valhalla call failed",
+                  "details": {
+                    "upstream_status": 504,
+                    "upstream_message": "Routing request timed out"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/toll_charges_by_route": {
+      "post": {
+        "tags": [
+          "Tolls"
+        ],
+        "operationId": "tollChargesByRoute",
+        "summary": "Estimate toll charges along user-provided route polylines.",
+        "description": "Calculates toll charges for one or more route polylines provided by the user.\n\n**SERVICE LIMITS**\n\n| Constraint | Value |\n| --- | --- |\n| Max polylines per request | 3 |\n| Min polylines per request | 1 |\n| Minimum Polyline Coordinates | 2 coordinate pairs per route |\n| Polyline format | Array of `[lat, lon]` pairs |\n| Vehicle types | `motorcycle`, `car_jeep_van`, `lcv`, `bus_truck`, `upto_3_axle`, `axle_4_to_6`, `hcm_eme`, `axle_7_plus` |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TollByRouteRequest"
+              },
+              "example": {
+                "routes": [
+                  {
+                    "route_name": "Gurgaon to Khorpuri",
+                    "geometry": [
+                      [28.34145, 77.068048],
+                      [28.333546, 77.067674],
+                      [28.299528, 77.06762],
+                      [28.213695, 77.123673],
+                      [28.052488, 77.130994],
+                      [27.503044, 76.862764]
+                    ]
+                  }
+                ],
+                "vehicle_type": "bus_truck"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Toll charges computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TollByRouteResponse"
+                },
+                "example": {
+                  "req_id": "req-route-001",
+                  "status": 200,
+                  "data": {
+                    "request_params": {
+                      "vehicle_type": "bus_truck"
+                    },
+                    "routes": [
+                      {
+                        "route_name": "Gurgaon to Khorpuri",
+                        "origin_state": {
+                          "state_code": "HR",
+                          "state_name": "Haryana"
+                        },
+                        "states_entered": [
+                          {
+                            "sequence_no": 1,
+                            "state_code": "RJ",
+                            "state_name": "Rajasthan"
+                          }
+                        ],
+                        "summary": {
+                          "toll_plaza_count": 3,
+                          "total_toll_inr": 1595.0,
+                          "total_cost_inr": 1595.0
+                        },
+                        "toll_plazas": [
+                          {
+                            "toll_id": "dlv_00652",
+                            "name": "Ghamroj",
+                            "lat": 28.333785,
+                            "lon": 77.067456,
+                            "address": "",
+                            "city": "",
+                            "state": "",
+                            "pincode": "",
+                            "toll_type": "flat",
+                            "toll_rate_inr": 440.0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TollErrorResponse"
+                },
+                "examples": {
+                  "invalidRequest": {
+                    "summary": "Body is not valid JSON",
+                    "value": {
+                      "status": 400,
+                      "code": "INVALID_REQUEST",
+                      "message": "Body is not valid JSON"
+                    }
+                  },
+                  "validationError": {
+                    "summary": "Missing or invalid required fields",
+                    "value": {
+                      "status": 400,
+                      "code": "VALIDATION_ERROR",
+                      "message": "Geometry must contain at least 2 coordinate pairs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/route-plan": {
+      "post": {
+        "tags": [
+          "Route Planning"
+        ],
+        "operationId": "planRoutes",
+        "summary": "Calculate optimized, capacity-aware delivery routes across a multi-vehicle fleet to minimize total distance, transit time, and operational costs.",
+        "description": "Solves the Vehicle Routing Problem (VRP) by assigning delivery orders across a fleet of vehicles from a central depot to generate optimized, stop-by-stop routes.\n\nAccepts location data as exact coordinates or text addresses with automatic geocoding. The engine minimizes total transit distance and duration while enforcing per-vehicle weight and volume limits.\n\n**ORDER LOCATION**\n\nEach order must specify either a order coordinate pair (`lat, long`) or an order address. If an address is provided, it is automatically geocoded, and the resolved coordinates are returned in the resulting route stop payload.\n\n**SERVICE LIMITS**\n\n| Constraint | Description |\n| --- | --- |\n| Orders | Must be between 1 and 50. |\n| Order Address | Order address must be located in India. |\n| Order Location | Order Location must be within Indian territory. |\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlanRequest"
+              },
+              "example": {
+                "req_id": "plan-dev-test-003",
+                "num_vehicles": 2,
+                "depot_lat": 28.4599476,
+                "depot_lng": 77.0679584,
+                "return_to_depot": true,
+                "vehicle_mode": "auto",
+                "orders": [
+                  {
+                    "order_id": "ORD001",
+                    "order_lat": 28.48,
+                    "order_lng": 77.09,
+                    "order_weight": 10,
+                    "order_volume": 5000
+                  },
+                  {
+                    "order_id": "ORD002",
+                    "order_lat": 28.5,
+                    "order_lng": 77.1,
+                    "order_weight": 15,
+                    "order_volume": 7000
+                  },
+                  {
+                    "order_id": "ORD003",
+                    "order_address": "DLF Cyber City, Gurugram, Haryana",
+                    "order_weight": 5,
+                    "order_volume": 2000
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plan computed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlanResponse"
+                },
+                "example": {
+                  "plan_status": true,
+                  "plan_summary": {
+                    "assigned_orders": 3,
+                    "total_distance": 41.488,
+                    "total_duration": 5606,
+                    "total_orders": 3,
+                    "unassigned_orders": 0,
+                    "vehicles_used": 1
+                  },
+                  "req_id": "plan-dev-test-003",
+                  "request_id": "5e4c8ba3-5586-43f9-ae86-db913f229922",
+                  "routes_info": [
+                    {
+                      "num_stops": 3,
+                      "orders": [
+                        "ORD003",
+                        "ORD002",
+                        "ORD001"
+                      ],
+                      "route": [
+                        {
+                          "lat": 28.4599476,
+                          "lng": 77.0679584,
+                          "type": "depot"
+                        },
+                        {
+                          "lat": 28.56609184945,
+                          "lng": 77.0881103076,
+                          "order_id": "ORD003",
+                          "sequence": 1,
+                          "type": "order"
+                        },
+                        {
+                          "lat": 28.5,
+                          "lng": 77.1,
+                          "order_id": "ORD002",
+                          "sequence": 2,
+                          "type": "order"
+                        },
+                        {
+                          "lat": 28.48,
+                          "lng": 77.09,
+                          "order_id": "ORD001",
+                          "sequence": 3,
+                          "type": "order"
+                        },
+                        {
+                          "lat": 28.4599476,
+                          "lng": 77.0679584,
+                          "type": "depot"
+                        }
+                      ],
+                      "total_distance": 41.488,
+                      "total_duration": 5606,
+                      "total_volume": 14000.0,
+                      "total_weight": 30.0,
+                      "vehicle_id": "vehicle_1"
+                    }
+                  ],
+                  "unassigned_orders": []
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "examples": {
+                  "missingField": {
+                    "summary": "Missing required field",
+                    "value": {
+                      "error": "Missing required field: depot_lat"
+                    }
+                  },
+                  "noOrders": {
+                    "summary": "Empty order list",
+                    "value": {
+                      "error": "At least one order is required"
+                    }
+                  },
+                  "badOrderLocation": {
+                    "summary": "Order lacks both coordinates and address",
+                    "value": {
+                      "error": "Order ORD003 must provide either order_lat/order_lng or order_address"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Missing or invalid Authorization header"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Rate limit exceeded"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimpleError"
+                },
+                "example": {
+                  "error": "Unexpected internal error"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'plan' unavailable"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Upstream timed out.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailError"
+                },
+                "example": {
+                  "detail": "Upstream service 'plan' timed out"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PlanRequest": {
+        "type": "object",
+        "required": [
+          "orders",
+          "depot_lat",
+          "depot_lng",
+          "num_vehicles"
+        ],
+        "properties": {
+          "orders": {
+            "type": "array",
+            "minItems": 1,
+            "description": "A list of dictionaries where each dictionary contains the metadata of an order.",
+            "items": {
+              "$ref": "#/components/schemas/PlanOrder"
+            }
+          },
+          "depot_lat": {
+            "type": "number",
+            "format": "double",
+            "description": "Depot latitude.",
+            "example": 28.4599476
+          },
+          "depot_lng": {
+            "type": "number",
+            "format": "double",
+            "description": "Depot longitude.",
+            "example": 77.0679584
+          },
+          "num_vehicles": {
+            "type": "integer",
+            "description": "Number of vehicles available at the depot.",
+            "example": 2
+          },
+          "vehicle_max_weight": {
+            "type": "number",
+            "format": "double",
+            "description": "Maximum weight in kilograms that one vehicle in this contract can serve. Defaults to 1000 kg.",
+            "example": 1000
+          },
+          "vehicle_max_volume": {
+            "type": "number",
+            "format": "double",
+            "description": "Maximum volume in cubic centimeters that one vehicle in this contract can serve. Defaults to 100000 cm³.",
+            "example": 100000
+          },
+          "max_stops": {
+            "type": "integer",
+            "description": "Maximum number of unique locations a vehicle can visit in a route apart from its starting location. Defaults to 100.",
+            "example": 100
+          },
+          "max_distance": {
+            "type": "number",
+            "format": "double",
+            "description": "Maximum distance in kilometers till which the vehicle can be used. Defaults to 1000 km.",
+            "example": 1000
+          },
+          "max_time": {
+            "type": "number",
+            "format": "double",
+            "description": "Maximum time in seconds till which the vehicle can be used. Defaults to 86400 seconds (1 day).",
+            "example": 86400
+          },
+          "plan_start_time": {
+            "type": "string",
+            "description": "Absolute wall-clock time at which the vehicle shift begins (e.g., '2026-06-03 09:00+05:30'). If missing, order time windows are dropped.",
+            "example": "2026-06-03 09:00+05:30"
+          },
+          "return_to_depot": {
+            "type": "boolean",
+            "description": "Controls whether vehicles must return to the depot after serving their last order.",
+            "example": true
+          },
+          "vehicle_mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "truck",
+              "bike",
+              "foot"
+            ],
+            "description": "Travel mode passed through to the distance-matrix API. Allowed values: 'auto', 'truck', 'bike', 'foot'.",
+            "example": "auto"
+          }
+        }
+      },
+      "PlanOrder": {
+        "type": "object",
+        "required": [
+          "order_id"
+        ],
+        "description": "A single order. Provide either order_lat/order_lng or order_address.",
+        "properties": {
+          "order_id": {
+            "type": "string",
+            "description": "Unique identifier of the order.",
+            "example": "ORD001"
+          },
+          "order_address": {
+            "type": "string",
+            "description": "Complete delivery address of the order. Either order_address or (order_lat, order_lng) must be provided.",
+            "example": "DLF Cyber City, Gurugram, Haryana"
+          },
+          "order_lat": {
+            "type": "number",
+            "format": "double",
+            "description": "Order latitude. Required if order_address is not provided.",
+            "example": 28.48
+          },
+          "order_lng": {
+            "type": "number",
+            "format": "double",
+            "description": "Order longitude. Required if order_address is not provided.",
+            "example": 77.09
+          },
+          "order_service_duration": {
+            "type": "integer",
+            "description": "Total time in seconds to service the demand of this order once a vehicle has arrived at the location. Defaults to 0 seconds.",
+            "example": 600
+          },
+          "order_weight": {
+            "type": "number",
+            "description": "Total weight in kilograms of all items in the order. Defaults to 0 kg.",
+            "example": 10
+          },
+          "order_volume": {
+            "type": "number",
+            "description": "Total volume in cubic centimeters of all items in the order. Defaults to 0 cm³.",
+            "example": 5000
+          },
+          "order_time_window_start": {
+            "type": "string",
+            "description": "Earliest time a vehicle can serve the order in format 'yyyy-mm-dd hh:mm' (e.g., '2024-06-17 14:30').",
+            "example": "2024-06-17 14:30"
+          },
+          "order_time_window_end": {
+            "type": "string",
+            "description": "Latest time till which a vehicle can serve the order in format 'yyyy-mm-dd hh:mm' (e.g., '2024-06-17 23:30').",
+            "example": "2024-06-17 23:30"
+          }
+        }
+      },
+      "PlanResponse": {
+        "type": "object",
+        "properties": {
+          "plan_status": {
+            "type": "boolean",
+            "description": "True if the solver found a solution, else False."
+          },
+          "routes_info": {
+            "type": "array",
+            "description": "List of routes generated by the solver, containing vehicle details, order assignments, route sequence, and metrics.",
+            "items": {
+              "$ref": "#/components/schemas/PlanRouteInfo"
+            }
+          },
+          "plan_summary": {
+            "$ref": "#/components/schemas/PlanSummary"
+          },
+          "unassigned_orders": {
+            "type": "array",
+            "description": "List of order IDs that could not be assigned to any vehicle by the solver.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PlanSummary": {
+        "type": "object",
+        "description": "Summary dictionary of the overall CVRP solution generated by the solver.",
+        "properties": {
+          "total_orders": {
+            "type": "integer",
+            "description": "Total number of orders provided in the input payload."
+          },
+          "assigned_orders": {
+            "type": "integer",
+            "description": "Total number of orders successfully assigned to vehicles in the solution."
+          },
+          "unassigned_orders": {
+            "type": "integer",
+            "description": "Total number of orders that could not be assigned to any vehicle in the solution."
+          },
+          "vehicles_used": {
+            "type": "integer",
+            "description": "Total number of vehicles used in the solution."
+          },
+          "total_distance": {
+            "type": "number",
+            "description": "Total distance travelled by all vehicles across all routes in the solution."
+          },
+          "total_duration": {
+            "type": "integer",
+            "description": "Total duration of all routes in the solution in seconds."
+          }
+        }
+      },
+      "PlanRouteInfo": {
+        "type": "object",
+        "properties": {
+          "vehicle_id": {
+            "type": "string",
+            "description": "Unique identifier of the vehicle assigned to the route."
+          },
+          "orders": {
+            "type": "array",
+            "description": "Ordered list of order IDs assigned to the vehicle for the route.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "route": {
+            "type": "array",
+            "description": "Ordered sequence of locations visited by the vehicle.",
+            "items": {
+              "$ref": "#/components/schemas/PlanRouteStop"
+            }
+          },
+          "total_distance": {
+            "type": "number",
+            "description": "Total distance travelled by the vehicle for the route in kilometers."
+          },
+          "total_duration": {
+            "type": "integer",
+            "description": "Total duration of the route in seconds, including travel and service time."
+          },
+          "total_weight": {
+            "type": "number",
+            "description": "Total weight in kilograms of all orders assigned to the vehicle for the route."
+          },
+          "total_volume": {
+            "type": "number",
+            "description": "Total volume in cubic centimeters of all orders assigned to the vehicle for the route."
+          },
+          "num_stops": {
+            "type": "integer",
+            "description": "Total number of order stops visited by the vehicle in the route."
+          }
+        }
+      },
+      "PlanRouteStop": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "depot",
+              "order"
+            ],
+            "description": "Type of location in the route ('depot' or 'order')."
+          },
+          "order_id": {
+            "type": "string",
+            "description": "Unique identifier of the order being serviced (applicable when type is 'order')."
+          },
+          "lat": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude of the route location."
+          },
+          "lng": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude of the route location."
+          },
+          "sequence": {
+            "type": "integer",
+            "description": "Sequence number of the order stop in the route."
+          }
+        }
+      },
+      "RouteRequest": {
+        "type": "object",
+        "required": [
+          "geo_coords"
+        ],
+        "properties": {
+          "geo_coords": {
+            "type": "array",
+            "description": "Ordered `[lat, lng]` waypoints. Minimum 2, all within India.",
+            "minItems": 2,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "travel_mode": {
+            "type": "string",
+            "description": "One of auto, motorcycle, truck, pedestrian.",
+            "default": "auto"
+          },
+          "alternate_routes": {
+            "type": "boolean",
+            "default": false,
+            "description": "Include alternate routes in response."
+          },
+          "traffic_aware": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables hour-of-day traffic-aware ETA calculations."
+          },
+          "departure_time": {
+            "type": "string",
+            "description": "Specifies the planned departure time (for example, `2026-06-03T18:00`) in ISO-8601 format. Defaults to the current time. This parameter is considered only when `traffic_aware` is set to `true`."
+          },
+          "route_modifiers": {
+            "type": "object",
+            "nullable": true,
+            "description": "Route avoidance preferences.",
+            "properties": {
+              "avoid_tolls": {
+                "type": "boolean"
+              },
+              "avoid_highways": {
+                "type": "boolean"
+              }
+            }
+          },
+          "output_format": {
+            "type": "object",
+            "description": "Controls how the response is shaped. Both keys are optional and default-merged, so you may send just one.",
+            "properties": {
+              "encode_polyline": {
+                "type": "boolean",
+                "default": true,
+                "description": "`true` → `geometry` and each `legs[].shape` are encoded polyline strings (precision 6). `false` → both are decoded `[[lat, lng], ...]` point lists. Replaces the old `decode_geometry` query parameter."
+              },
+              "maneuvers": {
+                "type": "boolean",
+                "default": false,
+                "description": "`false` → the `maneuvers` key is absent from every leg. `true` → each leg includes a `maneuvers` array (with `bearing_after`, `bearing_before`, `cost`, `travel_type`, `travel_mode`, and `time` removed from each maneuver)."
+              }
+            }
+          }
+        }
+      },
+      "RouteResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "Always `true` on success."
+          },
+          "request_id": {
+            "type": "string",
+            "description": "Unique request identifier."
+          },
+          "recommended_route": {
+            "type": "object",
+            "properties": {
+              "distance": {
+                "type": "number",
+                "description": "Total distance in km."
+              },
+              "duration": {
+                "type": "number",
+                "description": "Total duration in seconds."
+              },
+              "geometry": {
+                "description": "Encoded polyline string (precision 6) when `output_format.encode_polyline` is `true` (default), else decoded `[[lat, lng], ...]`."
+              },
+              "waypoints": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "lat": {
+                      "type": "number",
+                      "description": "Snapped latitude."
+                    },
+                    "lng": {
+                      "type": "number",
+                      "description": "Snapped longitude."
+                    },
+                    "snap_distance_m": {
+                      "type": "number",
+                      "description": "Distance in meters from the input coordinate to the snapped road point."
+                    }
+                  }
+                }
+              },
+              "legs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "shape": {
+                      "description": "Encoded polyline for the leg (precision 6) when `output_format.encode_polyline` is `true`, else decoded `[[lat, lng], ...]`."
+                    },
+                    "summary": {
+                      "type": "object",
+                      "description": "Leg-level summary. `cost` is not included.",
+                      "properties": {
+                        "length": {
+                          "type": "number",
+                          "description": "Leg distance in km."
+                        },
+                        "time": {
+                          "type": "number",
+                          "description": "Leg duration in seconds."
+                        },
+                        "has_ferry": {
+                          "type": "boolean"
+                        },
+                        "has_highway": {
+                          "type": "boolean"
+                        },
+                        "has_time_restrictions": {
+                          "type": "boolean"
+                        },
+                        "has_toll": {
+                          "type": "boolean"
+                        },
+                        "min_lat": {
+                          "type": "number"
+                        },
+                        "max_lat": {
+                          "type": "number"
+                        },
+                        "min_lon": {
+                          "type": "number"
+                        },
+                        "max_lon": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "maneuvers": {
+                      "type": "array",
+                      "description": "Present only when `output_format.maneuvers` is `true`. Each maneuver excludes `bearing_after`, `bearing_before`, `cost`, `travel_type`, `travel_mode`, and `time`.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "begin_shape_index": {
+                            "type": "integer"
+                          },
+                          "end_shape_index": {
+                            "type": "integer"
+                          },
+                          "instruction": {
+                            "type": "string"
+                          },
+                          "length": {
+                            "type": "number"
+                          },
+                          "street_names": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "type": {
+                            "type": "integer"
+                          },
+                          "verbal_post_transition_instruction": {
+                            "type": "string"
+                          },
+                          "verbal_pre_transition_instruction": {
+                            "type": "string"
+                          },
+                          "verbal_succinct_transition_instruction": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "alternates": {
+            "type": "array",
+            "description": "Alternate routes (same structure as `recommended_route`). Empty array if none.",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "MatrixRequest": {
+        "type": "object",
+        "required": [
+          "sources",
+          "targets"
+        ],
+        "properties": {
+          "sources": {
+            "type": "array",
+            "description": "List of `[lat, lng]` source coordinates. All within India.",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "targets": {
+            "type": "array",
+            "description": "List of `[lat, lng]` target coordinates. All within India.",
+            "minItems": 1,
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": {
+                "type": "number"
+              }
+            }
+          },
+          "travel_mode": {
+            "type": "string",
+            "default": "auto"
+          },
+          "route_modifiers": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "avoid_tolls": {
+                "type": "boolean"
+              },
+              "avoid_highways": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "MatrixResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "boolean"
+          },
+          "sources_to_targets": {
+            "type": "array",
+            "description": "2D matrix `[source_index][target_index]`.",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "distance": {
+                    "type": "number",
+                    "description": "Distance in km."
+                  },
+                  "time": {
+                    "type": "number",
+                    "description": "Duration in seconds."
+                  },
+                  "from_index": {
+                    "type": "integer"
+                  },
+                  "to_index": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RvgRequest": {
+        "type": "object",
+        "required": [
+          "req_id",
+          "lat",
+          "lng"
+        ],
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Unique request identifier."
+          },
+          "lat": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "lng": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          }
+        }
+      },
+      "RvgResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "req_id": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string"
+              },
+              "results": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "formatted_address": {
+                      "type": "string"
+                    },
+                    "types": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "geometry": {
+                      "type": "object",
+                      "properties": {
+                        "location": {
+                          "type": "object",
+                          "properties": {
+                            "lat": {
+                              "type": "number"
+                            },
+                            "lng": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "location_type": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "address_components": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "long_name": {
+                            "type": "string"
+                          },
+                          "short_name": {
+                            "type": "string"
+                          },
+                          "types": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "RvgErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "req_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "data": {
+            "nullable": true
+          },
+          "error": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "AddressRequest": {
+        "type": "object",
+        "required": [
+          "address"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "description": "Raw address string (max ~500 chars)."
+          },
+          "req_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional request identifier."
+          }
+        }
+      },
+      "GeocodeResponse": {
+        "type": "object",
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "lat": {
+            "type": "number",
+            "nullable": true,
+            "description": "Latitude of geocoded location."
+          },
+          "lng": {
+            "type": "number",
+            "nullable": true,
+            "description": "Longitude of geocoded location."
+          },
+          "error_radius": {
+            "type": "integer",
+            "nullable": true,
+            "description": "Positional uncertainty in meters. Lower = higher confidence."
+          },
+          "metadata": {
+            "type": "object",
+            "nullable": true,
+            "description": "Additional geocoding metadata.",
+            "properties": {
+              "pincode": {
+                "type": "string",
+                "nullable": true,
+                "description": "Postal code of the geocoded location."
+              }
+            }
+          }
+        }
+      },
+      "StandardizeResponse": {
+        "type": "object",
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "formatted_address": {
+            "type": "string"
+          },
+          "address_components": {
+            "type": "object",
+            "properties": {
+              "rooftop": {
+                "type": "string",
+                "nullable": true
+              },
+              "building": {
+                "type": "string",
+                "nullable": true
+              },
+              "floor": {
+                "type": "string",
+                "nullable": true
+              },
+              "street": {
+                "type": "string",
+                "nullable": true
+              },
+              "sub_locality": {
+                "type": "string",
+                "nullable": true
+              },
+              "locality": {
+                "type": "string",
+                "nullable": true
+              },
+              "landmark": {
+                "type": "string",
+                "nullable": true
+              },
+              "village": {
+                "type": "string",
+                "nullable": true
+              },
+              "tehsil": {
+                "type": "string",
+                "nullable": true
+              },
+              "post_office": {
+                "type": "string",
+                "nullable": true
+              },
+              "city": {
+                "type": "string",
+                "nullable": true
+              },
+              "district": {
+                "type": "string",
+                "nullable": true
+              },
+              "state": {
+                "type": "string",
+                "nullable": true
+              },
+              "pincode": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "corrections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "SearchResponse": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "entity_id": {
+              "type": "string"
+            },
+            "entity_name": {
+              "type": "string"
+            },
+            "display_text": {
+              "type": "string"
+            },
+            "full_address": {
+              "type": "string"
+            },
+            "shape": {
+              "type": "string",
+              "nullable": true
+            },
+            "lat": {
+              "type": "number",
+              "nullable": true
+            },
+            "long": {
+              "type": "number",
+              "nullable": true
+            },
+            "entity_type": {
+              "type": "string"
+            },
+            "score": {
+              "type": "number"
+            }
+          }
+        }
+      },
+      "IsochroneRequest": {
+        "type": "object",
+        "required": [
+          "origin",
+          "cost_type",
+          "cost_value"
+        ],
+        "properties": {
+          "origin": {
+            "type": "array",
+            "description": "Origin point as `[latitude, longitude]`. Must be inside India.",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+              "type": "number"
+            },
+            "example": [
+              28.6139,
+              77.209
+            ]
+          },
+          "cost_type": {
+            "type": "string",
+            "enum": [
+              "time",
+              "distance"
+            ],
+            "description": "Selects the product: `time` → isochrone (budget in seconds), `distance` → isodistance (budget in metres).",
+            "example": "time"
+          },
+          "cost_value": {
+            "type": "number",
+            "description": "The budget. Seconds when `cost_type` is `time` (max 7,200 = 120 min); metres when `cost_type` is `distance` (max 100,000 = 100 km). Must be greater than 0.",
+            "exclusiveMinimum": 0,
+            "example": 600
+          },
+          "travel_mode": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "motorcycle",
+              "truck",
+              "pedestrian"
+            ],
+            "default": "auto",
+            "description": "Vehicle profile used for the expansion."
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "outbound",
+              "inbound"
+            ],
+            "default": "outbound",
+            "description": "`outbound` = area reachable from the origin; `inbound` = area that can reach the origin."
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "default": "medium",
+            "description": "Polygon detail. `high` returns more vertices and a tighter boundary at a small latency cost; `low` returns a coarser, lighter polygon."
+          },
+          "enable_smoothing": {
+            "type": "boolean",
+            "default": false,
+            "description": "Reserved. Accepted and type-validated, but currently has no effect on the returned geometry."
+          },
+          "traffic_aware": {
+            "type": "boolean",
+            "default": false,
+            "description": "Enables time-dependent costing for `cost_type: time`."
+          },
+          "departure_time": {
+            "type": "string",
+            "nullable": true,
+            "default": null,
+            "description": "Departure time in IST, `YYYY-MM-DDTHH:MM`. Only used when `traffic_aware` is `true`.",
+            "example": "2026-06-03T09:00"
+          },
+          "encode_geojson": {
+            "type": "boolean",
+            "default": true,
+            "description": "Response geometry format. The default is `true` when this field is omitted, which returns encoded geometry to reduce response size. Set to `false` to receive standard GeoJSON numeric coordinate arrays in `[longitude, latitude]` order. This changes only the response representation, not the computed reachable area."
+          },
+          "route_modifiers": {
+            "$ref": "#/components/schemas/IsochroneRouteModifiers"
+          },
+          "req_id": {
+            "type": "string",
+            "description": "Optional client correlation id — echoed back in the response and recorded in logs.",
+            "example": "iso-123"
+          }
+        }
+      },
+      "IsochroneRouteModifiers": {
+        "type": "object",
+        "nullable": true,
+        "description": "Road-class preferences applied to the expansion.",
+        "properties": {
+          "avoid_tolls": {
+            "type": "boolean",
+            "default": false,
+            "description": "Penalise tolled roads."
+          },
+          "avoid_highways": {
+            "type": "boolean",
+            "default": false,
+            "description": "Penalise highways."
+          }
+        }
+      },
+      "IsochroneResponse": {
+        "type": "object",
+        "description": "A GeoJSON `FeatureCollection` with two extra top-level keys (`status`, `request_id`) that do not affect GeoJSON compatibility. Always contains exactly one feature.",
+        "properties": {
+          "status": {
+            "type": "boolean",
+            "description": "Always `true` on success.",
+            "example": true
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "FeatureCollection"
+            ],
+            "description": "GeoJSON type."
+          },
+          "features": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1,
+            "description": "Exactly one feature — one contour is requested per call.",
+            "items": {
+              "$ref": "#/components/schemas/IsochroneFeature"
+            }
+          },
+          "req_id": {
+            "type": "string",
+            "description": "Echoed from the request. Present only if the client sent it.",
+            "example": "iso-123"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Server-generated id for log tracing. Quote this when reporting an issue.",
+            "example": "a70c93e2-8f4b-4c1a-b71d-8095b2988ba3"
+          }
+        }
+      },
+      "IsochroneFeature": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Feature"
+            ]
+          },
+          "properties": {
+            "type": "object",
+            "properties": {
+              "cost_type": {
+                "type": "string",
+                "enum": [
+                  "time",
+                  "distance"
+                ],
+                "description": "Echo of the request — tells you whether this polygon is an isochrone or an isodistance."
+              },
+              "cost_value": {
+                "type": "number",
+                "description": "Echo of the request budget (seconds for `time`, metres for `distance`)."
+              },
+              "travel_mode": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "motorcycle",
+                  "truck",
+                  "pedestrian"
+                ],
+                "description": "Echo of the resolved travel mode (`auto` when the request omitted it)."
+              },
+              "area_sq_km": {
+                "type": "number",
+                "description": "Area enclosed by the polygon in square kilometres, rounded to 2 decimal places.",
+                "example": 8.4
+              }
+            }
+          },
+          "geometry": {
+            "$ref": "#/components/schemas/IsochronePolygon"
+          }
+        }
+      },
+      "IsochronePolygon": {
+        "type": "object",
+        "description": "Reachable-area geometry returned by the Isochrone/Isodistance API. By default, or when `encode_geojson` is omitted, the geometry is returned in an encoded format to reduce response size. To receive standard GeoJSON coordinates directly, send `encode_geojson: false`. With `encode_geojson: false`, coordinates are numeric GeoJSON arrays in `[longitude, latitude]` order. The request `origin` uses `[latitude, longitude]` order.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Polygon",
+              "MultiPolygon"
+            ]
+          },
+          "coordinates": {
+            "description": "Response coordinates depend on `encode_geojson`. By default, or when omitted, the API returns encoded geometry to reduce response size. Set `encode_geojson: false` to receive standard GeoJSON numeric coordinate arrays directly in `[longitude, latitude]` order. The default encoded form and the standard GeoJSON form represent the same area.",
+            "oneOf": [
+              {
+                "title": "Encoded Polygon",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "title": "Encoded MultiPolygon",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "title": "Raw Polygon",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              {
+                "title": "Raw MultiPolygon",
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "minItems": 2,
+                      "maxItems": 2,
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "IsochroneError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Human-readable failure reason."
+          },
+          "error_code": {
+            "type": "integer",
+            "description": "Present on routing-engine errors only. `1001` = type error, `1002` = value error, `1003` = routing/upstream error. Absent on API-level errors (missing payload, missing field, invalid travel mode).",
+            "enum": [
+              1001,
+              1002,
+              1003
+            ]
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Server-generated id for log tracing."
+          },
+          "req_id": {
+            "type": "string",
+            "description": "Echoed from the request. Present only if the client sent it."
+          }
+        }
+      },
+      "SimpleError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      },
+      "DetailError": {
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Human-readable reason."
+          }
+        }
+      },
+      "RoutingError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "integer",
+            "description": "1001=DATA_TYPE_ERROR, 1002=DATA_VALUE_ERROR, 1003=ROUTING_API_ERROR"
+          }
+        }
+      },
+      "AddressError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "req_id": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "VerifyVisitRequest": {
+        "type": "object",
+        "required": [
+          "address_text",
+          "latitude",
+          "longitude"
+        ],
+        "properties": {
+          "address_text": {
+            "type": "string",
+            "description": "Raw input address string. It should not be blank."
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Latitude of the visit / attempt location. It should be within the Indian subcontinent."
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "description": "Longitude of the visit / attempt location. It should be within the Indian subcontinent."
+          },
+          "radius_meters": {
+            "type": "number",
+            "format": "double",
+            "minimum": 10,
+            "maximum": 1000,
+            "nullable": true,
+            "description": "Target radius in meters, 10 to 1000 (both inclusive). Defaults to the service's configured default radius when omitted; values outside the range return 422."
+          },
+          "req_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Caller's optional tracking ID"
+          }
+        }
+      },
+      "VerifyVisitResponse": {
+        "type": "object",
+        "required": [
+          "is_within_target_radius"
+        ],
+        "properties": {
+          "is_within_target_radius": {
+            "type": "boolean",
+            "description": "True when the visit location matches a known address cluster within the target radius."
+          },
+          "granularity_level": {
+            "type": "string",
+            "enum": [
+              "PREMISE",
+              "STREET_LANDMARK",
+              "SUBLOCALITY_VILLAGE",
+              "LOCALITY"
+            ],
+            "nullable": true,
+            "description": "Finest verified semantic level; null when no match."
+          },
+          "estimated_distance_meters": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Estimated distance in meters between the visit location and the matched address; null when no match."
+          }
+        }
+      },
+      "TollByOdRequest": {
+        "type": "object",
+        "required": [
+          "origin",
+          "destination",
+          "vehicle_type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "description": "Optional request id for tracing. If provided it must be non-empty; if omitted, the service auto-generates a UUID and returns it in the response."
+          },
+          "origin": {
+            "type": "object",
+            "required": ["lat", "lng"],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90,
+                "description": "Origin latitude."
+              },
+              "lng": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180,
+                "description": "Origin longitude."
+              }
+            }
+          },
+          "destination": {
+            "type": "object",
+            "required": ["lat", "lng"],
+            "properties": {
+              "lat": {
+                "type": "number",
+                "minimum": -90,
+                "maximum": 90,
+                "description": "Destination latitude."
+              },
+              "lng": {
+                "type": "number",
+                "minimum": -180,
+                "maximum": 180,
+                "description": "Destination longitude."
+              }
+            }
+          },
+          "waypoints": {
+            "type": "array",
+            "default": [],
+            "description": "Optional ordered list of intermediate stops between origin and destination. The route visits them in order. When supplied, a single stitched route is returned (no alternates).",
+            "items": {
+              "type": "object",
+              "required": ["lat", "lng"],
+              "properties": {
+                "lat": {
+                  "type": "number",
+                  "minimum": -90,
+                  "maximum": 90,
+                  "description": "Waypoint latitude."
+                },
+                "lng": {
+                  "type": "number",
+                  "minimum": -180,
+                  "maximum": 180,
+                  "description": "Waypoint longitude."
+                }
+              }
+            }
+          },
+          "vehicle_type": {
+            "type": "string",
+            "description": "Vehicle category for toll rate lookup.",
+            "enum": [
+              "motorcycle",
+              "car_jeep_van",
+              "lcv",
+              "bus_truck",
+              "upto_3_axle",
+              "axle_4_to_6",
+              "hcm_eme",
+              "axle_7_plus"
+            ]
+          },
+          "include_alternates": {
+            "type": "boolean",
+            "default": true,
+            "description": "If true, returns toll breakdowns for alternate routes in addition to the recommended route. Ignored when waypoints are supplied."
+          },
+          "include_polyline": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, each route in the response includes a `polyline` field with the ordered `[lat, lon]` route geometry."
+          }
+        }
+      },
+      "TollByRouteRequest": {
+        "type": "object",
+        "required": [
+          "routes",
+          "vehicle_type"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "description": "Optional request id for tracing. If provided it must be non-empty; if omitted, the service auto-generates a UUID and returns it in the response."
+          },
+          "routes": {
+            "type": "array",
+            "description": "Array of route objects with user-provided geometry.",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["geometry"],
+              "properties": {
+                "route_name": {
+                  "type": "string",
+                  "description": "Optional human-readable label for the route. Defaults to `Route N`."
+                },
+                "geometry": {
+                  "type": "array",
+                  "description": "Ordered array of `[lat, lon]` coordinate pairs defining the route.",
+                  "minItems": 2,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "vehicle_type": {
+            "type": "string",
+            "description": "Vehicle category for toll rate lookup.",
+            "enum": [
+              "motorcycle",
+              "car_jeep_van",
+              "lcv",
+              "bus_truck",
+              "upto_3_axle",
+              "axle_4_to_6",
+              "hcm_eme",
+              "axle_7_plus"
+            ]
+          }
+        }
+      },
+      "TollByOdResponse": {
+        "type": "object",
+        "properties": {
+          "req_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "request_params": {
+                "type": "object",
+                "properties": {
+                  "origin": {
+                    "type": "object",
+                    "properties": {
+                      "lat": { "type": "number" },
+                      "lng": { "type": "number" }
+                    }
+                  },
+                  "destination": {
+                    "type": "object",
+                    "properties": {
+                      "lat": { "type": "number" },
+                      "lng": { "type": "number" }
+                    }
+                  },
+                  "waypoints": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "lat": { "type": "number" },
+                        "lng": { "type": "number" }
+                      }
+                    }
+                  },
+                  "vehicle_type": { "type": "string" },
+                  "include_alternates": { "type": "boolean" },
+                  "include_polyline": { "type": "boolean" }
+                }
+              },
+              "routes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TollRouteResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TollByRouteResponse": {
+        "type": "object",
+        "properties": {
+          "req_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "request_params": {
+                "type": "object",
+                "properties": {
+                  "vehicle_type": { "type": "string" }
+                }
+              },
+              "routes": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TollRouteResult"
+                }
+              }
+            }
+          }
+        }
+      },
+      "TollRouteResult": {
+        "type": "object",
+        "description": "Toll breakdown for a single route.",
+        "properties": {
+          "route_name": {
+            "type": "string",
+            "description": "Label for the route (e.g. 'Recommended Route', 'Alternate 1', or user-provided name)."
+          },
+          "route_type": {
+            "type": "string",
+            "enum": ["recommended", "alternate"],
+            "description": "Whether this is the recommended or an alternate route. Only present in by-od responses."
+          },
+          "distance_km": {
+            "type": "number",
+            "description": "Total route distance in kilometres. Only present in by-od responses."
+          },
+          "duration_sec": {
+            "type": "number",
+            "description": "Estimated travel time in seconds. Only present in by-od responses."
+          },
+          "polyline": {
+            "type": "array",
+            "description": "Ordered `[lat, lon]` pairs of the full route geometry. Only present in by-od responses when `include_polyline` is true.",
+            "items": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 2,
+              "items": { "type": "number" }
+            }
+          },
+          "origin_state": {
+            "$ref": "#/components/schemas/TollStateInfo"
+          },
+          "states_entered": {
+            "type": "array",
+            "description": "States crossed during the journey (excluding origin state), in traversal order.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sequence_no": {
+                  "type": "integer",
+                  "description": "1-indexed order in which the state is entered."
+                },
+                "state_code": { "type": "string" },
+                "state_name": { "type": "string" }
+              }
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "toll_plaza_count": {
+                "type": "integer",
+                "description": "Number of toll items on this route (a close_loop pair counts as one)."
+              },
+              "total_toll_inr": {
+                "type": "number",
+                "description": "Sum of all toll plaza charges in INR."
+              },
+              "total_cost_inr": {
+                "type": "number",
+                "description": "Total journey cost in INR. Equal to total_toll_inr."
+              }
+            }
+          },
+          "toll_plazas": {
+            "type": "array",
+            "description": "Ordered list of toll plazas encountered, in travel direction. Items are either flat tolls or close-loop tolls.",
+            "items": {
+              "oneOf": [
+                { "$ref": "#/components/schemas/FlatTollPlaza" },
+                { "$ref": "#/components/schemas/CloseLoopTollPlaza" }
+              ]
+            }
+          }
+        }
+      },
+      "TollStateInfo": {
+        "type": "object",
+        "description": "State information.",
+        "properties": {
+          "state_code": {
+            "type": "string",
+            "description": "Two-letter state code (e.g. HR, RJ)."
+          },
+          "state_name": {
+            "type": "string"
+          }
+        }
+      },
+      "FlatTollPlaza": {
+        "type": "object",
+        "description": "A single flat-rate toll plaza.",
+        "properties": {
+          "toll_id": {
+            "type": "string",
+            "description": "Unique Delhivery toll identifier."
+          },
+          "name": {
+            "type": "string",
+            "description": "Toll plaza name."
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lon": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "pincode": {
+            "type": "string"
+          },
+          "toll_type": {
+            "type": "string",
+            "enum": ["flat"],
+            "description": "Always `flat` for single-point toll plazas."
+          },
+          "toll_rate_inr": {
+            "type": "number",
+            "description": "Toll charge in INR."
+          }
+        }
+      },
+      "CloseLoopTollPlaza": {
+        "type": "object",
+        "description": "A closed-loop (entry/exit) toll where the charge depends on distance travelled between two plazas.",
+        "properties": {
+          "toll_type": {
+            "type": "string",
+            "enum": ["close_loop"],
+            "description": "Always `close_loop` for entry/exit toll pairs."
+          },
+          "toll_rate_inr": {
+            "type": "number",
+            "description": "Computed toll charge in INR based on entry-to-exit distance."
+          },
+          "entry_toll": {
+            "type": "object",
+            "description": "Entry toll plaza details.",
+            "properties": {
+              "toll_id": { "type": "string" },
+              "name": { "type": "string" },
+              "lat": { "type": "number" },
+              "lon": { "type": "number" },
+              "address": { "type": "string" },
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "pincode": { "type": "string" }
+            }
+          },
+          "exit_toll": {
+            "type": "object",
+            "description": "Exit toll plaza details.",
+            "properties": {
+              "toll_id": { "type": "string" },
+              "name": { "type": "string" },
+              "lat": { "type": "number" },
+              "lon": { "type": "number" },
+              "address": { "type": "string" },
+              "city": { "type": "string" },
+              "state": { "type": "string" },
+              "pincode": { "type": "string" }
+            }
+          }
+        }
+      },
+      "TollErrorResponse": {
+        "type": "object",
+        "description": "Error response for toll endpoints.",
+        "required": ["status", "code", "message"],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "description": "HTTP status code."
+          },
+          "code": {
+            "type": "string",
+            "enum": ["INVALID_REQUEST", "VALIDATION_ERROR", "ROUTING_API_ERROR"],
+            "description": "Machine-readable error code."
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable error description."
+          },
+          "details": {
+            "type": "object",
+            "nullable": true,
+            "description": "Additional context (present for ROUTING_API_ERROR).",
+            "properties": {
+              "upstream_status": {
+                "type": "integer"
+              },
+              "upstream_message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

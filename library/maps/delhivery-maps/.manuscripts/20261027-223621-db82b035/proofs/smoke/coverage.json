@@ -1,0 +1,21 @@
+{
+  "hub": [
+    28.4599,
+    77.0679
+  ],
+  "cost_type": "time",
+  "cost_value": 1200,
+  "total": 2,
+  "inside": 1,
+  "outside": 1,
+  "ungeocoded": 0,
+  "missing": 0,
+  "failed": 0,
+  "deferred": 0,
+  "planned_calls": 1,
+  "calls_made": 1,
+  "cache_hits": 0,
+  "max_calls": 48,
+  "rate_limited": false,
+  "out": "<tmp>/flagged.csv"
+}

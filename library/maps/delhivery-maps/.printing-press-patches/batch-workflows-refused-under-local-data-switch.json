@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "id": "batch-workflows-refused-under-local-data-switch",
+  "applied_at": "2026-10-29",
+  "base_run_id": "20261027-223621-db82b035",
+  "base_printing_press_version": "4.34.2",
+  "summary": "With DELHIVERY_MAPS_NO_LOCAL_DATA=1 the batch workflows must be refused, not run: they cache every response and write addresses, and the switch promises no local API data. A --dry-run of each stays allowed because it makes no calls.",
+  "reason": "The generated local-data policy only refuses sync and workflow archive, so a regen would let address clean and the other batch commands keep saving API data and addresses while doctor reports that store writes are off.",
+  "files": ["internal/cli/root.go"]
+}

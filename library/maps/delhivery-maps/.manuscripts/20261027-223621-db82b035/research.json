@@ -1,0 +1,194 @@
+{
+  "api_name": "delhivery-maps",
+  "novelty_score": 8,
+  "alternatives": [],
+  "gaps": [],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-10-27T17:12:45Z",
+  "novel_features": [
+    {
+      "name": "Bulk address cleaning",
+      "command": "address clean",
+      "description": "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred.",
+      "rationale": "Composes three endpoints with rate-limit back-off, retries and a resumable local cache that single API calls cannot provide.",
+      "example": "delhivery-maps-pp-cli address clean --file orders.csv --out cleaned.csv --concurrency 4 --resume",
+      "why_it_matters": "Reach for this when you have more than a handful of addresses to standardise, validate or geocode; cached rows cost nothing on a rerun.",
+      "group": "Bulk address quality"
+    },
+    {
+      "name": "Trip quote",
+      "command": "trip quote",
+      "description": "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll).",
+      "rationale": "Chains the route polyline into toll-by-polylines and geocodes addresses from cache, which users otherwise stitch by hand.",
+      "example": "delhivery-maps-pp-cli trip quote --from \"Sector 45 Gurgaon\" --to \"Jaipur\" --vehicle bus_truck --agent",
+      "why_it_matters": "Use this to cost a lane or answer 'how long and how much toll' without two separate calls.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Service-area coverage check",
+      "command": "coverage check",
+      "description": "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address.",
+      "rationale": "Joins the isochrone polygon, cached geocodes and a local point-in-polygon test.",
+      "example": "delhivery-maps-pp-cli coverage check --hub 28.4599,77.0679 --minutes 45 --file orders.csv --out flagged.csv",
+      "why_it_matters": "Use this before dispatch to separate serviceable orders from out-of-area ones.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Fleet plan from orders file",
+      "command": "fleet plan",
+      "description": "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each.",
+      "rationale": "Automates geocode prep and the 50-order chunking around route-plan, then merges the results.",
+      "example": "delhivery-maps-pp-cli fleet plan --orders orders.csv --vehicles 6 --depot 28.4599,77.0679 --out plan.csv",
+      "why_it_matters": "Use this when an orders sheet exceeds the 50-order route-plan limit or has only addresses.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Cached-address quality report",
+      "command": "address report",
+      "description": "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run.",
+      "rationale": "Aggregates the local cache; the API has no list endpoints to answer this.",
+      "example": "delhivery-maps-pp-cli address report --group-by pincode --agent",
+      "why_it_matters": "Use this to find which pincodes produce the worst addresses.",
+      "group": "Bulk address quality"
+    },
+    {
+      "name": "Duplicate-doorstep finder",
+      "command": "address dupes",
+      "description": "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run.",
+      "rationale": "Groups cached addresses by standardised text or geocodes within N metres.",
+      "example": "delhivery-maps-pp-cli address dupes --radius-m 30 --agent",
+      "why_it_matters": "Use this to catch duplicate orders to the same doorstep.",
+      "group": "Bulk address quality"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Bulk address cleaning",
+      "command": "address clean",
+      "description": "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred.",
+      "rationale": "Composes three endpoints with rate-limit back-off, retries and a resumable local cache that single API calls cannot provide.",
+      "example": "delhivery-maps-pp-cli address clean --file orders.csv --out cleaned.csv --concurrency 4 --resume",
+      "why_it_matters": "Reach for this when you have more than a handful of addresses to standardise, validate or geocode; cached rows cost nothing on a rerun.",
+      "group": "Bulk address quality"
+    },
+    {
+      "name": "Trip quote",
+      "command": "trip quote",
+      "description": "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll).",
+      "rationale": "Chains the route polyline into toll-by-polylines and geocodes addresses from cache, which users otherwise stitch by hand.",
+      "example": "delhivery-maps-pp-cli trip quote --from \"Sector 45 Gurgaon\" --to \"Jaipur\" --vehicle bus_truck --agent",
+      "why_it_matters": "Use this to cost a lane or answer 'how long and how much toll' without two separate calls.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Service-area coverage check",
+      "command": "coverage check",
+      "description": "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address.",
+      "rationale": "Joins the isochrone polygon, cached geocodes and a local point-in-polygon test.",
+      "example": "delhivery-maps-pp-cli coverage check --hub 28.4599,77.0679 --minutes 45 --file orders.csv --out flagged.csv",
+      "why_it_matters": "Use this before dispatch to separate serviceable orders from out-of-area ones.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Fleet plan from orders file",
+      "command": "fleet plan",
+      "description": "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each.",
+      "rationale": "Automates geocode prep and the 50-order chunking around route-plan, then merges the results.",
+      "example": "delhivery-maps-pp-cli fleet plan --orders orders.csv --vehicles 6 --depot 28.4599,77.0679 --out plan.csv",
+      "why_it_matters": "Use this when an orders sheet exceeds the 50-order route-plan limit or has only addresses.",
+      "group": "Dispatch and planning"
+    },
+    {
+      "name": "Cached-address quality report",
+      "command": "address report",
+      "description": "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run.",
+      "rationale": "Aggregates the local cache; the API has no list endpoints to answer this.",
+      "example": "delhivery-maps-pp-cli address report --group-by pincode --agent",
+      "why_it_matters": "Use this to find which pincodes produce the worst addresses.",
+      "group": "Bulk address quality"
+    },
+    {
+      "name": "Duplicate-doorstep finder",
+      "command": "address dupes",
+      "description": "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run.",
+      "rationale": "Groups cached addresses by standardised text or geocodes within N metres.",
+      "example": "delhivery-maps-pp-cli address dupes --radius-m 30 --agent",
+      "why_it_matters": "Use this to catch duplicate orders to the same doorstep.",
+      "group": "Bulk address quality"
+    }
+  ],
+  "auth": {
+    "canonical_env_var": "DELHIVERY_MAPS_TOKEN"
+  },
+  "narrative": {
+    "display_name": "Delhivery Maps",
+    "headline": "Every Delhivery Maps endpoint, plus quota-aware address cleaning, trip costing and fleet planning that resume after quota or expiry stops a run.",
+    "value_prop": "Run any of the 13 Delhivery Maps endpoints (India only) from the terminal, then batch work with 'address clean', cost a lane with 'trip quote', check service areas with 'coverage check' and plan routes from an orders sheet with 'fleet plan'. The gateway allows about 50 requests per 24 hours per token (route-plan has its own pool of 5), so the batch commands count their own calls, cache results, and mark work they cannot afford as deferred rather than failing.",
+    "auth_narrative": "Delhivery Maps uses a Bearer JWT. The docs site issues a 24-hour web-session token after phone-OTP login (the CLI does not refresh it; when calls start failing with exit code 4, set a fresh one); commercial keys are issued under an enterprise agreement. Set DELHIVERY_MAPS_TOKEN or run 'auth set-token'; 'auth status' reads the token's expiry locally without printing it and costs no quota, whereas 'doctor' makes a live request.",
+    "quickstart": [
+      {
+        "command": "delhivery-maps-pp-cli which \"toll cost for a truck lane\"",
+        "comment": "Confirm the install and find the right command; runs offline, no quota spent"
+      },
+      {
+        "command": "delhivery-maps-pp-cli geocode --address \"flat 4b, lotus apt, sec 45, gurgaon, haryana 122003\"",
+        "comment": "Smallest real call: address to coordinates (spends 1 of your ~50 daily quota calls)"
+      },
+      {
+        "command": "delhivery-maps-pp-cli rvg --lat 28.877074 --lng 76.619739 --req-id demo-1",
+        "comment": "Reverse geocode a coordinate to a structured address (1 quota call)"
+      },
+      {
+        "command": "delhivery-maps-pp-cli trip quote --from \"Sector 45 Gurgaon\" --to \"Jaipur\" --vehicle bus_truck",
+        "comment": "Route plus toll plus ETA in one record (up to 4 quota calls: two geocodes, route, toll)"
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "401 Unauthorized partway through a job",
+        "fix": "The 24h web-session token expired; run 'delhivery-maps-pp-cli auth status' then set a fresh DELHIVERY_MAPS_TOKEN"
+      },
+      {
+        "symptom": "429 Rate limit exceeded",
+        "fix": "The gateway allows about 50 requests per 24 hours per token, and fleet plan (route-plan) has a separate pool of about 5 per 24 hours. A 429 makes the batch commands lock out that pool for 24 hours (override with DELHIVERY_MAPS_IGNORE_LOCKOUT=1) and defer the rest of the run with exit 0 and rate_limited:true; fully cached items are still served. Rerun after the window with --resume (address clean) so cached rows cost no calls"
+      }
+    ],
+    "when_to_use": "Use this CLI for India-only geocoding, address validation and standardisation, driving routes with tolls, distance matrices, reachability polygons and delivery route planning. Pick it over a raw API client when a job involves many rows, needs resumability, or chains route and toll.",
+    "anti_triggers": [
+      "Addresses or coordinates outside India",
+      "Turn-by-turn live navigation",
+      "Rendering a full interactive map"
+    ],
+    "recipes": [
+      {
+        "title": "Clean an order file",
+        "command": "delhivery-maps-pp-cli address clean --file orders.csv --out cleaned.csv --resume",
+        "explanation": "Standardises, validates and geocodes every row, caching results so a rerun skips finished rows."
+      },
+      {
+        "title": "Cost a truck lane, narrowed output",
+        "command": "delhivery-maps-pp-cli trip quote --from \"Sector 45 Gurgaon\" --to \"Jaipur\" --vehicle bus_truck --agent --select distance_km,total_toll_inr",
+        "explanation": "Returns only distance and total toll."
+      },
+      {
+        "title": "Service area as GeoJSON",
+        "command": "delhivery-maps-pp-cli isochrone --origin \"[28.6139,77.209]\" --cost-type time --cost-value 600 --encode-geojson=false",
+        "explanation": "Returns a decoded GeoJSON polygon ready for geojson.io or QGIS."
+      }
+    ],
+    "trigger_phrases": [
+      "geocode this Indian address",
+      "validate delivery address",
+      "clean a CSV of addresses",
+      "reverse geocode coordinates",
+      "toll cost for a truck trip",
+      "service area from a hub",
+      "which orders are outside the service area",
+      "distance matrix",
+      "plan delivery routes",
+      "use delhivery-maps",
+      "run delhivery-maps"
+    ]
+  }
+}

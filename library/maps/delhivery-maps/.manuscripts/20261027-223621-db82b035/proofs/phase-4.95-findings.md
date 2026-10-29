@@ -1,0 +1,10 @@
+# Phase 4.95 local code review: delhivery-maps-pp-cli
+
+Review path: direct subagent dispatch (correctness, security, maintainability) x 2 rounds; docs reviewer for Phase 4.8/4.9.
+Autofix summary: round 1 (4 reviewers) -> 22-item fix list + docs list; round 2 (3 reviewers) -> 16-item fix list + 9-item test addendum. All applied in-place by the build agent and independently re-verified (go vet, go build, go test -race, gofmt, dogfood, token scan).
+Convergence: round 2 produced no high-severity findings; every item fixed with a test that fails without it (14 key guards mutation-checked). Not run: a third full round (cap is 3; stopped at convergence).
+Highest-impact catches: (1) fleet plan parsed plan_status as string (live: boolean); (2) trip quote read top-level route fields (live: recommended_route); (3) /route-plan has its own 5-per-24h quota (separate bucket); (4) CSV formula injection, unguarded quota in trip/fleet, bearer to arbitrary base URL, cache not scoped by token/base URL, --out overwrite, purge overflow.
+Rejected reviewer claim: /standarize pincode vs postal_code (live API uses postal_code; spec is wrong).
+Retro candidates (generated code, not patched): helpers.go writeCSVRow has no formula neutralisation; store.go DSN embeds db path unescaped (`?`/`#`); APIError body printed raw (ESC sequences); config.go honours DELHIVERY_MAPS_BASE_URL/config base_url with no scheme/host validation; client io.ReadAll without a response cap; generated help examples use `--flag false` for bool flags; spec resource `search` collides with framework command; govulncheck/host Go stdlib advisories require go.mod pin; OpenAPI spec drift (standarize pincode vs postal_code; no securitySchemes).
+Surface-to-user: none pending. Added beyond manifest: `address purge` (local PII cleanup).
+Unverified offline (to Phase 5): /route encode_polyline=false output; toll request with plain geometry; departure_time format; /route-plan unassigned_orders shape and plan_status:false meaning; isochrone 120min/100km limits; route-plan bucket 429 behaviour.

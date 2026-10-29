@@ -1,0 +1,111 @@
+{
+  "api_name": "delhivery-maps",
+  "api_version": "1.0.0",
+  "auth_env_vars": [
+    "DELHIVERY_MAPS_TOKEN"
+  ],
+  "auth_preference": "bearerAuth",
+  "auth_type": "bearer_token",
+  "category": "maps",
+  "cli_name": "delhivery-maps-pp-cli",
+  "creator": {
+    "handle": "SomSamantray",
+    "name": "Som Samantray"
+  },
+  "description": "Every Delhivery Maps endpoint, plus quota-aware address cleaning, trip costing and fleet planning.",
+  "display_name": "Delhivery Maps",
+  "generated_at": "2026-10-29T02:36:00.687070443Z",
+  "mcp_binary": "delhivery-maps-pp-mcp",
+  "mcp_ready": "full",
+  "mcp_tool_count": 13,
+  "novel_features": [
+    {
+      "name": "Bulk address cleaning",
+      "command": "address clean",
+      "description": "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred."
+    },
+    {
+      "name": "Trip quote",
+      "command": "trip quote",
+      "description": "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll)."
+    },
+    {
+      "name": "Service-area coverage check",
+      "command": "coverage check",
+      "description": "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address."
+    },
+    {
+      "name": "Fleet plan from orders file",
+      "command": "fleet plan",
+      "description": "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each."
+    },
+    {
+      "name": "Cached-address quality report",
+      "command": "address report",
+      "description": "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run."
+    },
+    {
+      "name": "Duplicate-doorstep finder",
+      "command": "address dupes",
+      "description": "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Bulk address cleaning",
+      "command": "address clean",
+      "description": "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred."
+    },
+    {
+      "name": "Trip quote",
+      "command": "trip quote",
+      "description": "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll)."
+    },
+    {
+      "name": "Service-area coverage check",
+      "command": "coverage check",
+      "description": "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address."
+    },
+    {
+      "name": "Fleet plan from orders file",
+      "command": "fleet plan",
+      "description": "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each."
+    },
+    {
+      "name": "Cached-address quality report",
+      "command": "address report",
+      "description": "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run."
+    },
+    {
+      "name": "Duplicate-doorstep finder",
+      "command": "address dupes",
+      "description": "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run."
+    }
+  ],
+  "owner": "somsamantray",
+  "printer": "SomSamantray",
+  "printer_name": "Som Samantray",
+  "printing_press_version": "4.34.2",
+  "run_id": "20261027-223621-db82b035",
+  "schema_version": 2,
+  "scorecard": {
+    "steinberger": {
+      "percentage": 90,
+      "grade": "A",
+      "total": 90
+    }
+  },
+  "spec_checksum": "sha256:90e454b9e6219d3beef84108587b031f8bf92994475c32f8dd9e4160ca05e6f3",
+  "spec_format": "openapi3",
+  "spec_path": "spec.json",
+  "spec_source": "official",
+  "spec_url": "https://www.delhivery.com/maps/openapi.json",
+  "verify": {
+    "mode": "mock",
+    "pass_rate": 100,
+    "passed": 41,
+    "total": 41,
+    "data_pipeline": true,
+    "verdict": "PASS"
+  }
+}

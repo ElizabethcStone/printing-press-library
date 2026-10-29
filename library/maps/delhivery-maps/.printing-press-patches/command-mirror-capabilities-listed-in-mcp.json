@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "id": "command-mirror-capabilities-listed-in-mcp",
+  "applied_at": "2026-10-29",
+  "base_run_id": "20261027-223621-db82b035",
+  "base_printing_press_version": "4.34.2",
+  "summary": "The MCP context tool must list the novel batch commands under command_mirror_capabilities, but only those the runtime Cobra-tree mirror actually registered with the child-cli tenant gate.",
+  "reason": "The generated tools.go has no capability listing for hand-written commands, so agents would not discover that address clean, trip quote, coverage check and fleet plan are available through the MCP shell-out mirror. registeredCommandMirrorCapabilities drops any entry the mirror did not register, so the list cannot advertise a tool that is missing.",
+  "files": ["internal/mcp/tools.go"]
+}

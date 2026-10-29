@@ -1,0 +1,10 @@
+{
+  "schema_version": 2,
+  "id": "compute-endpoints-marked-read-only",
+  "applied_at": "2026-10-29",
+  "base_run_id": "20261027-223621-db82b035",
+  "base_printing_press_version": "4.34.2",
+  "summary": "The POST endpoint tools (geocode, route, matrix, isochrone, toll, validate and similar) must declare readOnlyHint, because this API only reads or computes and creates, updates or deletes nothing remote.",
+  "reason": "The generator marks read-only from the HTTP method, so every POST endpoint loses readOnlyHint. Under DELHIVERY_MAPS_MCP_READ_ONLY=1 the filter then removes most of the API, leaving agents with only the local commands.",
+  "files": ["internal/mcp/tools.go"]
+}

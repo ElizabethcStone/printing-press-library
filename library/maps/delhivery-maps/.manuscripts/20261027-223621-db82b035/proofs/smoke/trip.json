@@ -1,0 +1,40 @@
+{
+  "from": "28.5954,77.0319",
+  "to": "28.4089,77.3178",
+  "from_resolved": {
+    "input": "28.5954,77.0319",
+    "lat": 28.5954,
+    "lng": 77.0319,
+    "source": "coordinates"
+  },
+  "to_resolved": {
+    "input": "28.4089,77.3178",
+    "lat": 28.4089,
+    "lng": 77.3178,
+    "source": "coordinates"
+  },
+  "vehicle": "car_jeep_van",
+  "travel_mode": "auto",
+  "traffic_aware": false,
+  "distance_km": 51.65,
+  "duration_min": 83.9,
+  "toll_plaza_count": 1,
+  "total_toll_inr": 35,
+  "plazas": [
+    {
+      "address": "",
+      "city": "",
+      "lat": 28.4762963,
+      "lon": 77.3056512,
+      "name": "Badarpur",
+      "pincode": "",
+      "state": "",
+      "toll_id": "dlv_00217",
+      "toll_rate_inr": 35,
+      "toll_type": "flat"
+    }
+  ],
+  "route_points": 858,
+  "api_calls": 2,
+  "cache_hits": 0
+}
