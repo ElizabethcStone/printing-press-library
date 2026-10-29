@@ -6954,6 +6954,57 @@
       }
     },
     {
+      "name": "delhivery-maps",
+      "category": "maps",
+      "api": "Delhivery Maps",
+      "description": "Every Delhivery Maps endpoint, plus quota-aware address cleaning, trip costing and fleet planning.",
+      "search_terms": [
+        "delhivery-maps",
+        "Delhivery Maps",
+        "delhivery-maps-pp-cli",
+        "Every Delhivery Maps endpoint, plus quota-aware address cleaning, trip costing and fleet planning.",
+        "Bulk address cleaning",
+        "address clean",
+        "Clean a CSV of raw addresses into standardised, validated, geocoded rows: up to 3 calls per uncached address (about 16 a day per token); overflow rows are marked deferred.",
+        "Trip quote",
+        "Get distance, traffic ETA and toll plazas for a trip in one record. Costs up to 4 calls per lane (geocode from and to, route, toll).",
+        "Service-area coverage check",
+        "coverage check",
+        "Flag orders that fall outside a hub's 45-minute (or N km) service area. Costs 1 isochrone call plus 1 call per uncached address.",
+        "Fleet plan from orders file",
+        "fleet plan",
+        "Turn an orders file of addresses or coordinates into per-vehicle stop sequences. Costs 1 call per 50 orders from a separate 5-per-day route-plan pool; about 30s each.",
+        "Cached-address quality report",
+        "address report",
+        "See address quality and granularity broken down by pincode or city across everything you have cleaned. Local-only and free; empty until address clean has run.",
+        "Duplicate-doorstep finder",
+        "address dupes",
+        "Find repeated delivery locations among addresses you have cleaned. Local-only and free; empty until address clean has run."
+      ],
+      "path": "library/maps/delhivery-maps",
+      "printer": "SomSamantray",
+      "printer_name": "Som Samantray",
+      "creator": {
+        "handle": "SomSamantray",
+        "name": "Som Samantray"
+      },
+      "mcp": {
+        "binary": "delhivery-maps-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 13,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "DELHIVERY_MAPS_TOKEN"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
       "name": "delta-trip",
       "category": "travel",
       "api": "Delta Trip Management",
