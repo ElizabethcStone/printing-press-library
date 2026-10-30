@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "pingenerator",
+  "cli_name": "pingenerator-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-30T08:52:31Z",
+  "source_commit": "2314e880812e83b8237c0fbf1c36805ae0e1268f",
+  "printing_press_version": "4.34.2",
+  "run_id": "20261029-192233-d337ee12",
+  "changes": [
+    {
+      "title": "feat(pingenerator): add pingenerator",
+      "pr": 2405,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2405",
+      "commit": "2314e880812e83b8237c0fbf1c36805ae0e1268f"
+    }
+  ]
+}

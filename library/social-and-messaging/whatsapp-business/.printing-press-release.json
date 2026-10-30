@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "slug": "whatsapp-business",
+  "cli_name": "whatsapp-business-pp-cli",
+  "version": "2026.10.1",
+  "released_at": "2026-10-30T08:52:31Z",
+  "source_commit": "79e574e86b5f1837abc8305b120bccf933883ca1",
+  "printing_press_version": "4.33.9",
+  "run_id": "20261029-191727-e418f9d0",
+  "changes": [
+    {
+      "title": "feat(whatsapp-business): add whatsapp-business",
+      "pr": 2406,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2406",
+      "commit": "79e574e86b5f1837abc8305b120bccf933883ca1"
+    }
+  ]
+}
