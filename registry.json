@@ -2065,9 +2065,9 @@
       "path": "library/developer-tools/apify",
       "release": {
         "cli_name": "apify-pp-cli",
-        "version": "2026.10.2",
-        "released_at": "2026-10-27T08:51:30Z",
-        "source_commit": "58be79c51d47560910a09c5e6bc2c107fc46c5b3"
+        "version": "2026.10.3",
+        "released_at": "2026-10-30T08:57:11Z",
+        "source_commit": "132fd54b02b905a494f6458c99e054b4dca3238e"
       },
       "printer": "kjmagnan1s",
       "printer_name": "Kevin Magnan",
