@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.1 - 2026-10-30
+
+- feat(redfin): add auth import-file for browser session cookies (#2412).
+
 ## 2026.9.1 - 2026-09-11
 
 - fix: fail closed on ambiguous fleet write retries (#1978).
