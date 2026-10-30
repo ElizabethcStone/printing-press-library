@@ -13057,9 +13057,9 @@
       "path": "library/media-and-entertainment/hackernews",
       "release": {
         "cli_name": "hackernews-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "version": "2026.10.1",
+        "released_at": "2026-10-30T14:37:45Z",
+        "source_commit": "5d126dc701cedcbd166def40c55d1a6e3ba68549"
       },
       "printer": "tmchow",
       "printer_name": "Trevin Chow",
