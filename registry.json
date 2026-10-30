@@ -24673,9 +24673,9 @@
       "path": "library/other/redfin",
       "release": {
         "cli_name": "redfin-pp-cli",
-        "version": "2026.9.1",
-        "released_at": "2026-09-11T09:22:21Z",
-        "source_commit": "b815f4cc4ec8054b6fec93c9f9a2e7f2220153ff"
+        "version": "2026.10.1",
+        "released_at": "2026-10-30T15:16:28Z",
+        "source_commit": "cfb35866d889c346f32d9b58433ad396e35e25e6"
       },
       "printer": "rderwin",
       "printer_name": "rderwin",
