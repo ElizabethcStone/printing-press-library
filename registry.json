@@ -5875,9 +5875,9 @@
       "path": "library/sales-and-crm/conduyt-crm",
       "release": {
         "cli_name": "conduyt-crm-pp-cli",
-        "version": "2026.10.2",
-        "released_at": "2026-10-23T14:24:31Z",
-        "source_commit": "986b1df61eb325952a0a9fe0fed98c8bdd64e740"
+        "version": "2026.10.3",
+        "released_at": "2026-10-30T08:51:38Z",
+        "source_commit": "95c3bd717f499d032c37636acf927f499a99e91a"
       },
       "printer": "ptaramona",
       "printer_name": "Conduyt",
@@ -22393,6 +22393,61 @@
       }
     },
     {
+      "name": "pingenerator",
+      "category": "marketing",
+      "api": "Pin Generator",
+      "description": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+      "search_terms": [
+        "pingenerator",
+        "Pin Generator",
+        "pingenerator-pp-cli",
+        "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+        "Post to pin",
+        "pin-post",
+        "Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent.",
+        "Plan preflight",
+        "preflight",
+        "Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything.",
+        "Products to pins",
+        "pin-products",
+        "Turn a connected store's products into a batch of scheduled pins, skipping products already pinned.",
+        "Unpinned posts",
+        "unpinned-posts",
+        "List sitemap posts that have no scheduled pin and no ledgered spend.",
+        "Spend ledger",
+        "ledger",
+        "See every credit-spending call this CLI executed, with totals by tool and time window.",
+        "Queue gaps",
+        "queue-gaps",
+        "Find empty and overloaded days in the scheduled-pin queue, per board.",
+        "Credit runway",
+        "credit-runway",
+        "Estimate weekly credit burn from active automations and how many days of credit remain."
+      ],
+      "path": "library/marketing/pingenerator",
+      "printer": "ElizabethcStone",
+      "printer_name": "Elizabeth Stone",
+      "creator": {
+        "handle": "ElizabethcStone",
+        "name": "Elizabeth Stone"
+      },
+      "mcp": {
+        "binary": "pingenerator-pp-mcp",
+        "transports": [
+          "stdio",
+          "http"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "PINGENERATOR_ACCESS_KEY"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "internal"
+      }
+    },
+    {
       "name": "pinterest",
       "category": "marketing",
       "api": "Pinterest",
@@ -33244,6 +33299,54 @@
         "auth_type": "bearer_token",
         "env_vars": [
           "WEBFLOW_OAUTH2"
+        ],
+        "mcp_ready": "full",
+        "spec_format": "openapi3"
+      }
+    },
+    {
+      "name": "whatsapp-business",
+      "category": "social-and-messaging",
+      "api": "WhatsApp Business Tools",
+      "description": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+      "search_terms": [
+        "whatsapp-business",
+        "WhatsApp Business Tools",
+        "whatsapp-business-pp-cli",
+        "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+        "Local scope map",
+        "ops scope-map",
+        "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles.",
+        "Template component checklist",
+        "ops template-checklist",
+        "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values.",
+        "MCP catalog drift",
+        "ops catalog-drift",
+        "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands.",
+        "Captured asset changes",
+        "ops changes",
+        "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions.",
+        "Cross-account template comparison",
+        "ops template-compare",
+        "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time."
+      ],
+      "path": "library/social-and-messaging/whatsapp-business",
+      "printer": "bobeglz",
+      "printer_name": "bobe",
+      "creator": {
+        "handle": "bobeglz",
+        "name": "bobe"
+      },
+      "mcp": {
+        "binary": "whatsapp-business-pp-mcp",
+        "transports": [
+          "stdio"
+        ],
+        "tool_count": 1,
+        "public_tool_count": 0,
+        "auth_type": "bearer_token",
+        "env_vars": [
+          "WHATSAPP_BUSINESS_MCP_TOKEN"
         ],
         "mcp_ready": "full",
         "spec_format": "openapi3"
