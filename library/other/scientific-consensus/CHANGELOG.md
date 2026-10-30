@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.6 - 2026-10-30
+
+- feat(scientific-consensus): LLM claim split for the relevance gate (#2411).
+
 ## 2026.10.5 - 2026-10-23
 
 - fix(scientific-consensus): mark truncated abstracts (#2355).

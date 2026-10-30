@@ -2,17 +2,17 @@
   "schema_version": 1,
   "slug": "scientific-consensus",
   "cli_name": "scientific-consensus-pp-cli",
-  "version": "2026.10.5",
-  "released_at": "2026-10-23T09:02:35Z",
-  "source_commit": "d6a7a3473cacba408bfa6a75c701691bb56c349e",
+  "version": "2026.10.6",
+  "released_at": "2026-10-30T15:00:12Z",
+  "source_commit": "610bba33062c2396d06230124e106a990cdc72a4",
   "printing_press_version": "4.24.0",
   "run_id": "20260620-165352-e55cec69",
   "changes": [
     {
-      "title": "fix(scientific-consensus): mark truncated abstracts",
-      "pr": 2355,
-      "url": "https://github.com/mvanhorn/printing-press-library/pull/2355",
-      "commit": "d6a7a3473cacba408bfa6a75c701691bb56c349e"
+      "title": "feat(scientific-consensus): LLM claim split for the relevance gate",
+      "pr": 2411,
+      "url": "https://github.com/mvanhorn/printing-press-library/pull/2411",
+      "commit": "610bba33062c2396d06230124e106a990cdc72a4"
     }
   ]
 }
