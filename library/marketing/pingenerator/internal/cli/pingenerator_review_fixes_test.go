@@ -5,6 +5,7 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -248,5 +249,29 @@ func TestPinProductsLaterPageFailureExitsNonZero(t *testing.T) {
 				t.Fatalf("human report hid the failure: exit %d\n%s", hcode, human)
 			}
 		})
+	}
+}
+
+func TestSpendLockWaitRespectsDeadline(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "ledger.jsonl")
+	t.Setenv("PINGENERATOR_LEDGER", path)
+	held, release, done := make(chan struct{}), make(chan struct{}), make(chan error, 1)
+	go func() { done <- cliutil.WithFileLock(path, func() error { close(held); <-release; return nil }) }()
+	<-held
+	defer func() {
+		close(release)
+		if err := <-done; err != nil {
+			t.Error(err)
+		}
+	}()
+	cmd := &cobra.Command{}
+	cmd.SetContext(context.Background())
+	start := time.Now()
+	_, _, _, err := pgSpendLocked(cmd, &rootFlags{timeout: 30 * time.Millisecond}, mustTool("generate_and_schedule_pin"), nil, "https://example.com/post", false)
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("got %v, want deadline", err)
+	}
+	if time.Since(start) > time.Second {
+		t.Fatal("lock wait ignored deadline")
 	}
 }

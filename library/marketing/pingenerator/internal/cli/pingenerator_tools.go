@@ -255,7 +255,7 @@ func pgSpendLocked(cmd *cobra.Command, flags *rootFlags, t pgmcp.Tool, args map[
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return nil, false, false, err
 	}
-	err = cliutil.WithFileLock(path, func() error {
+	spend := func() error {
 		if !force && guardURL != "" {
 			entries, _, rerr := pgmcp.ReadLedger(path)
 			if rerr != nil {
@@ -269,8 +269,30 @@ func pgSpendLocked(cmd *cobra.Command, flags *rootFlags, t pgmcp.Tool, args map[
 		var cerr error
 		payload, previewed, cerr = pgRunTool(cmd, flags, t, args, true)
 		return cerr
-	})
-	return payload, previewed, skipped, err
+	}
+	ctx, cancel := boundCtx(cmd.Context(), flags)
+	defer cancel()
+	tick := time.NewTicker(25 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		if err := ctx.Err(); err != nil {
+			return nil, false, false, err
+		}
+		acquired, err := cliutil.TryWithFileLock(path, func() error {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			return spend()
+		})
+		if acquired || err != nil {
+			return payload, previewed, skipped, err
+		}
+		select {
+		case <-ctx.Done():
+			return nil, false, false, ctx.Err()
+		case <-tick.C:
+		}
+	}
 }
 
 // pgSpendTimeout is the floor for credit-spending calls (the prior CLI's 120s).

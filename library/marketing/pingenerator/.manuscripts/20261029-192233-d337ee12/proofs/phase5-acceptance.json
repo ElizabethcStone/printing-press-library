@@ -12,7 +12,7 @@
     "type": "bearer_token",
     "api_key_available": true
   },
-  "source_fingerprint": "073a172e4b6b63cebb7a03be325ee1157890e9c4c9d938e48e41e3ec83277328",
+  "source_fingerprint": "cac531386ff409e1a436f33abae1e988ec2c8398d6ab8fcc6fdc862db9aa2802",
   "source_files": {
     "cmd/pingenerator-pp-cli/main.go": "db315ce63809566fb33d806e2b468bfb343de826dd21dd0903d29123cceee2ca",
     "cmd/pingenerator-pp-mcp/http_auth_test.go": "7abfe23fe266fcc0ceee2d33b464a00cd35cbc2be5913656295247261eef790b",
@@ -48,8 +48,8 @@
     "internal/cli/pingenerator_internal_retry_test.go": "51516a21ac8b710de3bea5888142380c3115203b99ae4c0a6f46bf4ac6894d07",
     "internal/cli/pingenerator_mcp_test.go": "ccfef8ca83855f38f7171123afd25ba6377da0faa53ca8de68d59e09357bd5ba",
     "internal/cli/pingenerator_novel_helpers.go": "e44888b6029ab1109c5c438ced0499d6dfc9c54ad00a9e0b5982a217ef64262d",
-    "internal/cli/pingenerator_review_fixes_test.go": "c23cd8c227b7204ab14f6f30a7e85e92a736b3de06424a6a3f379471400e00a0",
-    "internal/cli/pingenerator_tools.go": "bdc59dbe5246bf92c6fab34b268f31b81ea4c93fef9fd6e234c9cc0cbdd8cefe",
+    "internal/cli/pingenerator_review_fixes_test.go": "da08a0089fca3db1344012636a3f6a13a7484c1c4898fa9ae690eed09616e532",
+    "internal/cli/pingenerator_tools.go": "7fb977bc91afb7b2592d0f777a75881a48397370cc902c9d6f9fcb15acd2735a",
     "internal/cli/pingenerator_tools_static.go": "262dd5a8adb2ebaf6ca6eca1d24f0459a78b1d0bbfa5b88e0e4bb9954ba5e9c5",
     "internal/cli/pingenerator_tools_static_test.go": "2c4445fcb2763b07610563f1a758975d1c939fed02942c694d6b640ce3c3f555",
     "internal/cli/platform_cli_test.go": "9a93e19f9f5daf7b39da912d6c48661d2763382bc70d5e04b12093b5dd2b2f48",
