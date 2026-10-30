@@ -22425,6 +22425,12 @@
         "Estimate weekly credit burn from active automations and how many days of credit remain."
       ],
       "path": "library/marketing/pingenerator",
+      "release": {
+        "cli_name": "pingenerator-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-30T08:52:31Z",
+        "source_commit": "45c82590db82f1e25bc9d14511a966fa695266bd"
+      },
       "printer": "ElizabethcStone",
       "printer_name": "Elizabeth Stone",
       "creator": {
@@ -33331,6 +33337,12 @@
         "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time."
       ],
       "path": "library/social-and-messaging/whatsapp-business",
+      "release": {
+        "cli_name": "whatsapp-business-pp-cli",
+        "version": "2026.10.1",
+        "released_at": "2026-10-30T08:52:31Z",
+        "source_commit": "45c82590db82f1e25bc9d14511a966fa695266bd"
+      },
       "printer": "bobeglz",
       "printer_name": "bobe",
       "creator": {
