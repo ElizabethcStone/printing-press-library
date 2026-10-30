@@ -62,6 +62,10 @@ const (
 	KindCredits        // no credits remaining
 	KindRateLimit      // too many requests
 	KindNotFound       // the named resource or page does not exist
+	// KindUnreadable: the call returned but the reply could not be read
+	// (malformed JSON, no result). Unlike an explicit rejection, a paid call
+	// may have been accepted, so callers treat it as an ambiguous spend.
+	KindUnreadable
 )
 
 // Error is a classified tool failure reported inside a 200 JSON-RPC reply.
@@ -115,13 +119,13 @@ func Unwrap(tool string, raw []byte) (json.RawMessage, error) {
 		} `json:"result"`
 	}
 	if err := json.Unmarshal(payload, &env); err != nil {
-		return nil, &Error{Tool: tool, Message: "unexpected MCP response: " + clip(payload, 300)}
+		return nil, &Error{Kind: KindUnreadable, Tool: tool, Message: "unreadable MCP response: " + clip(payload, 300)}
 	}
 	if env.Error != nil {
 		return nil, Classify(tool, env.Error.Message)
 	}
 	if env.Result == nil {
-		return nil, &Error{Tool: tool, Message: "MCP response has no result"}
+		return nil, &Error{Kind: KindUnreadable, Tool: tool, Message: "MCP response has no result or error"}
 	}
 	text := ""
 	for _, c := range env.Result.Content {

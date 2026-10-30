@@ -80,10 +80,11 @@ the same normalized title.`,
 			// Queued pins already exist; counting them prevents re-pinning a
 			// post whose pin is only waiting for a timeslot.
 			for _, pin := range append(scheduled, queued...) {
+				// Title is only a fallback for pins with no URL: a pin that links
+				// elsewhere must not mark a same-titled post as pinned.
 				if u := pgmcp.NormalizeURL(pgmcp.Str(pin, "url", "link", "destinationUrl", "destinationURL", "outboundUrl", "pin/url")); u != "" {
 					pinnedURL[u] = true
-				}
-				if t := pgmcp.NormalizeTitle(pgmcp.Str(pin, "title", "pinTitle", "name", "pin/title")); t != "" {
+				} else if t := pgmcp.NormalizeTitle(pgmcp.Str(pin, "title", "pinTitle", "name", "pin/title")); t != "" {
 					pinnedTitle[t] = true
 				}
 			}

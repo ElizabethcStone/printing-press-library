@@ -117,6 +117,8 @@ func pgErr(err error) error {
 			return authErr(fmt.Errorf("%w\nhint: set PINGENERATOR_ACCESS_KEY to the API access key from pingenerator.com/profile", err))
 		case pgmcp.KindCredits:
 			return apiErr(fmt.Errorf("no credits remaining: %w\nhint: run 'pingenerator-pp-cli credit-runway' and top up in the Pin Generator app", err))
+		case pgmcp.KindUnreadable:
+			return apiErr(fmt.Errorf("%w\nhint: the reply could not be read; a paid call may still have gone through", err))
 		case pgmcp.KindNotFound:
 			return notFoundErr(fmt.Errorf("%w\nhint: check the ID or URL; list-* commands show what exists on this account", err))
 		case pgmcp.KindRateLimit:
@@ -140,10 +142,40 @@ func pgCall(cmd *cobra.Command, flags *rootFlags, name string, args map[string]a
 	ctx, cancel := boundCtx(cmd.Context(), flags)
 	defer cancel()
 	payload, err := pgmcp.Call(ctx, c, name, args)
+	if err != nil && pgRetryableInternal(name, err) {
+		// One retry, inside the same deadline, for the vendor's transient
+		// "Internal error while running this tool" on a free read.
+		timer := time.NewTimer(pgInternalRetryDelay)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return nil, pgErr(err)
+		case <-timer.C:
+		}
+		payload, err = pgmcp.Call(ctx, c, name, args)
+	}
 	if err != nil {
 		return nil, pgErr(err)
 	}
 	return payload, nil
+}
+
+const pgVendorInternalError = "Internal error while running this tool"
+
+// pgInternalRetryDelay is the pause before pgCall's single internal-error retry.
+var pgInternalRetryDelay = time.Second
+
+// pgRetryableInternal reports whether err is the vendor's transient internal
+// error from a known catalog tool that neither mutates nor spends. Paid,
+// mutating and unknown tools, and every other failure, are never retried.
+func pgRetryableInternal(name string, err error) bool {
+	t, ok := pgmcp.Lookup(name)
+	if !ok || t.Mutating || t.Cost.Spends() {
+		return false
+	}
+	var me *pgmcp.Error
+	return errors.As(err, &me) && me.Kind == pgmcp.KindGeneric &&
+		me.Message == pgVendorInternalError
 }
 
 // pgPreview is what a dry run prints: the exact JSON-RPC body and its price.
@@ -209,6 +241,38 @@ func pgRunTool(cmd *cobra.Command, flags *rootFlags, t pgmcp.Tool, args map[stri
 	return payload, false, nil
 }
 
+// pgSpendLocked makes one paid call for guardURL while holding the ledger's
+// cross-process lock (cliutil.WithFileLock: process mutex plus OS file lock),
+// so overlapping runs cannot both pay for the same post or product. Under the
+// lock it re-reads the ledger, skips a URL already ledgered (unless force),
+// makes the call, and ledgers the result before releasing. A ledger that
+// cannot be read fails closed: nothing is spent.
+func pgSpendLocked(cmd *cobra.Command, flags *rootFlags, t pgmcp.Tool, args map[string]any, guardURL string, force bool) (payload json.RawMessage, previewed, skipped bool, err error) {
+	path, err := pgLedgerPath()
+	if err != nil {
+		return nil, false, false, err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return nil, false, false, err
+	}
+	err = cliutil.WithFileLock(path, func() error {
+		if !force && guardURL != "" {
+			entries, _, rerr := pgmcp.ReadLedger(path)
+			if rerr != nil {
+				return fmt.Errorf("reading the spend ledger before paying (nothing was spent): %w", rerr)
+			}
+			if pgmcp.LedgeredURLs(entries)[pgmcp.NormalizeURL(guardURL)] {
+				skipped = true
+				return nil
+			}
+		}
+		var cerr error
+		payload, previewed, cerr = pgRunTool(cmd, flags, t, args, true)
+		return cerr
+	})
+	return payload, previewed, skipped, err
+}
+
 // pgSpendTimeout is the floor for credit-spending calls (the prior CLI's 120s).
 const pgSpendTimeout = 120 * time.Second
 
@@ -224,7 +288,11 @@ func pgAmbiguousSpend(err error) bool {
 	var dns *net.DNSError
 	var ue *url.Error
 	switch {
-	case errors.As(err, &me), errors.As(err, &rl):
+	case errors.As(err, &me):
+		// An unreadable reply came back after the server took the call;
+		// only an explicit JSON-RPC or tool rejection proves no spend.
+		return me.Kind == pgmcp.KindUnreadable
+	case errors.As(err, &rl):
 		return false
 	case errors.As(err, &ae):
 		return ae.StatusCode >= 500

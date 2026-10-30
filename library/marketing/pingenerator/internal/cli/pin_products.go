@@ -90,6 +90,7 @@ stops at the first out-of-credits or auth error.`,
 				done = ledgeredURLs(cmd)
 			}
 			seen := map[string]bool{}
+			var readErr error
 			sample, _ := scheduleArgs(useAI, template, "", "", "", "", profile, boardID, aiBoard, designProfile)
 			view := pinProductsView{StoreID: storeID, Tool: sample.Name, CreditsEach: sample.Cost.Note(), Items: make([]pinProductPlan, 0)}
 
@@ -103,7 +104,10 @@ stops at the first out-of-credits or auth error.`,
 					if view.ScannedPages == 0 {
 						return err
 					}
+					// A later page failed: keep what was planned, but report it
+					// and exit non-zero so an incomplete scan is never silent.
 					view.FetchFailures = append(view.FetchFailures, pgFetchFailure{Tool: "list_store_products", Error: err.Error()})
+					readErr = err
 					break
 				}
 				view.ScannedPages++
@@ -155,16 +159,20 @@ stops at the first out-of-credits or auth error.`,
 
 			// runErr carries the first failure so the exit code reflects it
 			// (4 auth, 5 API/no credits, 7 rate limit) after the report prints.
-			var runErr error
+			runErr := readErr
 			if execute && view.Planned > 0 {
 				for i := range view.Items {
 					it := &view.Items[i]
 					if it.Request == nil {
 						continue
 					}
-					payload, previewed, err := pgRunTool(cmd, flags, sample, it.Request.Params.Arguments, true)
+					payload, previewed, skipped, err := pgSpendLocked(cmd, flags, sample, it.Request.Params.Arguments, it.URL, force)
 					if previewed {
 						return err
+					}
+					if skipped {
+						it.Skipped, it.Request = "another run of this CLI pinned this product first (see 'ledger')", nil
+						continue
 					}
 					if err != nil {
 						it.Error = err.Error()
@@ -201,6 +209,9 @@ stops at the first out-of-credits or auth error.`,
 				}
 			}
 			fmt.Fprintf(w, "\n%d planned, %d executed, credits %d-%d (%s each)\n", view.Planned, view.Executed, view.CreditsMin, view.CreditsMax, view.CreditsEach)
+			for _, f := range view.FetchFailures {
+				fmt.Fprintf(w, "INCOMPLETE: reading more products failed after %d pages: %s\n", view.ScannedPages, f.Error)
+			}
 			if !execute && view.Planned > 0 {
 				fmt.Fprintln(cmd.ErrOrStderr(), "dry run: nothing was spent; re-run with --execute to schedule these pins")
 			}

@@ -163,7 +163,8 @@ func TestUnwrap(t *testing.T) {
 		{"rpc error rate", `{"error":{"code":-32000,"message":"Rate limit exceeded"}}`, "", KindRateLimit, true},
 		{"rpc unknown method", `{"error":{"code":-32601,"message":"Method not found"}}`, "", KindNotFound, true},
 		{"rpc error generic", `{"error":{"code":-32603,"message":"Internal error"}}`, "", KindGeneric, true},
-		{"not json", `<html>oops</html>`, "", KindGeneric, true},
+		{"not json", `<html>oops</html>`, "", KindUnreadable, true},
+		{"no result or error", `{"jsonrpc":"2.0","id":1}`, "", KindUnreadable, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {

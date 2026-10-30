@@ -114,3 +114,35 @@ Publication review raised the two findings above as in-scope blockers, and both 
 `go test ./...`: 15/15 packages. verify-skill and validate-narrative both pass. **No unresolved in-scope review findings remain.** The deferred items are non-safety: the generator-template boilerplate in the docs, and the `meta.source` label.
 
 Local live gate on the previous source `6ec66eb`: PASS. 301 tests, of which 162 passed and 139 were skipped or unverified, with no hollow coverage, using a real synthetic store and no execution. It will be rerun against the final source.
+
+## PR 2405 review findings (fixed in `02a6d45`)
+
+The Greptile review (score 3/5) raised four valid findings. All four are fixed in hand-authored files. Each has a regression test, and each test was checked to fail with its fix reverted:
+
+1. **An unreadable paid reply was treated as a rejection.** A malformed JSON body or a reply with no result/error now has its own kind, `KindUnreadable`. It counts as an ambiguous spend, gets an unconfirmed ledger entry, and a rerun skips it. Explicit JSON-RPC errors and `isError` tool rejections still record nothing. Test: `TestUnreadablePaidReplyIsLedgeredUnconfirmed` (malformed, missing result, tool rejection, JSON-RPC error).
+2. **Overlapping `--execute` runs could both pay for the same URL.** `pgSpendLocked` holds the existing `cliutil.WithFileLock` (process mutex plus OS file lock, Unix and Windows) on the ledger path across the ledger recheck, the paid call and the ledger write. It is used by `pin-post` and by each `pin-products` item. A ledger that can't be read inside the lock spends nothing.
+   - Tests: `TestConcurrentSpendsForSameURLPayOnce` (6 goroutines) and `TestConcurrentProcessesForSameURLPayOnce` (4 real child processes). Each makes exactly 1 paid call; without the lock they made 6 and 4.
+   - The race detector is clean.
+3. **`unpinned-posts` matched titles against pins that had a URL.** A pin's title is now used only when the pin has no URL. Test: `TestUnpinnedTitleFallbackOnlyForURLlessPins`.
+4. **`pin-products` hid a failed later page.** A read failure after page 1 keeps the page-1 plan but becomes the exit error (auth 4, rate limit 7, outage 5) and shows as INCOMPLETE in the human report. Test: `TestPinProductsLaterPageFailureExitsNonZero` (auth, rate limit, outage; JSON and human output).
+
+No generator-owned file changed, so the existing four `.printing-press-patches` entries remain accurate.
+
+## Live-gate reliability fix (`043a26a`)
+
+The full 301-test live gate on `02a6d45` repeatedly failed exactly one `list-boards` check (happy_path or json_fidelity) with exit 5. The vendor's reply was "Internal error while running this tool". Direct `list-boards --json` reads succeeded twice in a row, with no auth or input error.
+
+`pgCall` now retries **once**, inside the same command deadline, after a 1-second pause that stops when the deadline does. The retry applies only when both of these hold:
+- the tool is a known catalog tool that neither mutates nor spends;
+- the error is that exact vendor message, whether it arrives as `isError` or as a JSON-RPC error.
+
+Paid, mutating and unknown tools are never retried. Neither are explicit rejections, auth, not-found, rate-limit or unreadable replies. The generated transport retry and the unreadable-spend ledgering are unchanged.
+
+Tests in `pingenerator_internal_retry_test.go`:
+- A read that fails with the internal error, then succeeds, makes **2 requests**, for both error shapes.
+- A persistent internal error stops at 2 requests. Auth, not-found, rate-limit and other rejections make 1 request.
+- A paid call (`pin-post --execute`) and a free mutating call (`setup-design-profile`) with the same error each make **1 request**.
+- With a 300 ms timeout, the call fails during the wait, after 1 request.
+- The read tests fail with the retry disabled.
+
+`go test ./...` passes 15/15 packages, `go vet` is clean, and the race detector is clean. Only hand-authored files changed, so no new `.printing-press-patches` entry is needed.

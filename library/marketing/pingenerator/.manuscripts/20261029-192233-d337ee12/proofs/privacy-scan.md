@@ -29,7 +29,7 @@ The CLI source tree was **not** modified. It is byte-identical to `5ae04c7` and 
 |---|---|
 | Credential patterns (AWS, GitHub PAT, private key blocks, JWT, Stripe-style keys, Slack tokens, long Bearer values) | none |
 | `PINGENERATOR_ACCESS_KEY` set to a real-looking value | none (only `<placeholder>` text and the mock tests' fake `test-key-not-real`) |
-| Email addresses | synthetic fixtures only: `@example.com`, `@example.co.uk`, `[synthetic email fixture]`, and `[synthetic URL parser fixture]` in a URL-parsing test |
+| Email addresses | synthetic fixtures only: `@example.com`, `@example.co.uk`, `<synthetic-email>`, and `<synthetic-url-userinfo>` in a URL-parsing test |
 | Local paths | none in manuscripts or docs; generated test fixtures use synthetic `<cli-dir>/.config/example-pp-cli/...` and `<cli-dir>/...` |
 | Session URLs | none in files (commit messages carry the required session attribution trailer) |
 | Private repo or org names | none in manuscripts or CLI source |

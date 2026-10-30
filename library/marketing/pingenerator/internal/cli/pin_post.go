@@ -112,9 +112,13 @@ skipped unless --force.`,
 				view.Would = "spend " + tool.Cost.Note() + " and schedule this pin; re-run with --execute"
 				return printPinPost(cmd, flags, view)
 			}
-			payload, previewed, err := pgRunTool(cmd, flags, tool, toolArgs, true)
+			payload, previewed, skipped, err := pgSpendLocked(cmd, flags, tool, toolArgs, link, force)
 			if err != nil || previewed {
 				return err
+			}
+			if skipped {
+				view.Skipped, view.SkipReason = true, "another run of this CLI pinned this post first (see 'ledger'); pass --force to pin again"
+				return printPinPost(cmd, flags, view)
 			}
 			view.Executed, view.Result = true, payload
 			return printPinPost(cmd, flags, view)
