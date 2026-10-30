@@ -250,3 +250,113 @@ func TestNormalize_EmbeddedYouTubeProfiles(t *testing.T) {
 		}
 	}
 }
+
+// TestNormalize_EmbeddedLiveActorProfiles checks that the Hacker News, smart
+// article and Reddit profiles are keyed to Actors that exist and that a row of
+// the shape each Actor returns maps onto the unified Item.
+func TestNormalize_EmbeddedLiveActorProfiles(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+
+	r, err := NewRegistry()
+	if err != nil {
+		t.Fatalf("NewRegistry: %v", err)
+	}
+
+	redditRow := `[{
+		"title": "Go puzzler",
+		"url": "https://www.reddit.com/r/golang/comments/1xihr8n/go_puzzler/",
+		"body": "Post text",
+		"username": "wjholden",
+		"createdAt": "2026-10-29T11:48:19.000Z",
+		"dataType": "post",
+		"upVotes": 42,
+		"numberOfComments": 7
+	}]`
+
+	cases := []struct {
+		actor      string
+		row        string
+		title      string
+		url        string
+		body       string
+		author     string
+		published  time.Time
+		engagement int64
+	}{
+		{
+			actor: "constructive_calm/hacker-news-scraper",
+			row: `[{
+				"title": "A story",
+				"url": "https://example.com/post",
+				"hnUrl": "https://news.ycombinator.com/item?id=50282838",
+				"text": null,
+				"by": "csmantle",
+				"createdAt": "2026-10-29T00:25:45.000Z",
+				"time": 1793233545,
+				"score": 531,
+				"descendants": 108,
+				"type": "story"
+			}]`,
+			title:      "A story",
+			url:        "https://example.com/post",
+			author:     "csmantle",
+			published:  time.Date(2026, 10, 29, 0, 25, 45, 0, time.UTC),
+			engagement: 531,
+		},
+		{
+			actor: "lukaskrivka/article-extractor-smart",
+			row: `[{
+				"url": "https://www.example.com/2026/apr/27/an-article",
+				"loadedUrl": "https://www.example.com/2026/apr/27/an-article",
+				"title": "An article",
+				"text": "Article text",
+				"date": "2026-04-27T04:00:32.000Z",
+				"publisher": "Example News"
+			}]`,
+			title:     "An article",
+			url:       "https://www.example.com/2026/apr/27/an-article",
+			body:      "Article text",
+			published: time.Date(2026, 4, 27, 4, 0, 32, 0, time.UTC),
+		},
+		{
+			actor:      "trudax/reddit-scraper-lite",
+			row:        redditRow,
+			title:      "Go puzzler",
+			url:        "https://www.reddit.com/r/golang/comments/1xihr8n/go_puzzler/",
+			body:       "Post text",
+			author:     "wjholden",
+			published:  time.Date(2026, 10, 29, 11, 48, 19, 0, time.UTC),
+			engagement: 42,
+		},
+		{
+			actor:      "trudax/reddit-scraper",
+			row:        redditRow,
+			title:      "Go puzzler",
+			url:        "https://www.reddit.com/r/golang/comments/1xihr8n/go_puzzler/",
+			body:       "Post text",
+			author:     "wjholden",
+			published:  time.Date(2026, 10, 29, 11, 48, 19, 0, time.UTC),
+			engagement: 42,
+		},
+	}
+
+	for _, tc := range cases {
+		if p := r.Lookup(tc.actor); p.Actor != tc.actor {
+			t.Errorf("Lookup(%q) = profile %q, want the embedded %q profile", tc.actor, p.Actor, tc.actor)
+			continue
+		}
+		got, err := r.Normalize(tc.actor, decodeRows(t, tc.row)[0])
+		if err != nil {
+			t.Fatalf("Normalize(%q): %v", tc.actor, err)
+		}
+		if got.Title != tc.title || got.URL != tc.url || got.Body != tc.body || got.Author != tc.author {
+			t.Errorf("%s: title=%q url=%q body=%q author=%q", tc.actor, got.Title, got.URL, got.Body, got.Author)
+		}
+		if !got.PublishedAt.Equal(tc.published) {
+			t.Errorf("%s: published_at = %v, want %v", tc.actor, got.PublishedAt, tc.published)
+		}
+		if got.EngagementScore != tc.engagement {
+			t.Errorf("%s: engagement_score = %d, want %d (upVotes or score)", tc.actor, got.EngagementScore, tc.engagement)
+		}
+	}
+}

@@ -1,4 +1,4 @@
-actor: apify/smart-article-extractor
+actor: lukaskrivka/article-extractor-smart
 title: [title]
 url: [url, sourceUrl]
 body: [text, content, body, articleContent]

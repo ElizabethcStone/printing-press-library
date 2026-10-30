@@ -1,4 +1,4 @@
-actor: apify/hacker-news-scraper
+actor: constructive_calm/hacker-news-scraper
 title: [title]
 url: [url, hnUrl]
 body: [text, content]
