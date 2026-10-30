@@ -22,6 +22,7 @@ type Config struct {
 	TokenExpiry   time.Time `toml:"token_expiry"`
 	ClientID      string    `toml:"client_id"`
 	ClientSecret  string    `toml:"client_secret"`
+	CookieHeader  string    `toml:"cookie_header"`
 	Path          string    `toml:"-"`
 }
 
@@ -94,6 +95,13 @@ func (c *Config) ClearTokens() error {
 	return c.save()
 }
 
+// SaveCookies stores the Cookie header value for redfin.com requests. An empty
+// value removes it.
+func (c *Config) SaveCookies(header string) error {
+	c.CookieHeader = header
+	return c.save()
+}
+
 func (c *Config) save() error {
 	dir := filepath.Dir(c.Path)
 	if err := os.MkdirAll(dir, 0o700); err != nil {
@@ -102,6 +110,11 @@ func (c *Config) save() error {
 	data, err := toml.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("marshaling config: %w", err)
+	}
+	// WriteFile's mode applies only on create, so tighten an existing file
+	// before cookies or tokens land in it.
+	if err := os.Chmod(c.Path, 0o600); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("securing config file: %w", err)
 	}
 	return os.WriteFile(c.Path, data, 0o600)
 }
