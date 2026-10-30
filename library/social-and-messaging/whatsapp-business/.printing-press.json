@@ -1,0 +1,100 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-30T04:09:48.872262Z",
+  "printing_press_version": "4.33.9",
+  "api_name": "whatsapp-business",
+  "display_name": "WhatsApp Business Tools",
+  "cli_name": "whatsapp-business-pp-cli",
+  "creator": {
+    "handle": "bobeglz",
+    "name": "bobe"
+  },
+  "owner": "bobeglz",
+  "printer": "bobeglz",
+  "printer_name": "bobe",
+  "spec_path": "spec.json",
+  "spec_format": "openapi3",
+  "spec_source": "docs",
+  "spec_checksum": "sha256:d7c86c2c647052441320ebd3a70bb7b788429b469ee4023ff78d58ce809ecc51",
+  "run_id": "20261029-191727-e418f9d0",
+  "category": "social-and-messaging",
+  "description": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+  "mcp_binary": "whatsapp-business-pp-mcp",
+  "mcp_tool_count": 1,
+  "mcp_ready": "full",
+  "api_version": "2026-10-29",
+  "auth_type": "bearer_token",
+  "auth_preference": "MetaOAuthBearer",
+  "auth_env_vars": [
+    "WHATSAPP_BUSINESS_MCP_TOKEN"
+  ],
+  "novel_features": [
+    {
+      "name": "Local scope map",
+      "command": "ops scope-map",
+      "description": "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles."
+    },
+    {
+      "name": "Template component checklist",
+      "command": "ops template-checklist",
+      "description": "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values."
+    },
+    {
+      "name": "MCP catalog drift",
+      "command": "ops catalog-drift",
+      "description": "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands."
+    },
+    {
+      "name": "Captured asset changes",
+      "command": "ops changes",
+      "description": "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions."
+    },
+    {
+      "name": "Cross-account template comparison",
+      "command": "ops template-compare",
+      "description": "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time."
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Local scope map",
+      "command": "ops scope-map",
+      "description": "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles."
+    },
+    {
+      "name": "Template component checklist",
+      "command": "ops template-checklist",
+      "description": "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values."
+    },
+    {
+      "name": "MCP catalog drift",
+      "command": "ops catalog-drift",
+      "description": "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands."
+    },
+    {
+      "name": "Captured asset changes",
+      "command": "ops changes",
+      "description": "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions."
+    },
+    {
+      "name": "Cross-account template comparison",
+      "command": "ops template-compare",
+      "description": "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time."
+    }
+  ],
+  "verify": {
+    "mode": "live",
+    "pass_rate": 100,
+    "passed": 37,
+    "total": 37,
+    "data_pipeline": true,
+    "verdict": "PASS"
+  },
+  "scorecard": {
+    "steinberger": {
+      "percentage": 85,
+      "grade": "A",
+      "total": 85
+    }
+  }
+}

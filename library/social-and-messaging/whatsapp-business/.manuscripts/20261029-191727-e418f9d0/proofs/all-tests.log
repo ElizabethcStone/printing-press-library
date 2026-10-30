@@ -1,0 +1,22 @@
+?   	whatsapp-business-pp-cli/cmd/whatsapp-business-pp-cli	[no test files]
+?   	whatsapp-business-pp-cli/cmd/whatsapp-business-pp-mcp	[no test files]
+?   	whatsapp-business-pp-cli/internal/cache	[no test files]
+ok  	whatsapp-business-pp-cli/internal/captures	0.272s
+ok  	whatsapp-business-pp-cli/internal/cli	5.081s
+?   	whatsapp-business-pp-cli/internal/cli/playbooks	[no test files]
+ok  	whatsapp-business-pp-cli/internal/client	1.992s
+ok  	whatsapp-business-pp-cli/internal/cliutil	12.656s
+?   	whatsapp-business-pp-cli/internal/cliutil/testenv	[no test files]
+ok  	whatsapp-business-pp-cli/internal/config	1.461s
+ok  	whatsapp-business-pp-cli/internal/inspection	1.222s
+ok  	whatsapp-business-pp-cli/internal/learn	2.269s
+ok  	whatsapp-business-pp-cli/internal/learn/entities	2.120s
+ok  	whatsapp-business-pp-cli/internal/learn/lookups	2.668s
+ok  	whatsapp-business-pp-cli/internal/learn/patterns	1.940s
+ok  	whatsapp-business-pp-cli/internal/mcp	2.668s
+ok  	whatsapp-business-pp-cli/internal/mcp/bound	3.094s
+ok  	whatsapp-business-pp-cli/internal/mcp/cobratree	12.422s
+ok  	whatsapp-business-pp-cli/internal/metamcp	3.862s
+ok  	whatsapp-business-pp-cli/internal/platform	3.456s
+ok  	whatsapp-business-pp-cli/internal/store	4.263s
+?   	whatsapp-business-pp-cli/internal/types	[no test files]

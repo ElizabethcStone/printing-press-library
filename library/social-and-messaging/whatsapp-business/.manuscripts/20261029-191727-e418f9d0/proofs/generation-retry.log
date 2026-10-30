@@ -1,0 +1,5 @@
+info: learn: defaulting self-learning loop on (opt out with learn.disabled: true)
+info: learn.enabled promotes VisionSet.Store=true (the learn package depends on internal/store)
+Force regen merged 1 preserved files / 0 AddCommand calls
+Generated whatsapp-business at <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli
+Bundled <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/build/whatsapp-business-pp-mcp-darwin-arm64.mcpb

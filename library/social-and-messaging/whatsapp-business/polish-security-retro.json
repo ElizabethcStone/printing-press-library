@@ -1,0 +1,308 @@
+{
+  "gosec_version": "2.29.0",
+  "x_tools_version": "0.52.0",
+  "load_errors": {},
+  "generated_or_reserved_findings": [
+    {
+      "rule_id": "G115",
+      "file": "internal/cliutil/darwin_acl.go",
+      "line": "230",
+      "details": "integer overflow conversion uint32 -> int32",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "212",
+      "details": "integer overflow conversion int32 -> uint64",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "167",
+      "details": "integer overflow conversion int32 -> uint32",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "155",
+      "details": "integer overflow conversion int32 -> uint32",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cliutil/darwin_acl_darwin.go",
+      "line": "143",
+      "details": "integer overflow conversion int -> uint32",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cliutil/creds_perms_unix.go",
+      "line": "71",
+      "details": "integer overflow conversion int -> uint32",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G115",
+      "file": "internal/cliutil/creds_perms_unix.go",
+      "line": "53",
+      "details": "integer overflow conversion int -> uint32",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G119",
+      "file": "internal/client/client.go",
+      "line": "1049",
+      "details": "Sensitive headers should not be re-added in redirect policy callbacks",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G101",
+      "file": "internal/platform/gate.go",
+      "line": "23",
+      "details": "Potential hardcoded credentials",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G703",
+      "file": "internal/cli/teach.go",
+      "line": "211",
+      "details": "Path traversal via taint analysis",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G201",
+      "file": "internal/store/store.go",
+      "line": "4086-4089",
+      "details": "SQL string formatting",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G201",
+      "file": "internal/store/store.go",
+      "line": "3659-3662",
+      "details": "SQL string formatting",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G201",
+      "file": "internal/store/store.go",
+      "line": "1545",
+      "details": "SQL string formatting",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G201",
+      "file": "internal/store/store.go",
+      "line": "1521",
+      "details": "SQL string formatting",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G202",
+      "file": "internal/store/store.go",
+      "line": "1072",
+      "details": "SQL string concatenation",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G202",
+      "file": "internal/store/learnings.go",
+      "line": "610",
+      "details": "SQL string concatenation",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G202",
+      "file": "internal/platform/migration.go",
+      "line": "158",
+      "details": "SQL string concatenation",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/store/store.go",
+      "line": "291",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/platform/ratelimit.go",
+      "line": "149",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/platform/profile.go",
+      "line": "511",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/learn/teach_log.go",
+      "line": "113",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/learn/playbooks.go",
+      "line": "74",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/config/config.go",
+      "line": "178",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/teach_playbook.go",
+      "line": "377",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/teach.go",
+      "line": "151",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/teach.go",
+      "line": "128",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "100",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/helpers.go",
+      "line": "4205",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/helpers.go",
+      "line": "4166",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/feedback.go",
+      "line": "209",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G304",
+      "file": "internal/cli/feedback.go",
+      "line": "67",
+      "details": "Potential file inclusion via variable",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G117",
+      "file": "internal/learn/journal.go",
+      "line": "266",
+      "details": "Marshaled struct field \"SessionKey\" (JSON key \"session_key\") matches secret pattern",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G302",
+      "file": "internal/platform/profile.go",
+      "line": "303",
+      "details": "Expect file permissions to be 0600 or less",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G302",
+      "file": "internal/cliutil/testenv/testenv.go",
+      "line": "79",
+      "details": "Expect file permissions to be 0600 or less",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G302",
+      "file": "internal/cliutil/testenv/sandbox_unix.go",
+      "line": "16",
+      "details": "Expect file permissions to be 0600 or less",
+      "disposition": "reserved generator runtime retro candidate"
+    },
+    {
+      "rule_id": "G302",
+      "file": "internal/client/client.go",
+      "line": "1485",
+      "details": "Expect file permissions to be 0600 or less",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "212",
+      "details": "Use of unsafe calls should be audited",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "197",
+      "details": "Use of unsafe calls should be audited",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G103",
+      "file": "internal/cli/store_adopt_darwin.go",
+      "line": "179",
+      "details": "Use of unsafe calls should be audited",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G104",
+      "file": "internal/store/store.go",
+      "line": "3750",
+      "details": "Errors unhandled",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G104",
+      "file": "internal/store/store.go",
+      "line": "3386",
+      "details": "Errors unhandled",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G104",
+      "file": "internal/learn/journal.go",
+      "line": "279",
+      "details": "Errors unhandled",
+      "disposition": "generated template retro candidate"
+    },
+    {
+      "rule_id": "G104",
+      "file": "internal/client/client.go",
+      "line": "2241",
+      "details": "Errors unhandled",
+      "disposition": "generated template retro candidate"
+    }
+  ]
+}

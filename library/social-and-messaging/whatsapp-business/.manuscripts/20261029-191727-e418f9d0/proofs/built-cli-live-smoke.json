@@ -1,0 +1,29 @@
+[
+  {
+    "command": "doctor",
+    "passed": true
+  },
+  {
+    "command": "connection ping",
+    "passed": true,
+    "response": "pong"
+  },
+  {
+    "command": "businesses list",
+    "passed": true,
+    "returned_rows": 6
+  },
+  {
+    "command": "catalog capture",
+    "passed": true,
+    "captured_catalogs": 2,
+    "tools_count": 24
+  },
+  {
+    "command": "ops catalog-drift",
+    "passed": true,
+    "observed_schema_changes": 1,
+    "change_verified_against_saved_documents": true,
+    "note": "The beta server really added an output property between captures; zero drift was an invalid test assumption."
+  }
+]

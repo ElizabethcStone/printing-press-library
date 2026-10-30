@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "id": "whatsapp-business-go-stdlib-security-floor",
+  "applied_at": "2026-10-29",
+  "base_run_id": "20261029-191727-e418f9d0",
+  "base_printing_press_version": "4.33.8",
+  "summary": "The Go module must satisfy the current reachable standard-library vulnerability floor before validation or release.",
+  "reason": "The module security floor and selected toolchain must both avoid reachable standard-library findings; a safe minimum alone cannot override a vulnerable newer selected toolchain.",
+  "files": [
+    "go.mod",
+    "go.sum"
+  ],
+  "validated_outcome": "Publish validation uses selected Go1.27.3, the patched x509 toolchain; reachability scan and full live matrix rerun before packaging."
+}

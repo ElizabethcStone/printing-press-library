@@ -1,0 +1,47 @@
+[
+  {
+    "command": "webhooks subscribe --help",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "webhooks subscribe --dry-run",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "webhooks subscribe --json",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "templates archival --help",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "templates archival --dry-run",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "templates archival --json",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "webhooks configure --help",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "webhooks configure --dry-run",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "command": "webhooks configure --json",
+    "passed": true,
+    "exit_code": 0
+  }
+]

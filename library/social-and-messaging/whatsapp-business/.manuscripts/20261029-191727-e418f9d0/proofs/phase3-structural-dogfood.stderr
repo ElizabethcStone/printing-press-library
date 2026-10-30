@@ -1,0 +1,6 @@
+dogfood: using spec <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/spec.json (bundled)
+dogfood: synced .printing-press.json (novel_features) from novel_features_built
+dogfood: synced README.md (Unique Features) from novel_features_built
+dogfood: synced SKILL.md (Unique Capabilities) from novel_features_built
+dogfood: synced internal/cli/which.go (whichIndex) from novel_features_built
+dogfood: synced internal/cli/root.go (Highlights) from novel_features_built

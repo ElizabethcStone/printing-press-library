@@ -1,0 +1,184 @@
+{
+  "api_name": "whatsapp-business",
+  "novelty_score": 0,
+  "alternatives": [
+    {
+      "name": "WBMCP",
+      "url": "https://github.com/saravanaspar/WBMCP",
+      "language": "TypeScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    },
+    {
+      "name": "whatsapp-business-mcp",
+      "url": "https://github.com/Gonzalez8/whatsapp-business-mcp",
+      "language": "JavaScript",
+      "install_method": "",
+      "stars": 0,
+      "last_updated": "",
+      "command_count": 0,
+      "has_json_output": false,
+      "has_auth_support": false
+    }
+  ],
+  "gaps": [],
+  "patterns": [
+    "Official MCP JSON-RPC transport with hand-written schema-aware domain commands"
+  ],
+  "recommendation": "awaiting_scope_approval",
+  "researched_at": "2026-10-30T01:33:29.923823Z",
+  "novel_features": [
+    {
+      "name": "Local scope map",
+      "command": "ops scope-map",
+      "description": "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles.",
+      "rationale": "This uses saved whatsapp_biz_businesses, whatsapp_biz_accounts and whatsapp_biz_phone_numbers responses and their capture-scope metadata to join known relationships and expose unresolved links with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops scope-map --snapshot capture-001 --agent --select relationships,gaps",
+      "why_it_matters": "Use before preparing an operation to verify the captured business/account/phone relationships and evidence gaps.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Template component checklist",
+      "command": "ops template-checklist",
+      "description": "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values.",
+      "rationale": "This uses a saved whatsapp_biz_get_template component document and the captured whatsapp_biz_send_message input contract to extract placeholder paths and supported versus unsupported parameter channels with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops template-checklist --template template-capture-001 --agent",
+      "why_it_matters": "Use before composing template values to identify unsupported component mappings without sending.",
+      "group": "Template review"
+    },
+    {
+      "name": "MCP catalog drift",
+      "command": "ops catalog-drift",
+      "description": "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands.",
+      "rationale": "This uses two locally saved tools/list catalogs and their exact input/output schemas to compute tool additions/removals, required-input additions and schema-path changes with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops catalog-drift --before catalog-001 --after catalog-002 --agent",
+      "why_it_matters": "Use before updating scripts against the beta MCP contract.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Captured asset changes",
+      "command": "ops changes",
+      "description": "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions.",
+      "rationale": "This uses two locally stored, time-stamped MCP response snapshots with identical business/app/account/filter scope to compute structural changes and completeness-aware additions or removals with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops changes --before capture-001 --after capture-002 --agent",
+      "why_it_matters": "Use when resuming integration work to compare the exact same scope against its previous capture.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Cross-account template comparison",
+      "command": "ops template-compare",
+      "description": "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time.",
+      "rationale": "This uses two explicitly selected saved whatsapp_biz_get_template responses plus their account/template IDs and capture metadata to compute a field-and-component diff with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops template-compare --left template-001 --right template-002 --agent",
+      "why_it_matters": "Use when reviewing two explicitly selected account-specific template documents.",
+      "group": "Template review"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Local scope map",
+      "command": "ops scope-map",
+      "description": "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles.",
+      "rationale": "This uses saved whatsapp_biz_businesses, whatsapp_biz_accounts and whatsapp_biz_phone_numbers responses and their capture-scope metadata to join known relationships and expose unresolved links with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops scope-map --snapshot capture-001 --agent --select relationships,gaps",
+      "why_it_matters": "Use before preparing an operation to verify the captured business/account/phone relationships and evidence gaps.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Template component checklist",
+      "command": "ops template-checklist",
+      "description": "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values.",
+      "rationale": "This uses a saved whatsapp_biz_get_template component document and the captured whatsapp_biz_send_message input contract to extract placeholder paths and supported versus unsupported parameter channels with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops template-checklist --template template-capture-001 --agent",
+      "why_it_matters": "Use before composing template values to identify unsupported component mappings without sending.",
+      "group": "Template review"
+    },
+    {
+      "name": "MCP catalog drift",
+      "command": "ops catalog-drift",
+      "description": "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands.",
+      "rationale": "This uses two locally saved tools/list catalogs and their exact input/output schemas to compute tool additions/removals, required-input additions and schema-path changes with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops catalog-drift --before catalog-001 --after catalog-002 --agent",
+      "why_it_matters": "Use before updating scripts against the beta MCP contract.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Captured asset changes",
+      "command": "ops changes",
+      "description": "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions.",
+      "rationale": "This uses two locally stored, time-stamped MCP response snapshots with identical business/app/account/filter scope to compute structural changes and completeness-aware additions or removals with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops changes --before capture-001 --after capture-002 --agent",
+      "why_it_matters": "Use when resuming integration work to compare the exact same scope against its previous capture.",
+      "group": "Captured integration evidence"
+    },
+    {
+      "name": "Cross-account template comparison",
+      "command": "ops template-compare",
+      "description": "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time.",
+      "rationale": "This uses two explicitly selected saved whatsapp_biz_get_template responses plus their account/template IDs and capture metadata to compute a field-and-component diff with no external dependencies.",
+      "example": "whatsapp-business-pp-cli ops template-compare --left template-001 --right template-002 --agent",
+      "why_it_matters": "Use when reviewing two explicitly selected account-specific template documents.",
+      "group": "Template review"
+    }
+  ],
+  "narrative": {
+    "display_name": "WhatsApp Business Tools",
+    "headline": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+    "value_prop": "Discover the correct business assets, inspect actual setup state, and prepare schema-aware operations. Compare saved configurations, templates and MCP contracts with explicit scope and capture times.",
+    "auth_narrative": "Meta OAuth is required. Use --codex-auth (or WHATSAPP_BUSINESS_USE_CODEX_AUTH=1) to explicitly read the existing native Codex Meta OAuth credential on this Mac. Run auth codex --launch when that native session needs sign-in. An independently registered client was rejected by Meta; independent OAuth is not claimed. A resource-specific bearer can instead be supplied through the configured credential seam.",
+    "quickstart": [
+      {
+        "command": "whatsapp-business-pp-cli doctor --dry-run",
+        "comment": "Inspect the local CLI health-check plan without credentials or network."
+      },
+      {
+        "command": "whatsapp-business-pp-cli connection ping --codex-auth --agent",
+        "comment": "Check the authenticated MCP connection."
+      },
+      {
+        "command": "whatsapp-business-pp-cli businesses list --codex-auth --agent",
+        "comment": "Discover authorized business scopes before selecting one."
+      }
+    ],
+    "when_to_use": "Use for the official Meta WhatsApp Business Tools MCP and its authorized business assets. Start with discovery, choose the business explicitly and read captured scope metadata before local comparisons.",
+    "anti_triggers": [
+      "Do not use for personal WhatsApp chat history or inbox triage.",
+      "Do not use for Cloud API capabilities absent from this official MCP.",
+      "Do not infer send eligibility, pricing or delivery from local snapshots."
+    ],
+    "recipes": [
+      {
+        "title": "Inspect captured scope relationships",
+        "command": "whatsapp-business-pp-cli ops scope-map --snapshot capture-001 --agent --select relationships,gaps",
+        "explanation": "Review a chosen inventory capture and its unresolved relationships."
+      },
+      {
+        "title": "Compare captured asset state",
+        "command": "whatsapp-business-pp-cli ops changes --before capture-001 --after capture-002 --agent",
+        "explanation": "Compare matching scopes without treating incomplete pages as deletions."
+      },
+      {
+        "title": "Extract template requirements",
+        "command": "whatsapp-business-pp-cli ops template-checklist --template template-capture-001 --agent",
+        "explanation": "List component requirements and unsupported mappings without sending."
+      },
+      {
+        "title": "Inspect catalog contract changes",
+        "command": "whatsapp-business-pp-cli ops catalog-drift --before catalog-001 --after catalog-002 --agent",
+        "explanation": "Review potentially breaking tool and required-input changes."
+      }
+    ],
+    "trigger_phrases": [
+      "Inspect WhatsApp Business onboarding",
+      "List WhatsApp Business accounts",
+      "Compare captured WhatsApp templates",
+      "Check WhatsApp MCP catalog changes",
+      "use whatsapp-business",
+      "run whatsapp-business"
+    ]
+  }
+}

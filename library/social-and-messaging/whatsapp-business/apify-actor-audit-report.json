@@ -1,0 +1,9 @@
+{
+  "dir": "\u003ccli-dir\u003e/whatsapp-business",
+  "research_dir": "\u003ccli-dir\u003e/20261029-191727-e418f9d0",
+  "verdict": "pass",
+  "actors": null,
+  "issues": [
+    "no Apify actor references found, skipping"
+  ]
+}

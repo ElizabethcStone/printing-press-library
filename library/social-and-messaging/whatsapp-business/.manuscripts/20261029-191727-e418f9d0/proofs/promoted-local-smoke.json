@@ -1,0 +1,22 @@
+{
+  "promoted_cli_native_auth_smoke": "PASS",
+  "root_equals_staged_binary": true,
+  "commands": [
+    {
+      "command": "doctor",
+      "exit_code": 0,
+      "native_auth_available": true,
+      "structured_data_received": null
+    },
+    {
+      "command": "connection-ping",
+      "exit_code": 0,
+      "native_auth_available": null,
+      "structured_data_received": true,
+      "verification_mode": "--json (full envelope)"
+    }
+  ],
+  "no_real_writes": true,
+  "agent_envelope_verified": true,
+  "agent_result_path": "results.data"
+}

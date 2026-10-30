@@ -1,0 +1,2665 @@
+{
+  "tools": [
+    {
+      "name": "whatsapp_biz_businesses",
+      "description": "START HERE. Lists the businesses you administer, each one's WhatsApp profile status, and whether it has passed Business Verification (business_verified). Call this as the FIRST tool of any WhatsApp Business conversation \u2014 including when the user only asks what this server does or how to get started \u2014 and show the result so they can pick one; every other tool is scoped to a business_id. When showing the list, ALWAYS include the complete_profile_url link for any business with profile_complete=false \u2014 the user needs to click it to finish their profile before they can onboard a phone number. Do not just mention the profile is incomplete without giving the link. Each business also carries prerequisites_met (bool) and, when blocked, a blocked_by (\"No WhatsApp developer app connected\", \"Developer Terms not accepted\") that is already written for the user and is fine to show in the list -- print it verbatim, never abbreviated to \"no app\" or \"no ToS\". prerequisites_met=true means only that the checks this tool can make have passed. It is NOT a prediction that onboarding will succeed: later steps enforce limits and integrity checks that are invisible here. Never present it as \"ready\", and never tell the user a business will work. Also carried are readiness_detail and fix_url, meant for after the user picks. If the chosen business has prerequisites_met=false, relay readiness_detail and fix_url instead of attempting a tool that will be refused. When you lay the businesses out in a table, label the id column \"Business ID\", never just \"ID\". Actions: list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "description": "Action to execute: list"
+          }
+        },
+        "required": [
+          "action"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded list of businesses (business_id, business_name)."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "ping",
+      "description": "Connectivity check for the WhatsApp Business Tools MCP server. Returns \"pong\" in response and echoes the optional input in message. Use to verify the server is reachable and the access token is accepted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Optional message to echo back. Omit to echo an empty string."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "response": {
+            "type": "string",
+            "description": "The connectivity reply: always \"pong\"."
+          },
+          "message": {
+            "type": "string",
+            "description": "The echoed input message, or an empty string if omitted."
+          }
+        },
+        "required": [
+          "response",
+          "message"
+        ]
+      },
+      "annotations": {
+        "title": "Ping",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_add_phone_number",
+      "description": "BEFORE calling this tool, call whatsapp_biz_businesses so the user can pick a business and you can check profile_complete \u2014 do NOT skip that step even if the user already told you what to do. Add a phone number to a business and start onboarding (add -> verify -> register). This creates a new WhatsApp Business WhatsApp account automatically under the chosen business. Pass the selected business_id (or omit it to auto-detect; if the user administers multiple businesses this returns the list to pick from). Creating a new account is the DEFAULT and needs no discussion: do NOT list the existing accounts, and do NOT ask the user to choose between a new account and an existing one. Only pass waba_id when the user has explicitly asked to use a specific existing account, or when retrying an add that already created one (the failure returns the waba_id to reuse). The confirmation states which account the number will land on, so the user can still redirect it there. On a very large business, creating a new account is REFUSED here. That is a limit of this tool, not one the business has reached. Adding to an account the user names still works. Do not answer \"yes you can add a number\" on the strength of profile_complete or prerequisites_met: those do not see this. When it is refused, say the tool cannot create an account on a business this size and that nothing is wrong with their account, then offer the two options the error carries -- name an existing account, or open the link and add it there. Do not say the business has \"too many\" accounts, and never give a count or a floor for how many it has.vertical is the industry the business is in, and it is required for the same reason the Category field is required in the WhatsApp signup dialog: messaging limits, template review and integrity rules are keyed on it, and a number onboarded without one is treated as uncategorised. Do NOT read the list of values to the user. Choose it from what the business is actually known to do, and state your choice in the confirmation for them to correct. A name is evidence only when it names the trade: \"Brie Game Page\" and \"Joe's Pizza\" do, \"Hello world\", \"Acme\" and \"test_mcp\" do not -- a placeholder, a person's name or an arbitrary brand says nothing about what is sold, and neither does a phone number. When the name does point at a trade, use it; do not make the user repeat what they have already told you. When nothing points at one, ASK what the business does -- do not put a guessed category in the confirmation and wait for them to notice it. There is NO default. OTHER is not the value for \"I could not tell\": it is for a business whose trade IS known and that genuinely matches none of the others. Five of the values are REGULATED -- ALCOHOL, ONLINE_GAMBLING, PHYSICAL_GAMBLING, OTC_DRUGS, MATRIMONY_SERVICE -- and must never be inferred: WhatsApp blocks messaging for them outside a short per-category country allowlist, and for ONLINE_GAMBLING that allowlist is empty, so the number can message nobody. Pick one only when the user has said in their own words that this is what the business sells, and tell them the restriction before you call. A bar is RESTAURANT, a pharmacy is HEALTH, a games studio is ENTERTAIN -- the regulated value is for when the regulated goods are the business itself.  Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\". This server has no undo: nothing here can unregister a number, remove a subscription, delete an account or reverse a write. Never offer to undo one, and never imply a call can be taken back. ONLY when the user explicitly asks to undo, reverse, remove or delete something, tell them to do it themselves: webhook changes (callback URL, verify token, subscribed fields, per-account subscriptions) on the app's WhatsApp configuration page in the App Dashboard, and WhatsApp accounts, apps and phone numbers in Business Settings. Use the exact links returned by whatsapp_biz_onboarding_status in manage_links -- do not write those URLs from memory. Do not raise any of this unless asked. If a call fails with no response at all -- a gateway error, a 502, or a timeout -- there is NO reportable id for it. support_reference and fbtrace_id only exist inside an error payload this server returned; a request id from the HTTP layer is not one and must never be offered as though it were. Say plainly that the call did not come back and that there is no reference, then CHECK whether the work happened before retrying: whatsapp_biz_phone_numbers with phone_number answers that for a number, whatever the size of the business.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number": {
+            "type": "string",
+            "description": "Phone number to add, in E.164 format."
+          },
+          "display_name": {
+            "type": "string",
+            "description": "Business display name shown to customers in WhatsApp."
+          },
+          "vertical": {
+            "type": "string",
+            "description": "The industry the business is in, as one of: AUTO, BEAUTY, APPAREL, EDU, ENTERTAIN, EVENT_PLAN, FINANCE, GROCERY, GOVT, HOTEL, HEALTH, NONPROFIT, PROF_SERVICES, RETAIL, TRAVEL, RESTAURANT, ALCOHOL, ONLINE_GAMBLING, PHYSICAL_GAMBLING, OTC_DRUGS, MATRIMONY_SERVICE, OTHER."
+          },
+          "waba_name": {
+            "type": "string",
+            "description": "Name for the new WhatsApp account. Defaults to the display name if omitted. Do NOT offer or ask for this when collecting inputs -- it is one more decision on the very first turn and the default is almost always right. The confirmation shows the name that will be used, and the user can ask to change it then. Set it only if the user names the account themselves, unprompted. Do NOT say \"WABA name\" to the user \u2014 say \"account name\"."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "Which business the number is added under. Get it from whatsapp_biz_businesses and have the user pick; do not guess it and do not reuse one from an earlier answer about a different business."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "Optional: add the number to an existing WhatsApp account instead of creating a new one. OMIT THIS BY DEFAULT: creating a new account is the normal path. Pass it only when the user explicitly named an existing account to use, or when retrying an add whose error returned a waba_id to reuse. Do not volunteer it as an option or prompt the user to pick. Omitting it under WAME creates a WhatsApp Account + Messaging Account pair instead of a single account. Accepts either half of that pair: a Messaging Account id, or the WhatsApp Account id that actually holds numbers -- the server tells them apart and resolves the pair itself."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of exactly what it will do so you can show it to the user and ask them to confirm. Only after the user explicitly says yes, re-call with the SAME arguments plus confirm=true to actually add the number."
+          }
+        },
+        "required": [
+          "phone_number",
+          "display_name",
+          "vertical",
+          "business_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_get_template",
+      "description": "Get the full details of a WhatsApp message template the user administers (state, category, rejection reason, components). PREREQUISITE: a waba_id (use whatsapp_biz_accounts to find one) and a template_id. Actions: get. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Pass the business_id the user selected so the request is authorized against their admin access to that business."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id the template belongs to (Messaging Account under WAME; same numeric id)."
+          },
+          "template_id": {
+            "type": "string",
+            "description": "The message template id to look up."
+          }
+        },
+        "required": [
+          "waba_id",
+          "template_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_manage_templates_archival",
+      "description": "Archive or unarchive WhatsApp message templates. Set action to ARCHIVE to hide templates from the active list, or UNARCHIVE to restore them to their previous status. Only APPROVED or REJECTED templates can be archived. Pass template_ids as a list of 1 to 100 template version ids. To find ids to unarchive, call whatsapp_biz_list_templates with status set to ARCHIVED (archived templates are hidden from the default listing). The result reports succeeded and failed (id to reason) per template, so a call can partly succeed. PREREQUISITE: a waba_id and the template_ids (use whatsapp_biz_list_templates or whatsapp_biz_get_template to find ids); pass the selected business_id so the request can be authorized. If you do not have the waba_id, call whatsapp_biz_accounts first to find or pick one. Actions: archive, unarchive. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id the templates belong to (Messaging Account under WAME; same numeric id)."
+          },
+          "template_ids": {
+            "type": "array",
+            "description": "The ids of the template versions to archive or unarchive; 1 to 100 ids. Duplicates are ignored.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "action": {
+            "type": "string",
+            "description": "ARCHIVE to archive the templates, or UNARCHIVE to restore them (case-insensitive)."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Pass the business_id the user selected so the request is authorized against their admin access to that business."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of what it will do so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to change the templates."
+          }
+        },
+        "required": [
+          "waba_id",
+          "template_ids",
+          "action"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_publish_app",
+      "description": "Check whether the developer app is published (live) and, if it is not, return the link to publish it. An app still in development mode (unpublished) may not be sent real webhooks, so it is a common reason a correctly configured and subscribed webhook produces nothing. Call this whenever the user reports missing webhooks, and as the last step of onboarding after whatsapp_biz_configure_webhooks and whatsapp_biz_subscribe_webhook. This tool does NOT publish the app: publishing is gated on checks (privacy policy URL, business verification, data-handling questions and others) that must be completed on the page behind publish_url, so the user finishes it there. Actions: check.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "app_id": {
+            "type": "string",
+            "description": "The developer app to check. Omit to use the WhatsApp-enabled app already resolved for the selected business."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "The business that owns the app. Omit to auto-detect (asks the user if they administer more than one)."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_list_templates",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation). List the message templates on a WhatsApp account the user administers (paginated, most recently edited first). Prefer narrowing with the filters below over paging through everything -- filters are applied server-side. Deleted and archived templates are hidden unless you ask for them by status. PREREQUISITE: a waba_id (use whatsapp_biz_accounts to find one). Actions: list. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Pass the business_id the user selected so the request is authorized against their admin access to that business."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id to list templates for (Messaging Account under WAME; same numeric id)."
+          },
+          "limit": {
+            "type": "string",
+            "description": "Max templates to return in this page (optional)."
+          },
+          "after": {
+            "type": "string",
+            "description": "Opaque pagination cursor from a previous page (optional)."
+          },
+          "status": {
+            "type": "array",
+            "description": "Filter: review states, any-match. APPROVED, PENDING, REJECTED, PAUSED, IN_APPEAL, ... DELETED, PENDING_DELETION and ARCHIVED are excluded by default -- name one here to see it.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "category": {
+            "type": "array",
+            "description": "Filter: categories, any-match. MARKETING, UTILITY, AUTHENTICATION.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "language": {
+            "type": "array",
+            "description": "Filter: language codes, any-match, e.g. en, en_US, es.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "name": {
+            "type": "string",
+            "description": "Filter: case-insensitive substring of the template name."
+          },
+          "content": {
+            "type": "string",
+            "description": "Filter: case-insensitive substring of the template body text."
+          },
+          "name_or_content": {
+            "type": "string",
+            "description": "Filter: case-insensitive substring of EITHER the name or the body text -- use this for a general \"find the template about X\" search. Do not combine with name or content."
+          },
+          "quality_score": {
+            "type": "array",
+            "description": "Filter: delivery quality, any-match. GREEN, YELLOW, RED, UNKNOWN.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "source": {
+            "type": "string",
+            "description": "Filter: how the template was created -- manual (by the business) or auto_generated (by Meta)."
+          },
+          "since": {
+            "type": "string",
+            "description": "Filter: only templates last edited AFTER this Unix timestamp in seconds (exclusive)."
+          },
+          "until": {
+            "type": "string",
+            "description": "Filter: only templates last edited at or BEFORE this Unix timestamp in seconds (inclusive)."
+          }
+        },
+        "required": [
+          "waba_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_send_verification_code",
+      "description": "Send a one-time ownership code to a WhatsApp Business phone number (SMS by default, or set code_method=VOICE). Step 1 of verification: call this, ask the user for the code they received, then call whatsapp_biz_verify_phone_number with it. PREREQUISITE: whatsapp_biz_add_phone_number.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number_id": {
+            "type": "string",
+            "description": "The phone number id to send the code to. Get it from whatsapp_biz_phone_numbers if you do not have it."
+          },
+          "code_method": {
+            "type": "string",
+            "description": "How to send the code: SMS | VOICE. Defaults to SMS."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of the code to be sent so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to send the code."
+          }
+        },
+        "required": [
+          "phone_number_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_onboarding_status",
+      "description": "Where this business is in WhatsApp onboarding, as a checklist: business profile, developer app, phone number, webhooks, account subscription, app published, payment method. Every step is a real read, so use this instead of inferring progress from earlier turns. THIS IS THE ONLY READ-ONLY WAY TO INSPECT WEBHOOK CONFIGURATION AND PUBLISH STATE. Reach for it directly whenever the user asks any of: \"does app X have webhooks configured\", \"is my webhook set up\", \"is this app published\", \"why am I not receiving webhooks\". For \"which of my apps has webhooks configured\" the answer is webhooks_by_app, which covers every app on the business in one call. For \"is this account/number subscribed\" the answer is subscriptions_by_account -- an app-level callback URL says nothing about which accounts route to it, so use that table rather than calling the subscribe tool to find out. Pass app_id to answer for a specific app, and phone_number_id when the question is about one number: subscriptions_by_account is capped, so on a business with many accounts it cannot speak for one it did not read, while phone_number_id reads that account directly. Do NOT answer those by calling a webhook tool, and do NOT tell the user no read tool exists -- this is that tool. Call it when the user asks what is set up, what is left, why something will not work, or when resuming in a new conversation with no history -- and before promising any onboarding step, so you do not send them to redo work that is already done. Each step is done, todo or unknown; unknown means the check could not run, which is NOT the same as not done. Drive the first todo step. Webhook delivery needs all three of Webhooks, Account subscription and App published: a callback URL alone delivers nothing, so never call webhooks working while any of the three is todo. The Webhooks, Account subscription and App published steps are per APP and describe only the app named in checked_app -- never report them as covering every app on the business. Pass app_id to check a different one. Actions: check. Public test numbers are deliberately left out of every list this server returns, and cannot be used to send. If the user asks about a test number, or about the test WhatsApp account it sits on, tell them it is for testing only: it reaches nobody except the recipients on its own allow-list, and that allow-list can only be managed on the app's WhatsApp API testing page in the Meta App Dashboard. Never offer to add a recipient to it or to send from it -- neither is possible from here.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business to report on. Omit to auto-detect (asks the user if they administer more than one)."
+          },
+          "app_id": {
+            "type": "string",
+            "description": "Optional: which app the Webhooks and App published steps should describe. Those two are per APP, not per business, and a business often has several. Omit to use the default app; the result names the app it checked in checked_app either way. When apps_on_business is more than 1 and the user asks about a specific app, re-run with that app_id rather than assuming the default covers it."
+          },
+          "phone_number_id": {
+            "type": "string",
+            "description": "Optional: the number whose account the Account subscription step should answer for. Pass it whenever the question is about ONE number -- it reads that account directly, so it answers yes or no definitely, while subscriptions_by_account is capped and cannot speak for an account it did not read. Required to get a definite answer on a business with more accounts than that cap."
+          },
+          "apps_after": {
+            "type": "string",
+            "description": "Optional: continue the webhooks_by_app list past the row cap. Pass the next_apps_after value from the previous result; its absence means there are no more. To check ONE app, pass app_id instead -- that reads it directly rather than walking pages."
+          },
+          "accounts_after": {
+            "type": "string",
+            "description": "Optional: continue the subscriptions_by_account list past the row cap. Pass the next_accounts_after value from the previous result to get the next page; its absence means there are no more. Only page when the user asks to see the rest -- to answer about ONE account, pass phone_number_id instead, which is one read rather than a walk through every page."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded checklist: steps (step, status, detail), complete, next_step, checked_app, apps_on_business, webhooks_by_app -- one row per app on the business with its own callback_configured, subscribed_field_count and published, capped with next_apps_after carrying the cursor for the next page -- and subscriptions_by_account, one row per WhatsApp account listing the apps it sends events to -- capped, with next_accounts_after carrying the cursor for the next page when one exists."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_system_user_token",
+      "description": "Generate a system-user access token. Token generation is a secure in-page action; returns a deep link to the Business Settings System Users page, where the user selects a system user and generates a token. No app_id needed. Always give the developer the guide_url from the response alongside the steps -- the steps are a summary of that page, and it is the source of truth they need when the UI does not match.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business id to manage system users for."
+          }
+        },
+        "required": [
+          "business_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_update_template",
+      "description": "Update (edit) the content of an existing WhatsApp message template. Replaces the template components with the ones you provide -- a body (required) plus an optional text header, footer, and buttons, exactly like create -- so pass the FULL desired content, not just the changed part (any component you omit is removed). The name and language cannot be changed. Pass category only to change it: an APPROVED UTILITY template can change to MARKETING when the category is the only change, and a template rejected for incorrect category can take the correct category. WhatsApp rejects other category changes. Otherwise omit category. Supported content matches create: a body with positional placeholders ({{1}}, {{2}}, ...) and a matching body_example for each, or named {{customer_name}} placeholders when parameter_format=NAMED with a matching body_named_example, an optional text header (which may contain a single placeholder with a header_example or header_named_example), a location header (set header_format=LOCATION; it carries no text), or an IMAGE, VIDEO, DOCUMENT or GIF header (set header_format; to keep the current sample file of a header with the same format, pass no media input, otherwise give exactly one of header_media_url, header_media_from_template_id or header_handle), an optional static footer, and optional buttons (QUICK_REPLY, URL -- static or ending in {{1}} -- PHONE_NUMBER, VOICE_CALL -- a button that starts a WhatsApp call to the business -- CATALOG on MARKETING templates, MPM -- a multi-product message button, which makes the template MARKETING, SPM -- a single-product message button with the fixed label \"View\" and no text, MARKETING templates only, which needs header_format=PRODUCT, COPY_CODE -- a coupon code the recipient copies, MARKETING templates only, ORDER_DETAILS -- on MARKETING/UTILITY templates only, FLOW -- which opens a WhatsApp Flow, on MARKETING or UTILITY templates, REQUEST_CONTACT_INFO -- shares the recipient's WhatsApp phone number with the business, on MARKETING/UTILITY templates, with the fixed label \"Share Contact Info\" (no text), as the only button and with no header or footer, and PAYMENT_REQUEST -- a Brazil Pix/Boleto/payment-link button on UTILITY/MARKETING templates). NOT supported here: carousels and other button types. For those, CALL THIS TOOL ANYWAY with what the user asked for (for example category=AUTHENTICATION): it answers with the WhatsApp Manager deep link for that user's account. Never send the user to WhatsApp Manager without that link. You can also opt the template out of click tracking on its URL buttons with cta_url_link_tracking_opted_out. Edited templates are re-submitted for review, and only templates in an editable state can be updated. You can also set the message expiry (message_send_ttl_seconds). PREREQUISITE: a waba_id, the template_id, and the template_name (use whatsapp_biz_list_templates or whatsapp_biz_get_template to find the id); pass the selected business_id so the request can be authorized. Actions: update. DELIVERY: this is also where you add, change or remove optimized delivery on a template that already exists -- a maximum delivery price, or the budget, schedule, audience or status of the campaign a campaign template delivers through -- with optimization_spec. That is the one edit where content is optional: send optimization_spec on its own and the template content is left untouched, and conversely an ordinary content edit leaves the optimization the template already has untouched. Never create a second template to change pricing. For an optimization change, check the template first -- whatsapp_biz_get_template shows its status and what it carries today -- and show the user the confirmation this tool returns, which puts what the template bills at now beside what the edit changes it to, so they approve a difference rather than a value on its own. OPTIMIZED DELIVERY -- ESTABLISH THE GOAL FIRST. Optimized delivery (a maximum delivery price, or a budgeted campaign) is set up on a template, never on an individual message. When the request only names pricing, bidding, a maximum price, a campaign, a budget or \"better delivery\" without saying what to do with it, ASK which of these three the user wants, in ONE question, before calling anything: (1) SET UP a template -- whatsapp_biz_create_template, with optimization_spec only if they want it; (2) OPTIMIZE a template that ALREADY exists, or change or remove the optimization it carries -- whatsapp_biz_update_template, which is also the only way to change what a template bids, never a second template; (3) USE a template that is already optimized and approved -- whatsapp_biz_send_message. Do NOT ask when the goal is already explicit: \"create a template\", \"add a maximum price to template X\", \"send template X to this number\" each name one, so proceed with it. Standard setup and optimization are two steps of one flow, not two different templates: the content is composed and confirmed the same way either way, and optimization is the optional optimization_spec on top. OPTIMIZATION VALUES COME FROM THE USER. Nothing here recommends them: no tool and no prompt on this server returns a suggested value for a bid, a multiplier, a budget or a schedule, and there is no default to fall back on. Never invent, infer, estimate, or carry over from another account or template a bid_amount_major, a country multiplier, a daily or lifetime budget, or a start or end time; never present one as a recommendation, a typical value or a starting point; and never state or imply what optimization will do for delivery, reach, cost per delivery or return, none of which is knowable from here. Explain instead which fields the optimization_spec on THIS tool exposes and what each one means -- for a maximum price, the bid in the account currency per 1,000 delivered messages plus optional per-country multipliers; for a campaign, the audience, the start and end times, and exactly one of a daily or lifetime budget (a lifetime budget also needs an end time), plus, when the campaign is being created with the template, the registered WhatsApp phone number it sends from (whatsapp_biz_phone_numbers) -- and ask the user for explicit values. If the user asks you to pick, say you cannot and offer the fields. PREREQUISITES, before composing a spec: the account has to be enrolled in the product being used, and a maximum price and a campaign are separate enrolments where neither grants the other; a campaign template is MARKETING with named placeholders. Collect what is missing from the user rather than calling and letting the save fail; when the account is not enrolled, the call says so and nothing is written. Whatever is supplied, show the user the confirmation this tool returns -- which separates the values they gave from the normalized and inferred ones -- and get their approval before the template is created or changed. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id the template belongs to (Messaging Account under WAME; same numeric id)."
+          },
+          "template_id": {
+            "type": "string",
+            "description": "The id of the template to update."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "The name of the template to update; cross-checked against template_id."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Pass the business_id the user selected so the request is authorized against their admin access to that business."
+          },
+          "body_text": {
+            "type": "string",
+            "description": "The new template body text. Required whenever you change the content; omit it (and every other content field) only for an optimization_spec-only edit, which leaves the content exactly as it is. With parameter_format=POSITIONAL (the default) use positional placeholders {{1}}, {{2}}, ... (numeric, in order); with parameter_format=NAMED use named placeholders such as {{customer_name}} and supply their examples in body_named_example. FORMAT RULES for the body, all enforced when the template is saved: it must NOT start or end with a placeholder -- put wording on both sides, so \"Hi {{1}}, your order shipped.\" and not \"{{1}}, your order shipped {{2}}\"; two placeholders must not sit next to each other with only spaces or punctuation between them, so \"{{1}} {{2}}\" is rejected -- separate them with words; placeholders must stay a small share of the text (no more than about one placeholder for every three words); the body cannot be nothing but placeholders; leave at most ONE blank line between paragraphs (three or more newlines in a row is rejected); up to 1024 characters, counting each placeholder as one; and at most 10 emoji in a MARKETING body or 6 in a UTILITY body."
+          },
+          "parameter_format": {
+            "type": "string",
+            "description": "POSITIONAL (default) | NAMED. POSITIONAL uses numbered {{1}}, {{2}}, ... placeholders whose examples ride on body_example / header_example in order. NAMED uses {{name}} placeholders (lowercase letters, numbers, and underscores, starting with a letter, e.g. {{customer_name}}) whose examples are supplied as {name: value} maps in body_named_example / header_named_example. Do not mix the two styles in one template."
+          },
+          "body_example": {
+            "type": "array",
+            "description": "POSITIONAL only: example value for each body_text placeholder, one per {{1}}, {{2}}, ... in order. Required when body_text has placeholders; omit when it has none.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "body_named_example": {
+            "type": "object",
+            "description": "NAMED only: a {name: value} map giving one example for each distinct {{name}} placeholder in body_text (for example {\"customer_name\": \"Alex\"}). Required when body_text has named placeholders; omit when it has none.",
+            "additionalProperties": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "header_text": {
+            "type": "string",
+            "description": "Optional text header shown above the body. May contain a single placeholder -- {{1}} under POSITIONAL, or a single {{name}} under NAMED -- with its example in header_example or header_named_example. For a media header set header_format instead. A text header is plain single-line text: no line breaks, no emoji, no asterisks, and no *bold* / _italic_ / ~strikethrough~ / ```code``` formatting. Up to 60 characters, counting each placeholder as one."
+          },
+          "header_example": {
+            "type": "string",
+            "description": "POSITIONAL only: example value for the header_text {{1}} placeholder. Required when header_text contains {{1}}; omit otherwise."
+          },
+          "header_named_example": {
+            "type": "object",
+            "description": "NAMED only: a {name: value} map giving the example for the single {{name}} placeholder in header_text. Required when header_text contains a named placeholder; omit otherwise.",
+            "additionalProperties": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "header_format": {
+            "type": "string",
+            "description": "TEXT (default) | IMAGE | VIDEO | DOCUMENT | GIF | LOCATION | PRODUCT. LOCATION adds a location header, which carries no text (any header_text is ignored). PRODUCT adds a product header, which carries no text or file; it goes with an SPM button on MARKETING templates, and the product is chosen at send. IMAGE (jpg or png, up to 5 MB), VIDEO (mp4, up to 16 MB), DOCUMENT (pdf, up to 100 MB) and GIF (an mp4 that plays on a loop, up to 16 MB; MARKETING templates on MM Lite accounts only) keep the current sample file when the template already has a header of that format and no media input is given; otherwise they take it from exactly one of header_media_url, header_media_from_template_id or header_handle. Any other format returns the WhatsApp Manager deep link for this account; pass it rather than deciding for yourself that the request is unsupported."
+          },
+          "header_media_url": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: a public link that returns the new sample file directly. It is downloaded once and stored with the template for review."
+          },
+          "header_media_from_template_id": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: the id of a template on this account with the same header format, whose sample file is reused."
+          },
+          "header_handle": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: a file handle from the Resumable Upload API, as the public API takes in example.header_handle."
+          },
+          "footer_text": {
+            "type": "string",
+            "description": "Optional footer shown below the body. Static text only -- no {{n}} placeholders. Single line, no emoji, up to 60 characters."
+          },
+          "buttons": {
+            "type": "array",
+            "description": "Optional buttons. Supported: QUICK_REPLY, URL (static, or dynamic when the url ends with {{1}}), PHONE_NUMBER, VOICE_CALL (starts a WhatsApp call to the business; its label is optional and it takes no send-time parameter; MARKETING and UTILITY), CATALOG (MARKETING only), MPM (a multi-product message \"view items\" button with a connected catalogue; it makes the template MARKETING), COPY_CODE (a coupon code the recipient copies; MARKETING templates only), ORDER_DETAILS (MARKETING or UTILITY), FLOW (opens a WhatsApp Flow; identify it with flow_id or flow_name, never both; MARKETING or UTILITY), REQUEST_CONTACT_INFO (shares the recipient's WhatsApp phone number with the business; MARKETING or UTILITY; fixed label \"Share Contact Info\", must be the only button, and no header or footer), and PAYMENT_REQUEST (a Brazil Pix/Boleto/payment-link button; UTILITY or MARKETING; needs payment_setting). Group same-kind buttons together (all quick-reply, then all call-to-action) -- do not interleave. Limits: up to 10 buttons in total, at most 2 URL buttons, at most 1 PHONE_NUMBER button, at most 1 VOICE_CALL button, and at most 1 COPY_CODE button; a single template cannot have both a PHONE_NUMBER and a VOICE_CALL button. A CATALOG button is allowed on MARKETING templates only, needs a catalogue connected to the WhatsApp account, and carries the fixed label \"View catalog\" (pass no text for it); a template using one can still be sent through this server, since it needs no per-message parameter. An MPM button needs a header and a catalogue connected to the business. A template with an MPM button is MARKETING: WhatsApp changes a UTILITY template with one to MARKETING. Note: whatsapp_biz_send_message fills body values, a media, location or text header value, and URL, quick reply and copy code button values; a template whose button needs any other value at send time cannot yet be sent through these tools. ORDER_DETAILS is a payments button for a MARKETING or UTILITY template. For the account requirements, read https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-br/orderdetailstemplate/ and https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-in/orderdetailstemplate/. Its label is fixed by the account payments market -- send \"Review and Pay\" (the error names the exact required value if it differs). A template carrying an ORDER_DETAILS button cannot be sent with whatsapp_biz_send_message yet (it needs order details supplied at send time, which this server does not fill). A REQUEST_CONTACT_INFO button (which shares the recipient's WhatsApp phone number with the business) works on MARKETING and UTILITY templates, carries the fixed label \"Share Contact Info\" (pass no text for it), must be the template's only button, and cannot be combined with a header or footer; a template using one can still be sent through this server, since it needs no per-message parameter. A PAYMENT_REQUEST button is a Brazil payments button for a UTILITY or MARKETING template. For the account requirements, read https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-br/payment-request-cta/. Up to three may be used -- a template with one then has at most 3 buttons in total. Its label is free text; the documented wording per method is \"Copy Pix code\" (pix_dynamic_code), \"Copy Boleto code\" (boleto), and \"Open payment link\" (payment_link). A template carrying a PAYMENT_REQUEST button cannot be sent with whatsapp_biz_send_message, since the payment details are supplied at send time.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Button type: QUICK_REPLY | URL | PHONE_NUMBER | VOICE_CALL | CATALOG | MPM | SPM | COPY_CODE | ORDER_DETAILS | FLOW | REQUEST_CONTACT_INFO | PAYMENT_REQUEST. Other types are not supported here -- use WhatsApp Manager."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Button label shown to the user. Required for QUICK_REPLY, URL, PHONE_NUMBER, and FLOW; optional for VOICE_CALL (the call is placed to the business number regardless); omit it for CATALOG, whose label is fixed to \"View catalog\", for COPY_CODE, which has no caller-set label (WhatsApp fills a translated default), and for REQUEST_CONTACT_INFO, whose label is fixed to \"Share Contact Info\". Plain text up to 40 characters: no {{n}} placeholders (a label is fixed when the template is created and cannot be filled in per message), no line breaks, no emoji, no formatting characters. Every button in the template needs a DIFFERENT label."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "For URL buttons: an https URL. It may end with a single {{1}} placeholder to make the link dynamic -- for example \"https://example.com/orders/{{1}}\". The placeholder must be the LAST thing in the url; one anywhere else, or more than one, is rejected. Pass url_example with it."
+                },
+                "url_example": {
+                  "type": "string",
+                  "description": "For URL buttons whose url ends with {{1}}: the VALUE that replaces the placeholder (for example \"summer2023\" or \"A123-456\"), not the whole example URL. Required when the url has a placeholder; omit otherwise."
+                },
+                "phone_number": {
+                  "type": "string",
+                  "description": "For PHONE_NUMBER buttons: the number to call, in E.164 format (e.g. +16315551010)."
+                },
+                "ttl_minutes": {
+                  "type": "string",
+                  "description": "For VOICE_CALL buttons only: optional, how long the call button stays active on a sent message, as a whole number of minutes from 1440 (1 day) to 43200 (30 days). Defaults to 10080 (7 days) when omitted."
+                },
+                "example": {
+                  "type": "string",
+                  "description": "For COPY_CODE buttons: the coupon code the recipient copies. 1 to 20 alphanumeric characters. Not used by other button types."
+                },
+                "flow_id": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the numeric id of the WhatsApp Flow to open. Provide flow_id OR flow_name, never both."
+                },
+                "flow_name": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the name of a WhatsApp Flow on this WhatsApp Business Account, as an alternative to flow_id; it is resolved to that flow before the template is saved, and a name that matches no flow on the account is refused. Provide flow_id OR flow_name, never both."
+                },
+                "flow_action": {
+                  "type": "string",
+                  "description": "For FLOW buttons (optional): NAVIGATE (open a Flow screen) or DATA_EXCHANGE (exchange data with the Flow's endpoint)."
+                },
+                "navigate_screen": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the id of the Flow screen to open first, from the Flow JSON. Required when flow_action is NAVIGATE, and for most Flows when flow_action is omitted. Do not send it with DATA_EXCHANGE."
+                },
+                "payment_setting": {
+                  "type": "object",
+                  "description": "For PAYMENT_REQUEST buttons: the payment method and its details. type is one of boleto, pix_dynamic_code, or payment_link, each with its matching object -- boleto {digitable_line}, pix_dynamic_code {code}, or payment_link {uri}.",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Payment method: boleto | pix_dynamic_code | payment_link."
+                    },
+                    "boleto": {
+                      "type": "object",
+                      "description": "For type=boleto: {digitable_line}.",
+                      "properties": {
+                        "digitable_line": {
+                          "type": "string",
+                          "description": "The Boleto digitable line."
+                        }
+                      },
+                      "required": [
+                        "digitable_line"
+                      ]
+                    },
+                    "pix_dynamic_code": {
+                      "type": "object",
+                      "description": "For type=pix_dynamic_code: {code}.",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "description": "The Pix dynamic copy-and-paste code."
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    },
+                    "payment_link": {
+                      "type": "object",
+                      "description": "For type=payment_link: {uri}.",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "description": "The payment link URL."
+                        }
+                      },
+                      "required": [
+                        "uri"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "notes": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes notes; omit it otherwise. Supply example values for any variables in the notes text.",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "description": "The notes text, for a button type that takes notes. May contain variables -- positional {{1}}, {{2}}, ... (default) or named {{slot}} when parameter_format=NAMED -- which need matching example values."
+                    },
+                    "example": {
+                      "type": "array",
+                      "description": "POSITIONAL notes: one example value per {{1}}, {{2}}, ... in the notes text, in order.",
+                      "items": {
+                        "type": "string",
+                        "description": ""
+                      }
+                    },
+                    "named_example": {
+                      "type": "object",
+                      "description": "NAMED notes: an example value per {{name}} variable in the notes text, as {name: value}.",
+                      "additionalProperties": {
+                        "type": "string",
+                        "description": ""
+                      }
+                    }
+                  },
+                  "required": []
+                },
+                "booking_url": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes it; omit it otherwise.",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL to open. May end with a single {{1}} placeholder, in which case pass example."
+                    },
+                    "example": {
+                      "type": "string",
+                      "description": "The VALUE that replaces a trailing {{1}} in url (not the whole example URL)."
+                    }
+                  },
+                  "required": []
+                },
+                "booking_management_url": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes it; omit it otherwise.",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL to open. May end with a single {{1}} placeholder, in which case pass example."
+                    },
+                    "example": {
+                      "type": "string",
+                      "description": "The VALUE that replaces a trailing {{1}} in url (not the whole example URL)."
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "category": {
+            "type": "string",
+            "description": "Optional new category: MARKETING | UTILITY. Set it only to change an APPROVED UTILITY template to MARKETING (with no other change) or to correct a template rejected for incorrect category; WhatsApp rejects other category changes. Decide it from the template's CONTENT against the public category guidelines, and from nothing else: https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/template-categorization -- UTILITY requires BOTH that the content is non-promotional (no promotional or persuasive intent at all) AND that it is either specific to or requested by the user (their order, account, services, or transaction) or essential/critical to them (for example user safety). Anything promotional, anything mixing utility with promotion, retargeting, and content too vague to tell is MARKETING. Omit to keep the current category."
+          },
+          "message_send_ttl_seconds": {
+            "type": "string",
+            "description": "Optional message expiry (time-to-live) in seconds for messages sent from this template. Omit it or pass -1 to leave it unchanged; on an edit, -1 does not clear the TTL, as with the Graph API. See https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/time-to-live/. UTILITY templates accept 30 to 43200 (12 hours). MARKETING templates accept a TTL (43200 to 2592000; 86400 on Ads Manager accounts) only when the account is eligible, and otherwise the update is rejected."
+          },
+          "cta_url_link_tracking_opted_out": {
+            "type": "boolean",
+            "description": "Optional: set true to opt this template out of click tracking on its URL (call-to-action) buttons. Omit to leave the current setting unchanged."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of what it will do so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to update the template."
+          },
+          "optimization_spec": {
+            "type": "object",
+            "description": "Optional. Omit it unless the user is changing how the template is delivered, and fill it only with values the user gave you: never invent or infer a price, multiplier, budget or audience. Set type=MAX_PRICE to set, change or remove the maximum a delivery may cost; set type=CAMPAIGN to change the campaign a campaign template already delivers through. Exactly one of the two objects goes with each type -- Max Price access does not grant campaign access, and a spec carrying both is refused. Sent on its own, with no content field, it changes only delivery and the template content and review status are left alone.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "MAX_PRICE (the maximum price on an otherwise ordinary template) or CAMPAIGN (the campaign a campaign template delivers through)."
+              },
+              "max_price": {
+                "type": "object",
+                "description": "For type=MAX_PRICE. Send the values to change, or reset=true to remove the maximum price entirely.",
+                "properties": {
+                  "bid_amount_major": {
+                    "type": "number",
+                    "description": "The new maximum price, in the account currency's MAJOR unit (dollars, not cents) per 1,000 delivered messages. A user who says \"25 cents per delivery\" in a USD account means 250 here. Confirm the currency and this number with the user before sending it."
+                  },
+                  "bid_strategy": {
+                    "type": "string",
+                    "description": "Optional: LOWEST_COST_WITH_BID_CAP, which is what a maximum price means and what is used when you omit it with a bid_amount_major."
+                  },
+                  "bid_country_multiplier_overrides": {
+                    "type": "array",
+                    "description": "Per-country adjustments to the base price. Omit it to leave the stored ones as they are; send the EMPTY list to remove all of them; send a list to replace them wholesale (it is not merged with the stored ones, so include every country that should keep an adjustment).",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "country": {
+                          "type": "string",
+                          "description": "Two-letter ISO country code, e.g. CA."
+                        },
+                        "multiplier": {
+                          "type": "number",
+                          "description": "Positive multiplier applied to the base price for that country, e.g. 0.8."
+                        }
+                      },
+                      "required": [
+                        "country",
+                        "multiplier"
+                      ]
+                    }
+                  },
+                  "reset": {
+                    "type": "boolean",
+                    "description": "Set true to remove the maximum price and go back to standard rates. It cannot be combined with the other max_price fields."
+                  }
+                },
+                "required": []
+              },
+              "campaign": {
+                "type": "object",
+                "description": "For type=CAMPAIGN. Only these fields can change on a campaign that already exists; the phone number, optimization goal, bid strategy, promoted object, delivery status and country multipliers are fixed at creation and are refused here. Send only the fields that change.",
+                "properties": {
+                  "start_time": {
+                    "type": "string",
+                    "description": "New start of delivery, ISO 8601 (e.g. 2026-07-01T09:00:00Z)."
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "description": "New end of delivery, ISO 8601."
+                  },
+                  "daily_budget": {
+                    "type": "integer",
+                    "description": "New budget per day, in the account currency's MINOR unit (cents). Give daily_budget or lifetime_budget, never both."
+                  },
+                  "lifetime_budget": {
+                    "type": "integer",
+                    "description": "New budget for the whole run, in the account currency's MINOR unit (cents). Give daily_budget or lifetime_budget, never both."
+                  },
+                  "bid_amount": {
+                    "type": "integer",
+                    "description": "New bid cap, in campaign units. This is NOT the Max Price bid_amount_major and is not converted from major units."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "New campaign status: ACTIVE, PAUSED, ARCHIVED or DELETED."
+                  },
+                  "targeting": {
+                    "type": "object",
+                    "description": "New audiences. Replaces the current ones, so list every audience the campaign should send to.",
+                    "properties": {
+                      "custom_audiences": {
+                        "type": "array",
+                        "description": "Ids of the audiences to send to. At least one is required.",
+                        "items": {
+                          "type": "string",
+                          "description": ""
+                        }
+                      },
+                      "excluded_custom_audiences": {
+                        "type": "array",
+                        "description": "Optional ids of audiences to exclude.",
+                        "items": {
+                          "type": "string",
+                          "description": ""
+                        }
+                      }
+                    },
+                    "required": [
+                      "custom_audiences"
+                    ]
+                  },
+                  "attribution_spec": {
+                    "type": "array",
+                    "description": "New attribution windows.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "event_type": {
+                          "type": "string",
+                          "description": "CLICK_THROUGH."
+                        },
+                        "window_days": {
+                          "type": "integer",
+                          "description": "1, 7 or 28."
+                        }
+                      },
+                      "required": [
+                        "event_type",
+                        "window_days"
+                      ]
+                    }
+                  },
+                  "adset_schedule": {
+                    "type": "array",
+                    "description": "New day-parting windows. Allowed only with lifetime_budget.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "start_minute": {
+                          "type": "integer",
+                          "description": "Minutes past midnight the window opens, 0-1439."
+                        },
+                        "end_minute": {
+                          "type": "integer",
+                          "description": "Minutes past midnight the window closes, 1-1440, after start_minute."
+                        },
+                        "days": {
+                          "type": "array",
+                          "description": "Days the window applies to, 0 (Sunday) to 6.",
+                          "items": {
+                            "type": "integer",
+                            "description": ""
+                          }
+                        },
+                        "timezone_type": {
+                          "type": "string",
+                          "description": "Optional: ADVERTISER or USER."
+                        }
+                      },
+                      "required": [
+                        "start_minute",
+                        "end_minute",
+                        "days"
+                      ]
+                    }
+                  }
+                },
+                "required": []
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "waba_id",
+          "template_id",
+          "template_name"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_configure_webhooks",
+      "description": "Configure WhatsApp webhooks for a business. Sets the app-level HTTPS callback URL and verify token for the WhatsApp Business Account topic and subscribes the app to a default set of WhatsApp fields -- the ones this server's own tools need, not every field the app supports. Pass `fields` to choose a different set; the result lists everything the app is allowed to subscribe to. Pick the business first (business_id via whatsapp_biz_businesses). If the business has one WhatsApp-enabled app it is used automatically; if it has several, the first is used by default and you can switch when confirming. The resolved app, callback URL, and fields are confirmed with the user before anything changes. Webhook delivery needs THREE things, and this tool provides the first: (1) WHERE events go -- the app-level HTTPS callback URL and verify token, set here; (2) WHICH WhatsApp account sends them -- whatsapp_biz_subscribe_webhook, once per account; (3) the app PUBLISHED -- an app in development mode may not be sent real webhooks. Missing (1) or (2) delivers nothing, so check all three before guessing why no webhooks arrive. To CHECK the current webhook state without changing it, call whatsapp_biz_onboarding_status -- this tool OVERWRITES the callback URL, so never call it just to look. PREREQUISITE: whatsapp_biz_businesses. Actions: configure. This server has no undo: nothing here can unregister a number, remove a subscription, delete an account or reverse a write. Never offer to undo one, and never imply a call can be taken back. ONLY when the user explicitly asks to undo, reverse, remove or delete something, tell them to do it themselves: webhook changes (callback URL, verify token, subscribed fields, per-account subscriptions) on the app's WhatsApp configuration page in the App Dashboard, and WhatsApp accounts, apps and phone numbers in Business Settings. Use the exact links returned by whatsapp_biz_onboarding_status in manage_links -- do not write those URLs from memory. Do not raise any of this unless asked.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business whose app to configure. Get it from whatsapp_biz_businesses."
+          },
+          "callback_url": {
+            "type": "string",
+            "description": "The HTTPS webhook callback URL. It must ALREADY be live and answering the GET challenge before this tool runs -- the URL is verified as it is saved, so a user with no server deployed cannot complete this step. Before asking for a URL, ask whether they already have a receiver running. If they do not, give them this ready-made one rather than naming a tunnelling service: https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/set-up-whatsapp-echo-bot (a TEST endpoint -- a production app needs its own, see https://developers.facebook.com/documentation/business-messaging/whatsapp/webhooks/create-webhook-endpoint)."
+          },
+          "verify_token": {
+            "type": "string",
+            "description": "The webhook verification token your endpoint echoes back during the challenge handshake."
+          },
+          "app_id": {
+            "type": "string",
+            "description": "Optional: the Facebook app to configure. Get its App ID from the Meta App Dashboard, or use an app ID returned in this tool's confirmation alternatives. Omit to use the business's WhatsApp-enabled app (the first one if there are several); you can switch when confirming."
+          },
+          "fields": {
+            "type": "array",
+            "description": "Optional: WhatsApp Business Account fields to subscribe (e.g. messages, message_template_status_update). Omit to use this tool's default set, which covers the fields its own tools need rather than every field the app is allowed; those are ADDED to the current subscription. Passing this instead REPLACES the subscription, so include every field you want kept.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary (and, if the business has more than one app, the list of apps to choose from) so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true."
+          },
+          "alternative_id": {
+            "type": "string",
+            "description": "Optional: when the confirmation lists apps to choose from, set this to the app id the user picked. Requires confirm=true. Omit to keep app_id when supplied, otherwise use the first eligible WhatsApp-enabled app on the business."
+          }
+        },
+        "required": [
+          "business_id",
+          "callback_url",
+          "verify_token"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Legacy JSON response retained until eval consumers migrate. The runtime emits only this field, not a duplicate configuration object."
+          },
+          "configuration": {
+            "type": "object",
+            "description": "Schema-backed producer contract. Not emitted on the wire until eval consumers migrate and the legacy result field is removed.",
+            "properties": {
+              "business_id": {
+                "type": "string",
+                "description": "The business whose app was configured."
+              },
+              "app_id": {
+                "type": "string",
+                "description": "The resolved app whose webhook configuration was written."
+              },
+              "topic": {
+                "type": "string",
+                "description": "The webhook topic: whatsapp_business_account."
+              },
+              "callback_url": {
+                "type": "string",
+                "description": "The HTTPS callback URL written for this app; the verify token is never returned."
+              },
+              "fields_written_by_this_call": {
+                "type": "array",
+                "description": "Sorted fields this call wrote, not the full current subscription.",
+                "items": {
+                  "type": "string",
+                  "description": "One webhook field written by this call."
+                }
+              },
+              "fields_written_mode": {
+                "type": "string",
+                "description": "added when fields were omitted; replaced when the caller supplied the full desired set."
+              },
+              "fields_allowed_on_this_app": {
+                "type": "array",
+                "description": "Sorted allowed fields, not the fields currently subscribed.",
+                "items": {
+                  "type": "string",
+                  "description": "One webhook field the app is allowed to subscribe to."
+                }
+              },
+              "fields_note": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Default-field and safe replacement guidance; null when fields were chosen explicitly."
+              },
+              "verification_skipped": {
+                "type": "boolean",
+                "description": "Whether callback verification was skipped on a development or Sandcastle tier; production still verifies."
+              },
+              "delivery_checklist": {
+                "type": "array",
+                "description": "Endpoint, per-account subscription and app-publication checklist; this tool does not read account subscriptions.",
+                "items": {
+                  "type": "string",
+                  "description": "One webhook-delivery prerequisite and its follow-up guidance."
+                }
+              },
+              "app_published": {
+                "type": [
+                  "boolean",
+                  "null"
+                ],
+                "description": "Whether the app is live; null when publication could not be checked."
+              },
+              "action_required": {
+                "type": "string",
+                "description": "Remaining delivery prerequisites; configuring the endpoint alone does not establish working webhooks."
+              }
+            },
+            "required": [
+              "business_id",
+              "app_id",
+              "topic",
+              "callback_url",
+              "fields_written_by_this_call",
+              "fields_written_mode",
+              "fields_allowed_on_this_app",
+              "fields_note",
+              "verification_skipped",
+              "delivery_checklist",
+              "app_published",
+              "action_required"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "title": "Configure WhatsApp Webhooks",
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_accounts",
+      "description": "List the active WhatsApp business accounts you manage under a business, or resolve the account a phone number belongs to: account_id, name, account_status. Call this to let the user PICK a waba_id instead of asking for a numeric id -- use it before any template tool (create/get/list/update/delete) when you do not already have a waba_id. Pass business_id (or omit to auto-detect) or phone_number_id (takes precedence). If the result is empty, onboard one with whatsapp_biz_add_phone_number (it creates a WhatsApp account). Public test numbers are deliberately left out of every list this server returns, and cannot be used to send. If the user asks about a test number, or about the test WhatsApp account it sits on, tell them it is for testing only: it reaches nobody except the recipients on its own allow-list, and that allow-list can only be managed on the app's WhatsApp API testing page in the Meta App Dashboard. Never offer to add a recipient to it or to send from it -- neither is possible from here.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business_id returned by whatsapp_biz_businesses for the business whose accounts to list. Omit to auto-detect (asks which business if you administer several). Ignored when phone_number_id is given."
+          },
+          "phone_number_id": {
+            "type": "string",
+            "description": "Optional: the phone_number_id returned by whatsapp_biz_phone_numbers. Resolve the single account this phone number belongs to instead of listing a business. Takes precedence over business_id. Omit to list the business's accounts."
+          },
+          "after": {
+            "type": "string",
+            "description": "Optional: read the next page. Pass the next_after value from the previous result; its absence there means there are no more. Only page when the user wants the whole list -- to find ONE account, pass phone_number_id, which resolves it directly however many the business has. Omit to start at the first owned-account page (up to 25 accounts) and include the first shared-account page when available."
+          },
+          "shared_after": {
+            "type": "string",
+            "description": "Optional: read the next page of customers' accounts shared with this business as their partner. Pass the shared_next_after value from the previous result; the call then returns only those shared accounts. Omit to use the normal owned-account listing; the first shared-account page is included when after is also omitted."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "accounts": {
+            "type": "array",
+            "description": "Visible owned accounts on this page, or the account resolved from phone_number_id. Absent on shared-only and selection replies.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "account_id": {
+                  "type": "string",
+                  "description": "Account identifier; use Messaging Account or legacy business account IDs as waba_id for templates. A whatsapp_account row holds phone numbers instead."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Account display name; distinct accounts can have the same name."
+                },
+                "business_id": {
+                  "type": "string",
+                  "description": "End-client business ID, or an empty string when unavailable; for shared accounts this is the customer."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "whatsapp_business_account, messaging_account or whatsapp_account, according to the account model and role."
+                },
+                "account_status": {
+                  "type": "string",
+                  "description": "The account review label; absent if the review could not be read."
+                },
+                "account_status_detail": {
+                  "type": "string",
+                  "description": "Explains a review state that restricts use of this account."
+                },
+                "account_status_url": {
+                  "type": "string",
+                  "description": "Link to this account in Business Settings when its review needs attention."
+                },
+                "owns": {
+                  "type": "string",
+                  "description": "The account role: templates and billing, or phone numbers; only exposed when split-account terminology is enabled."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Guidance about which account holds phone numbers, templates or billing."
+                },
+                "whatsapp_account": {
+                  "type": "object",
+                  "description": "The parent WhatsApp Account, when it could be resolved for a Messaging Account.",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the WhatsApp Account linked to this Messaging Account."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the linked WhatsApp Account, used to distinguish same-named Messaging Accounts."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "account_id",
+                "name",
+                "business_id",
+                "type"
+              ]
+            }
+          },
+          "count": {
+            "type": "integer",
+            "description": "Number of visible accounts on this page, not the business total."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "The business whose owned or shared accounts were listed."
+          },
+          "phone_number_id": {
+            "type": "string",
+            "description": "The phone number whose account was resolved; present for a direct lookup."
+          },
+          "shared_accounts": {
+            "type": "array",
+            "description": "Customers' accounts shared with the selected partner business. Paged separately from owned accounts; may be empty with a cursor.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "account_id": {
+                  "type": "string",
+                  "description": "Account identifier; use Messaging Account or legacy business account IDs as waba_id for templates. A whatsapp_account row holds phone numbers instead."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Account display name; distinct accounts can have the same name."
+                },
+                "business_id": {
+                  "type": "string",
+                  "description": "End-client business ID, or an empty string when unavailable; for shared accounts this is the customer."
+                },
+                "type": {
+                  "type": "string",
+                  "description": "whatsapp_business_account, messaging_account or whatsapp_account, according to the account model and role."
+                },
+                "account_status": {
+                  "type": "string",
+                  "description": "The account review label; absent if the review could not be read."
+                },
+                "account_status_detail": {
+                  "type": "string",
+                  "description": "Explains a review state that restricts use of this account."
+                },
+                "account_status_url": {
+                  "type": "string",
+                  "description": "Link to this account in Business Settings when its review needs attention."
+                },
+                "owns": {
+                  "type": "string",
+                  "description": "The account role: templates and billing, or phone numbers; only exposed when split-account terminology is enabled."
+                },
+                "note": {
+                  "type": "string",
+                  "description": "Guidance about which account holds phone numbers, templates or billing."
+                },
+                "whatsapp_account": {
+                  "type": "object",
+                  "description": "The parent WhatsApp Account, when it could be resolved for a Messaging Account.",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "ID of the WhatsApp Account linked to this Messaging Account."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Name of the linked WhatsApp Account, used to distinguish same-named Messaging Accounts."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name"
+                  ]
+                }
+              },
+              "required": [
+                "account_id",
+                "name",
+                "business_id",
+                "type"
+              ]
+            }
+          },
+          "shared_accounts_note": {
+            "type": "string",
+            "description": "Explains ownership and the permitted use of the shared accounts."
+          },
+          "shared_next_after": {
+            "type": "string",
+            "description": "Cursor to pass as shared_after; absent when no more shared accounts remain."
+          },
+          "shared_next_note": {
+            "type": "string",
+            "description": "Guidance for continuing the shared-account listing."
+          },
+          "total_accounts": {
+            "type": "integer",
+            "description": "Exact active owned-account total from the first page, including test accounts hidden from the rows. Omitted on continuation pages or when unknown. Quote this total, never count, as the business total."
+          },
+          "exact_total_known": {
+            "type": "boolean",
+            "description": "Whether the first-page count produced an exact owned-account total."
+          },
+          "more_than_this_page": {
+            "type": "boolean",
+            "description": "True when the first-page total is unknown and more accounts exist. State that the list is partial; do not give a total, floor or page estimate."
+          },
+          "total_note": {
+            "type": "string",
+            "description": "Explains why no total or lower bound can be reported."
+          },
+          "next_after": {
+            "type": "string",
+            "description": "Cursor to pass as after; absent when this is the last owned-account page."
+          },
+          "next_page_note": {
+            "type": "string",
+            "description": "Guidance for continuing owned-account pages or using a direct phone lookup."
+          },
+          "test_accounts_hidden": {
+            "type": "integer",
+            "description": "Number of test accounts hidden from this fetched page, not the whole business."
+          },
+          "test_accounts_note": {
+            "type": "string",
+            "description": "Explains the test-account exclusion; show only when the user asks about test accounts."
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "True when the request budget stopped row formatting before the fetched page was complete."
+          },
+          "truncated_note": {
+            "type": "string",
+            "description": "Explains the partial page and how to resume from next_after or narrow the lookup."
+          },
+          "model_note": {
+            "type": "string",
+            "description": "Account-model naming and display guidance for the returned owned accounts."
+          },
+          "picking_an_account_for_a_phone_number": {
+            "type": "string",
+            "description": "Guidance to use phone-number discovery instead of messaging accounts when choosing where to add a number."
+          },
+          "next_step": {
+            "type": "string",
+            "description": "Suggested next action when the account lookup or listing is empty."
+          },
+          "needs_selection": {
+            "type": "boolean",
+            "description": "True when the user must choose one of the businesses before listing accounts."
+          },
+          "message": {
+            "type": "string",
+            "description": "The prompt explaining which business selection is needed."
+          },
+          "businesses": {
+            "type": "array",
+            "description": "Granted businesses the user can choose from when the business scope is ambiguous.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "business_id": {
+                  "type": "string",
+                  "description": "Business ID to pass as business_id after the user chooses it."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "The business name shown in the selection prompt."
+                }
+              },
+              "required": [
+                "business_id",
+                "name"
+              ]
+            }
+          }
+        },
+        "required": []
+      },
+      "annotations": {
+        "title": "WhatsApp Business Accounts",
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_create_template",
+      "description": "Create a WhatsApp message template on an account the user manages: MARKETING or UTILITY content with optional placeholders, text, location, product or media header, footer and supported buttons. Use this for a new custom template. To change an existing template or add optimized delivery to it, use whatsapp_biz_update_template instead of creating a duplicate.\n\n  First have the user pick a business via whatsapp_biz_businesses and an account via whatsapp_biz_accounts; pass that account as waba_id. Follow the input-field descriptions for content, examples, header media and button constraints. Choose category from content per the guidelines on the category field, never from pricing. Collect content first, then ask standard or optimized delivery (a maximum delivery price or a budgeted campaign) unless the user already chose. Standard rates apply without optimization_spec; confirm any optimization settings with the content. The optimization_spec field says when to ask for the goal and that every value comes from the user. The first call returns a confirmation summary; only after the user agrees, repeat the same arguments with confirm=true.\n\n  AUTHENTICATION templates, carousels and unsupported component types are not created here. Call with the requested unsupported format to obtain this account's WhatsApp Manager link; never send the user there without the returned link.\n\n  Returns the created template_id, actual review_status and category, message expiry, optional resolved optimization and next_step. WhatsApp can reject immediately or change the requested category; report those outcomes, not a blanket \"submitted for review\". Give manage_templates_url as a clickable link when present. Use whatsapp_biz_get_template to check later review progress. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Get business_id from whatsapp_biz_businesses and pass the user's selected business so the request is authorized against their admin access to it. Omit to derive the business from waba_id and apply the same business-access checks."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "The account_id returned by whatsapp_biz_accounts for the WhatsApp business account to create the template under. Templates belong to this account (called a Messaging Account under WAME; the same numeric id)."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "The template name."
+          },
+          "language": {
+            "type": "string",
+            "description": "BCP-47 language code, e.g. en_US."
+          },
+          "category": {
+            "type": "string",
+            "description": "Template category: MARKETING | UTILITY. Decide it from the template's CONTENT against the public category guidelines, and from nothing else: https://developers.facebook.com/documentation/business-messaging/whatsapp/templates/template-categorization -- UTILITY requires BOTH that the content is non-promotional (no promotional or persuasive intent at all) AND that it is either specific to or requested by the user (their order, account, services, or transaction) or essential/critical to them (for example user safety). Anything promotional, anything mixing utility with promotion, retargeting (marketing even when the user asked for it), and content too vague to tell is MARKETING. WhatsApp validates the declared category against the content: a template submitted as UTILITY that reads as MARKETING is approved as MARKETING, and approved templates are recategorised later by the same rules. Businesses that repeatedly categorise marketing content as utility face escalating restrictions, up to losing utility templates across their whole portfolio. Answer a direct question about what a category costs if the user asks one, but the answer must not move the category: content decides it. (AUTHENTICATION templates are not supported here -- use WhatsApp Manager.)"
+          },
+          "body_text": {
+            "type": "string",
+            "description": "The template body text. With parameter_format=POSITIONAL (the default) use positional placeholders {{1}}, {{2}}, ... (numeric, in order); with parameter_format=NAMED use named placeholders such as {{customer_name}} and supply their examples in body_named_example. FORMAT RULES for the body, all enforced when the template is saved: it must NOT start or end with a placeholder -- put wording on both sides, so \"Hi {{1}}, your order shipped.\" and not \"{{1}}, your order shipped {{2}}\"; two placeholders must not sit next to each other with only spaces or punctuation between them, so \"{{1}} {{2}}\" is rejected -- separate them with words; placeholders must stay a small share of the text (no more than about one placeholder for every three words); the body cannot be nothing but placeholders; leave at most ONE blank line between paragraphs (three or more newlines in a row is rejected); up to 1024 characters, counting each placeholder as one; and at most 10 emoji in a MARKETING body or 6 in a UTILITY body."
+          },
+          "parameter_format": {
+            "type": "string",
+            "description": "POSITIONAL (default) | NAMED. POSITIONAL uses numbered {{1}}, {{2}}, ... placeholders whose examples ride on body_example / header_example in order. NAMED uses {{name}} placeholders (lowercase letters, numbers, and underscores, starting with a letter, e.g. {{customer_name}}) whose examples are supplied as {name: value} maps in body_named_example / header_named_example. Do not mix the two styles in one template."
+          },
+          "body_example": {
+            "type": "array",
+            "description": "POSITIONAL only: example value for each body_text placeholder, one per {{1}}, {{2}}, ... in order. Required when body_text has placeholders; omit when it has none.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "body_named_example": {
+            "type": "object",
+            "description": "NAMED only: a {name: value} map giving one example for each distinct {{name}} placeholder in body_text (for example {\"customer_name\": \"Alex\"}). Required when body_text has named placeholders; omit when it has none.",
+            "additionalProperties": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "header_text": {
+            "type": "string",
+            "description": "Optional text header shown above the body. May contain a single placeholder -- {{1}} under POSITIONAL, or a single {{name}} under NAMED -- with its example in header_example or header_named_example. For a media header set header_format instead. Omit to create no text header; header_format may still select a media, location or product header. A text header is plain single-line text: no line breaks, no emoji, no asterisks, and no *bold* / _italic_ / ~strikethrough~ / ```code``` formatting. Up to 60 characters, counting each placeholder as one."
+          },
+          "header_example": {
+            "type": "string",
+            "description": "POSITIONAL only: example value for the header_text {{1}} placeholder. Required when header_text contains {{1}}; omit otherwise."
+          },
+          "header_named_example": {
+            "type": "object",
+            "description": "NAMED only: a {name: value} map giving the example for the single {{name}} placeholder in header_text. Required when header_text contains a named placeholder; omit otherwise.",
+            "additionalProperties": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "header_format": {
+            "type": "string",
+            "description": "TEXT (default) | IMAGE | VIDEO | DOCUMENT | GIF | LOCATION | PRODUCT. LOCATION adds a location header, which carries no text (any header_text is ignored). PRODUCT adds a product header, which carries no text or file; it goes with an SPM button on MARKETING templates, and the product is chosen at send. IMAGE (jpg or png, up to 5 MB), VIDEO (mp4, up to 16 MB), DOCUMENT (pdf, up to 100 MB) and GIF (an mp4 that plays on a loop, up to 16 MB; MARKETING templates on MM Lite accounts only) take their sample file from exactly one of header_media_url, header_media_from_template_id or header_handle. Any other format returns the WhatsApp Manager deep link for this account; pass it rather than deciding for yourself that the request is unsupported."
+          },
+          "header_media_url": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: a public link that returns the sample file directly. It is downloaded once and stored with the template for review. Omit to use header_media_from_template_id or header_handle instead. For a media header exactly one source is required; when all are omitted the request is rejected."
+          },
+          "header_media_from_template_id": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: the template id returned by whatsapp_biz_list_templates or whatsapp_biz_get_template. It must be on this account with the same header format; its sample file is reused. Omit to use header_media_url or header_handle instead. For a media header exactly one source is required."
+          },
+          "header_handle": {
+            "type": "string",
+            "description": "For an IMAGE, VIDEO, DOCUMENT or GIF header: a file handle from the Resumable Upload API, as the public API takes in example.header_handle. Omit to use header_media_url or header_media_from_template_id instead. For a media header exactly one source is required."
+          },
+          "footer_text": {
+            "type": "string",
+            "description": "Optional footer shown below the body. Static text only -- no {{n}} placeholders. Omit to create the template without a footer. Single line, no emoji, up to 60 characters."
+          },
+          "buttons": {
+            "type": "array",
+            "description": "Optional buttons. Supported: QUICK_REPLY, URL (static, or dynamic when the url ends with {{1}}), PHONE_NUMBER, VOICE_CALL (starts a WhatsApp call to the business; its label is optional and it takes no send-time parameter; MARKETING and UTILITY), CATALOG (MARKETING only), MPM (a multi-product message \"view items\" button with a connected catalogue; it makes the template MARKETING), COPY_CODE (a coupon code the recipient copies; MARKETING templates only), ORDER_DETAILS (MARKETING or UTILITY), FLOW (opens a WhatsApp Flow; identify it with flow_id or flow_name, never both; MARKETING or UTILITY), REQUEST_CONTACT_INFO (shares the recipient's WhatsApp phone number with the business; MARKETING or UTILITY; fixed label \"Share Contact Info\", must be the only button, and no header or footer), and PAYMENT_REQUEST (a Brazil Pix/Boleto/payment-link button; UTILITY or MARKETING; needs payment_setting). Group same-kind buttons together (all quick-reply, then all call-to-action) -- do not interleave. Omit to create the template without buttons. Limits: up to 10 buttons in total, at most 2 URL buttons, at most 1 PHONE_NUMBER button, at most 1 VOICE_CALL button, and at most 1 COPY_CODE button; a single template cannot have both a PHONE_NUMBER and a VOICE_CALL button. A CATALOG button is allowed on MARKETING templates only, needs a catalogue connected to the WhatsApp account, and carries the fixed label \"View catalog\" (pass no text for it); a template using one can still be sent through this server, since it needs no per-message parameter. An MPM button needs a header and a catalogue connected to the business. A template with an MPM button is MARKETING: WhatsApp changes a UTILITY template with one to MARKETING. Note: whatsapp_biz_send_message fills body values, a media, location or text header value, and URL, quick reply and copy code button values; a template whose button needs any other value at send time cannot yet be sent through these tools. ORDER_DETAILS is a payments button for a MARKETING or UTILITY template. For the account requirements, read https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-br/orderdetailstemplate/ and https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-in/orderdetailstemplate/. Its label is fixed by the account payments market -- send \"Review and Pay\" (the error names the exact required value if it differs). A template carrying an ORDER_DETAILS button cannot be sent with whatsapp_biz_send_message yet (it needs order details supplied at send time, which this server does not fill). A REQUEST_CONTACT_INFO button (which shares the recipient's WhatsApp phone number with the business) works on MARKETING and UTILITY templates, carries the fixed label \"Share Contact Info\" (pass no text for it), must be the template's only button, and cannot be combined with a header or footer; a template using one can still be sent through this server, since it needs no per-message parameter. A PAYMENT_REQUEST button is a Brazil payments button for a UTILITY or MARKETING template. For the account requirements, read https://developers.facebook.com/documentation/business-messaging/whatsapp/payments/payments-br/payment-request-cta/. Up to three may be used -- a template with one then has at most 3 buttons in total. Its label is free text; the documented wording per method is \"Copy Pix code\" (pix_dynamic_code), \"Copy Boleto code\" (boleto), and \"Open payment link\" (payment_link). A template carrying a PAYMENT_REQUEST button cannot be sent with whatsapp_biz_send_message, since the payment details are supplied at send time.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Button type: QUICK_REPLY | URL | PHONE_NUMBER | VOICE_CALL | CATALOG | MPM | SPM | COPY_CODE | ORDER_DETAILS | FLOW | REQUEST_CONTACT_INFO | PAYMENT_REQUEST. Other types are not supported here -- use WhatsApp Manager."
+                },
+                "text": {
+                  "type": "string",
+                  "description": "Button label shown to the user. Required for QUICK_REPLY, URL, PHONE_NUMBER, and FLOW; optional for VOICE_CALL (the call is placed to the business number regardless); omit it for CATALOG, whose label is fixed to \"View catalog\", for COPY_CODE, which has no caller-set label (WhatsApp fills a translated default), and for REQUEST_CONTACT_INFO, whose label is fixed to \"Share Contact Info\". Plain text up to 40 characters: no {{n}} placeholders (a label is fixed when the template is created and cannot be filled in per message), no line breaks, no emoji, no formatting characters. Every button in the template needs a DIFFERENT label."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "For URL buttons: an https URL. It may end with a single {{1}} placeholder to make the link dynamic -- for example \"https://example.com/orders/{{1}}\". The placeholder must be the LAST thing in the url; one anywhere else, or more than one, is rejected. Pass url_example with it."
+                },
+                "url_example": {
+                  "type": "string",
+                  "description": "For URL buttons whose url ends with {{1}}: the VALUE that replaces the placeholder (for example \"summer2023\" or \"A123-456\"), not the whole example URL. Required when the url has a placeholder; omit otherwise."
+                },
+                "phone_number": {
+                  "type": "string",
+                  "description": "For PHONE_NUMBER buttons: the number to call, in E.164 format (e.g. +16315551010)."
+                },
+                "ttl_minutes": {
+                  "type": "string",
+                  "description": "For VOICE_CALL buttons only: optional, how long the call button stays active on a sent message, as a whole number of minutes from 1440 (1 day) to 43200 (30 days). Defaults to 10080 (7 days) when omitted."
+                },
+                "example": {
+                  "type": "string",
+                  "description": "For COPY_CODE buttons: the coupon code the recipient copies. 1 to 20 alphanumeric characters. Not used by other button types."
+                },
+                "flow_id": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the numeric id of the WhatsApp Flow to open. Provide flow_id OR flow_name, never both."
+                },
+                "flow_name": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the name of a WhatsApp Flow on this WhatsApp Business Account, as an alternative to flow_id; it is resolved to that flow before the template is saved, and a name that matches no flow on the account is refused. Provide flow_id OR flow_name, never both."
+                },
+                "flow_action": {
+                  "type": "string",
+                  "description": "For FLOW buttons (optional): NAVIGATE (open a Flow screen) or DATA_EXCHANGE (exchange data with the Flow's endpoint)."
+                },
+                "navigate_screen": {
+                  "type": "string",
+                  "description": "For FLOW buttons: the id of the Flow screen to open first, from the Flow JSON. Required when flow_action is NAVIGATE, and for most Flows when flow_action is omitted. Do not send it with DATA_EXCHANGE."
+                },
+                "payment_setting": {
+                  "type": "object",
+                  "description": "For PAYMENT_REQUEST buttons: the payment method and its details. type is one of boleto, pix_dynamic_code, or payment_link, each with its matching object -- boleto {digitable_line}, pix_dynamic_code {code}, or payment_link {uri}.",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "description": "Payment method: boleto | pix_dynamic_code | payment_link."
+                    },
+                    "boleto": {
+                      "type": "object",
+                      "description": "For type=boleto: {digitable_line}.",
+                      "properties": {
+                        "digitable_line": {
+                          "type": "string",
+                          "description": "The Boleto digitable line."
+                        }
+                      },
+                      "required": [
+                        "digitable_line"
+                      ]
+                    },
+                    "pix_dynamic_code": {
+                      "type": "object",
+                      "description": "For type=pix_dynamic_code: {code}.",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "description": "The Pix dynamic copy-and-paste code."
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    },
+                    "payment_link": {
+                      "type": "object",
+                      "description": "For type=payment_link: {uri}.",
+                      "properties": {
+                        "uri": {
+                          "type": "string",
+                          "description": "The payment link URL."
+                        }
+                      },
+                      "required": [
+                        "uri"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "notes": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes notes; omit it otherwise. Supply example values for any variables in the notes text.",
+                  "properties": {
+                    "text": {
+                      "type": "string",
+                      "description": "The notes text, for a button type that takes notes. May contain variables -- positional {{1}}, {{2}}, ... (default) or named {{slot}} when parameter_format=NAMED -- which need matching example values."
+                    },
+                    "example": {
+                      "type": "array",
+                      "description": "POSITIONAL notes: one example value per {{1}}, {{2}}, ... in the notes text, in order.",
+                      "items": {
+                        "type": "string",
+                        "description": ""
+                      }
+                    },
+                    "named_example": {
+                      "type": "object",
+                      "description": "NAMED notes: an example value per {{name}} variable in the notes text, as {name: value}.",
+                      "additionalProperties": {
+                        "type": "string",
+                        "description": ""
+                      }
+                    }
+                  },
+                  "required": []
+                },
+                "booking_url": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes it; omit it otherwise.",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL to open. May end with a single {{1}} placeholder, in which case pass example."
+                    },
+                    "example": {
+                      "type": "string",
+                      "description": "The VALUE that replaces a trailing {{1}} in url (not the whole example URL)."
+                    }
+                  },
+                  "required": []
+                },
+                "booking_management_url": {
+                  "type": "object",
+                  "description": "Optional, and only for a button type that takes it; omit it otherwise.",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "The URL to open. May end with a single {{1}} placeholder, in which case pass example."
+                    },
+                    "example": {
+                      "type": "string",
+                      "description": "The VALUE that replaces a trailing {{1}} in url (not the whole example URL)."
+                    }
+                  },
+                  "required": []
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "message_send_ttl_seconds": {
+            "type": "string",
+            "description": "Optional message send time-to-live in seconds: how long an undelivered message waits before it expires. UTILITY templates accept 30 to 43200 (12 hours). MARKETING templates accept a TTL only on eligible accounts (Ads Manager or opted-in WABAs), and the range there is 43200 (12 hours) to 2592000 (30 days). Pass -1 for no TTL. Omit the field to use the account default."
+          },
+          "cta_url_link_tracking_opted_out": {
+            "type": "boolean",
+            "description": "Optional. Applies to URL (call-to-action) buttons: set true to opt this template out of click/link tracking on its URL buttons. Omit to leave link tracking enabled (the default)."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of what it will do so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to create the template."
+          },
+          "optimization_spec": {
+            "type": "object",
+            "description": "Optional. Omit it for a standard template, which is the normal case. Supply it only when the user asked for optimized delivery, and only with values the user gave you: never invent or infer a price, multiplier, budget or audience. Set type=MAX_PRICE and fill max_price to cap what a delivery may cost; set type=CAMPAIGN and fill campaign to create the template inside a budgeted, scheduled campaign. Exactly one of the two objects goes with each type -- Max Price access does not grant campaign access, and a spec carrying both is refused. Both need the account to be enrolled in that product; if it is not, the call says so and the template is not created. DELIVERY: a template created here sends at standard rates unless you pass optimization_spec, which is what makes this a Max Price or campaign-style setup rather than a standard one. Setting up the template comes first either way: collect and confirm the content, then -- if the user has not already said -- ask whether they want standard delivery or optimized delivery (a maximum delivery price, or a budgeted campaign), and only then collect and confirm the optimization_spec. OPTIMIZED DELIVERY -- ESTABLISH THE GOAL FIRST. Optimized delivery (a maximum delivery price, or a budgeted campaign) is set up on a template, never on an individual message. When the request only names pricing, bidding, a maximum price, a campaign, a budget or \"better delivery\" without saying what to do with it, ASK which of these three the user wants, in ONE question, before calling anything: (1) SET UP a template -- whatsapp_biz_create_template, with optimization_spec only if they want it; (2) OPTIMIZE a template that ALREADY exists, or change or remove the optimization it carries -- whatsapp_biz_update_template, which is also the only way to change what a template bids, never a second template; (3) USE a template that is already optimized and approved -- whatsapp_biz_send_message. Do NOT ask when the goal is already explicit: \"create a template\", \"add a maximum price to template X\", \"send template X to this number\" each name one, so proceed with it. Standard setup and optimization are two steps of one flow, not two different templates: the content is composed and confirmed the same way either way, and optimization is the optional optimization_spec on top. OPTIMIZATION VALUES COME FROM THE USER. Nothing here recommends them: no tool and no prompt on this server returns a suggested value for a bid, a multiplier, a budget or a schedule, and there is no default to fall back on. Never invent, infer, estimate, or carry over from another account or template a bid_amount_major, a country multiplier, a daily or lifetime budget, or a start or end time; never present one as a recommendation, a typical value or a starting point; and never state or imply what optimization will do for delivery, reach, cost per delivery or return, none of which is knowable from here. Explain instead which fields the optimization_spec on THIS tool exposes and what each one means -- for a maximum price, the bid in the account currency per 1,000 delivered messages plus optional per-country multipliers; for a campaign, the audience, the start and end times, and exactly one of a daily or lifetime budget (a lifetime budget also needs an end time), plus, when the campaign is being created with the template, the registered WhatsApp phone number it sends from (whatsapp_biz_phone_numbers) -- and ask the user for explicit values. If the user asks you to pick, say you cannot and offer the fields. PREREQUISITES, before composing a spec: the account has to be enrolled in the product being used, and a maximum price and a campaign are separate enrolments where neither grants the other; a campaign template is MARKETING with named placeholders. Collect what is missing from the user rather than calling and letting the save fail; when the account is not enrolled, the call says so and nothing is written. Whatever is supplied, show the user the confirmation this tool returns -- which separates the values they gave from the normalized and inferred ones -- and get their approval before the template is created or changed.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "MAX_PRICE (bid a maximum delivery price on an otherwise ordinary template) or CAMPAIGN (create the template as part of a budgeted campaign)."
+              },
+              "max_price": {
+                "type": "object",
+                "description": "For type=MAX_PRICE. The maximum the account will pay for delivery, in the account currency.",
+                "properties": {
+                  "bid_amount_major": {
+                    "type": "number",
+                    "description": "The maximum price, in the account currency's MAJOR unit (dollars, not cents) per 1,000 delivered messages. A user who says \"25 cents per delivery\" in a USD account means 250 here. Confirm the currency and this number with the user before sending it."
+                  },
+                  "bid_strategy": {
+                    "type": "string",
+                    "description": "Optional: LOWEST_COST_WITH_BID_CAP, which is what a maximum price means and what is used when you omit it with a bid_amount_major."
+                  },
+                  "bid_country_multiplier_overrides": {
+                    "type": "array",
+                    "description": "Optional per-country adjustments to the base price. Include a country only when the user named it with an explicit multiplier; every other country uses the base price.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "country": {
+                          "type": "string",
+                          "description": "Two-letter ISO country code, e.g. CA."
+                        },
+                        "multiplier": {
+                          "type": "number",
+                          "description": "Positive multiplier applied to the base price for that country, e.g. 0.8."
+                        }
+                      },
+                      "required": [
+                        "country",
+                        "multiplier"
+                      ]
+                    }
+                  }
+                },
+                "required": []
+              },
+              "campaign": {
+                "type": "object",
+                "description": "For type=CAMPAIGN. The template is created MARKETING with parameter_format=NAMED, and a campaign with its ad objects is created around it; if that fails the template is removed again, so there is nothing to clean up. Needs the phone number, the audience, a start time and exactly one budget.",
+                "properties": {
+                  "whatsapp_business_phone_number_id": {
+                    "type": "string",
+                    "description": "The registered WhatsApp phone number id the campaign sends from (use whatsapp_biz_phone_numbers to find it)."
+                  },
+                  "targeting": {
+                    "type": "object",
+                    "description": "Who the campaign sends to.",
+                    "properties": {
+                      "custom_audiences": {
+                        "type": "array",
+                        "description": "Ids of the audiences to send to. At least one is required -- a campaign with no audience cannot be created.",
+                        "items": {
+                          "type": "string",
+                          "description": ""
+                        }
+                      },
+                      "excluded_custom_audiences": {
+                        "type": "array",
+                        "description": "Optional ids of audiences to exclude.",
+                        "items": {
+                          "type": "string",
+                          "description": ""
+                        }
+                      }
+                    },
+                    "required": [
+                      "custom_audiences"
+                    ]
+                  },
+                  "start_time": {
+                    "type": "string",
+                    "description": "When delivery starts, ISO 8601 (e.g. 2026-07-01T09:00:00Z). Must be in the future."
+                  },
+                  "end_time": {
+                    "type": "string",
+                    "description": "When delivery stops, ISO 8601. Required with lifetime_budget; optional with daily_budget."
+                  },
+                  "daily_budget": {
+                    "type": "integer",
+                    "description": "Budget per day, in the account currency's MINOR unit (cents). Give daily_budget or lifetime_budget, never both."
+                  },
+                  "lifetime_budget": {
+                    "type": "integer",
+                    "description": "Budget for the whole run, in the account currency's MINOR unit (cents). Needs end_time. Give daily_budget or lifetime_budget, never both."
+                  },
+                  "optimization_goal": {
+                    "type": "string",
+                    "description": "Optional: REACH (the default), LINK_CLICKS, OFFSITE_CONVERSIONS or VALUE. OFFSITE_CONVERSIONS needs promoted_object."
+                  },
+                  "bid_strategy": {
+                    "type": "string",
+                    "description": "Optional: LOWEST_COST_WITHOUT_CAP (the default) or LOWEST_COST_WITH_BID_CAP, which needs bid_amount."
+                  },
+                  "bid_amount": {
+                    "type": "integer",
+                    "description": "Optional bid cap for LOWEST_COST_WITH_BID_CAP, in campaign units. This is NOT the Max Price bid_amount_major and is not converted from major units."
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Optional: ACTIVE (the default), PAUSED or ARCHIVED. A campaign cannot be created DELETED."
+                  },
+                  "promoted_object": {
+                    "type": "object",
+                    "description": "Required for optimization_goal=OFFSITE_CONVERSIONS: what conversion to optimize for. Give custom_event_type with pixel_id or application_id.",
+                    "properties": {
+                      "pixel_id": {
+                        "type": "string",
+                        "description": "The pixel reporting conversions."
+                      },
+                      "application_id": {
+                        "type": "string",
+                        "description": "The app reporting conversions."
+                      },
+                      "custom_event_type": {
+                        "type": "string",
+                        "description": "The conversion event, e.g. PURCHASE or LEAD."
+                      }
+                    },
+                    "required": []
+                  },
+                  "attribution_spec": {
+                    "type": "array",
+                    "description": "Optional attribution windows. Allowed only with optimization_goal=OFFSITE_CONVERSIONS.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "event_type": {
+                          "type": "string",
+                          "description": "CLICK_THROUGH."
+                        },
+                        "window_days": {
+                          "type": "integer",
+                          "description": "1, 7 or 28."
+                        }
+                      },
+                      "required": [
+                        "event_type",
+                        "window_days"
+                      ]
+                    }
+                  },
+                  "adset_schedule": {
+                    "type": "array",
+                    "description": "Optional day-parting windows. Allowed only with lifetime_budget.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "start_minute": {
+                          "type": "integer",
+                          "description": "Minutes past midnight the window opens, 0-1439."
+                        },
+                        "end_minute": {
+                          "type": "integer",
+                          "description": "Minutes past midnight the window closes, 1-1440, after start_minute."
+                        },
+                        "days": {
+                          "type": "array",
+                          "description": "Days the window applies to, 0 (Sunday) to 6.",
+                          "items": {
+                            "type": "integer",
+                            "description": ""
+                          }
+                        },
+                        "timezone_type": {
+                          "type": "string",
+                          "description": "Optional: ADVERTISER or USER."
+                        }
+                      },
+                      "required": [
+                        "start_minute",
+                        "end_minute",
+                        "days"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "whatsapp_business_phone_number_id",
+                  "targeting",
+                  "start_time"
+                ]
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        "required": [
+          "waba_id",
+          "template_name",
+          "language",
+          "category",
+          "body_text"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Legacy JSON response retained until eval consumers migrate. Only this field is emitted; created_template is not duplicated alongside it."
+          },
+          "created_template": {
+            "type": "object",
+            "description": "Schema-backed create producer contract. Not emitted on the wire until eval consumers migrate and the legacy result is removed.",
+            "properties": {
+              "template_id": {
+                "type": "string",
+                "description": "ID of the template that was actually created, including a template immediately rejected."
+              },
+              "review_status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The saved review state, such as APPROVED, REJECTED or PENDING; null when unavailable."
+              },
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The actual saved category after content classification, not necessarily the requested category; null when unavailable."
+              },
+              "message_send_ttl_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The saved message expiry in seconds; null when no expiry is configured."
+              },
+              "optimization_spec": {
+                "type": "object",
+                "description": "Resolved stored optimization settings; omitted for standard delivery.",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "description": "The resolved optimization type: MAX_PRICE or CAMPAIGN."
+                  },
+                  "account_currency": {
+                    "type": "string",
+                    "description": "The account currency code, when available."
+                  },
+                  "bid_amount": {
+                    "type": "integer",
+                    "description": "The resolved stored bid amount in minor currency units per 1,000 deliveries; omitted when no amount was resolved."
+                  },
+                  "bid_strategy": {
+                    "type": "string",
+                    "description": "The resolved bid strategy, when available."
+                  },
+                  "bid_country_multiplier_overrides": {
+                    "type": "array",
+                    "description": "Resolved country adjustments; omitted when none were resolved.",
+                    "items": {
+                      "type": "object",
+                      "description": "",
+                      "properties": {
+                        "country": {
+                          "type": "string",
+                          "description": "Two-letter ISO country code for this price adjustment."
+                        },
+                        "multiplier": {
+                          "type": "number",
+                          "description": "Resolved multiplier for this country."
+                        }
+                      },
+                      "required": [
+                        "country",
+                        "multiplier"
+                      ]
+                    }
+                  },
+                  "campaign_created": {
+                    "type": "boolean",
+                    "description": "For CAMPAIGN: whether the campaign and its ad objects were created with the template."
+                  },
+                  "supplied_fields": {
+                    "type": "array",
+                    "description": "Optimization fields explicitly supplied by the caller, not inferred by the server.",
+                    "items": {
+                      "type": "string",
+                      "description": "Name of an optimization field supplied by the caller."
+                    }
+                  },
+                  "inferred_fields": {
+                    "type": "array",
+                    "description": "Optimization fields inferred by the server, not supplied explicitly.",
+                    "items": {
+                      "type": "string",
+                      "description": "Name of an optimization field inferred by the server."
+                    }
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              },
+              "requested_category": {
+                "type": "string",
+                "description": "The requested category, included only when it differs from the saved category."
+              },
+              "category_changed": {
+                "type": "boolean",
+                "description": "True when WhatsApp changed the category; absent when it did not change or cannot be compared."
+              },
+              "category_change_note": {
+                "type": "string",
+                "description": "Guidance to report a category change; omitted without a detected change."
+              },
+              "manage_templates_url": {
+                "type": "string",
+                "description": "Clickable WhatsApp Manager link to the account templates; omitted if the link could not be built."
+              },
+              "rejected_reason": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Rejection reason, included only for an immediately rejected template; null if the reason is unavailable."
+              },
+              "next_step": {
+                "type": "string",
+                "description": "Outcome-specific next action: fix rejection, use the approved template, or check pending review later."
+              },
+              "model_note": {
+                "type": "string",
+                "description": "Guidance to show the management link when present."
+              }
+            },
+            "required": [
+              "template_id",
+              "review_status",
+              "category",
+              "message_send_ttl_seconds",
+              "next_step",
+              "model_note"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "title": "Create WhatsApp Template",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_create_template_from_library",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation), and pick the library template with whatsapp_biz_template_library so you have its exact library_template_name and language. Creates a real template on the user's account from a Template Library entry. The wording and the category come from the library and cannot be edited here -- that is the point: an unchanged library template can skip review. You only supply the new template name, plus values for whatever the entry asks for (button URLs and phone numbers, and any body inputs such as the business name), which whatsapp_biz_template_library returns under required_inputs. To change the wording, create the template with whatsapp_biz_create_template instead and accept the review. PREREQUISITE: a waba_id the user manages (use whatsapp_biz_accounts to find or pick one). You can optionally set a message send TTL (time-to-live) in seconds on the new template. Actions: create. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Get business_id from whatsapp_biz_businesses and pass the user's selected business so the request is authorized against their admin access to it. Omit to derive the business from waba_id and still apply the business-access checks."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "The account_id returned by whatsapp_biz_accounts for the account to create the template under (Messaging Account under WAME; same numeric id)."
+          },
+          "library_template_name": {
+            "type": "string",
+            "description": "The name of the Template Library entry to create from, exactly as whatsapp_biz_template_library returned it."
+          },
+          "language": {
+            "type": "string",
+            "description": "BCP-47 language code of the library entry, e.g. en_US. It must be a language that entry is published in."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "Name for the NEW template on the account. Lowercase letters, numbers, and underscores."
+          },
+          "buttons": {
+            "type": "array",
+            "description": "Values for the buttons the library entry defines, in the order it lists them. The button TEXT comes from the library; you supply only the URL or phone number behind it. Omit when the entry has no buttons needing input.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Button type from the library entry, as returned in its required_inputs (e.g. URL, PHONE_NUMBER, QUICK_REPLY)."
+                },
+                "url": {
+                  "type": "string",
+                  "description": "For a URL button: the https URL to open. May end with a single {{1}} placeholder, in which case pass url_example too."
+                },
+                "url_example": {
+                  "type": "string",
+                  "description": "The VALUE that replaces {{1}} in url (not the whole example URL). Required when url ends with {{1}}."
+                },
+                "phone_number": {
+                  "type": "string",
+                  "description": "For a PHONE_NUMBER button: the number to call, in E.164 format (e.g. +16315551010)."
+                }
+              },
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "body_inputs": {
+            "type": "array",
+            "description": "Values for the named body parameters the library entry requires at creation time. Ask the user for these rather than inventing them: they become permanent text in the template. Omit to pass an empty list. Any required body values must still be supplied; missing required values are rejected, not inferred.",
+            "items": {
+              "type": "object",
+              "description": "",
+              "properties": {
+                "param_name": {
+                  "type": "string",
+                  "description": "The named body parameter to fill, as listed under required_inputs (e.g. business_name)."
+                },
+                "value": {
+                  "type": "string",
+                  "description": "The value to bake into the template body. This becomes fixed text -- it is NOT filled in per message, so use something constant like the business name, never a customer detail."
+                }
+              },
+              "required": [
+                "param_name",
+                "value"
+              ]
+            }
+          },
+          "message_send_ttl_seconds": {
+            "type": "string",
+            "description": "Optional message send TTL (time-to-live) in seconds for the new template, as a numeric string. Pass -1 to leave it unset (the default). UTILITY templates accept 30 to 43200 (12 hours). MARKETING templates only accept a TTL on eligible accounts (Ads Manager or APIX WhatsApp accounts); for others, setting one is rejected at save."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of what it will create so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true."
+          }
+        },
+        "required": [
+          "waba_id",
+          "library_template_name",
+          "language",
+          "template_name"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Legacy JSON response retained until eval consumers migrate. Only this field is emitted; created_template is not duplicated alongside it."
+          },
+          "created_template": {
+            "type": "object",
+            "description": "Schema-backed library-create producer contract. Not emitted on the wire until eval consumers migrate and legacy result is removed.",
+            "properties": {
+              "template_id": {
+                "type": "string",
+                "description": "ID of the template created from the library entry."
+              },
+              "name": {
+                "type": "string",
+                "description": "The actual saved name of the new template."
+              },
+              "language": {
+                "type": "string",
+                "description": "The actual saved template language."
+              },
+              "category": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The actual saved template category; null if unavailable."
+              },
+              "review_status": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "The actual saved review state, such as APPROVED, REJECTED or PENDING; null if unavailable."
+              },
+              "message_send_ttl_seconds": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "description": "The saved expiry in seconds; null when no message expiry is set."
+              },
+              "library_template_name": {
+                "type": "string",
+                "description": "The library entry used to create this template."
+              },
+              "next_step": {
+                "type": "string",
+                "description": "Legacy text retained byte-for-byte for eval compatibility during staging. REJECTED still has the legacy check-later text; do not treat it as pending review. Add rejection-specific guidance and a rejected_reason field before eval migration and retirement of result."
+              }
+            },
+            "required": [
+              "template_id",
+              "name",
+              "language",
+              "category",
+              "review_status",
+              "message_send_ttl_seconds",
+              "library_template_name",
+              "next_step"
+            ]
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "title": "Create WhatsApp Template From Library",
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_phone_numbers",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation). List the phone numbers on a business (or a specific account): id, number, name, status. Call this to let the user PICK a number instead of asking them for a numeric phone_number_id \u2014 use it before send_message, or any tool that needs a phone_number_id, when you do not already have one. If the result is empty (no numbers yet), do NOT ask for a phone_number_id \u2014 onboard one with whatsapp_biz_add_phone_number first. To finish a half-onboarded number, follow its next_action and do NOT restart the flow: onboarding_state=verified_not_registered means the number is already verified and only needs whatsapp_biz_register_phone_number, so sending it another verification code is wrong. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\". Public test numbers are deliberately left out of every list this server returns, and cannot be used to send. If the user asks about a test number, or about the test WhatsApp account it sits on, tell them it is for testing only: it reaches nobody except the recipients on its own allow-list, and that allow-list can only be managed on the app's WhatsApp API testing page in the Meta App Dashboard. Never offer to add a recipient to it or to send from it -- neither is possible from here.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business whose phone numbers to list. Omit to auto-detect (asks which business if you administer several). Ignored when waba_id is given."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "Optional: list the numbers on a specific WhatsApp account instead of the whole business. Takes precedence over business_id. Note: under WAME, phone numbers belong to the WhatsApp Account (not the Messaging Account), but the server resolves this internally."
+          },
+          "status": {
+            "type": "string",
+            "description": "Optional filter: \"linked\" (registered, ready to send) or \"pending\" (NOT registered \u2014 which covers both \"not yet verified\" and \"verified, waiting to register\"; read each row's onboarding_state to tell those apart). Omit to list all. Use linked before send_message, pending before verify/register."
+          },
+          "phone_number": {
+            "type": "string",
+            "description": "Optional: look up ONE number directly, in E.164 or any format (e.g. \"+18525553623\"). Takes precedence over waba_id and business_id, and is the only form that works on a business with too many accounts to list. Use it to answer \"does this number exist yet\" \u2014 in particular after an add that timed out, before retrying and creating a duplicate."
+          },
+          "after": {
+            "type": "string",
+            "description": "Optional: read the next page of accounts. Pass the next_after value from the previous result; its absence means there are no more. Only page when the user wants the whole list -- to find ONE number, pass phone_number, which resolves it directly however many accounts the business has."
+          },
+          "shared_after": {
+            "type": "string",
+            "description": "Optional: read the next page of numbers on customers' accounts shared with this business as their partner. Pass the shared_next_after value from the previous result; the call then returns only those shared numbers."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Paged: count is this page, total_whatsapp_accounts is the whole scope -- quote the total, never count, when telling the user how many they have. When total_whatsapp_accounts is absent and more_than_this_page is true, there is no count: say the list is partial and give no number, not even a floor. next_after carries the cursor for the next page when more exist. JSON-encoded list of phone numbers (phone_number_id, phone_number, name, status, onboarding_state, next_action). onboarding_state is registered, verified_not_registered, or not_verified; next_action is the one tool to call to move that number forward. A phone_number lookup also returns whatsapp_account_id, business_id, and the accounts linked to that WhatsApp Account. When that list is empty the response also carries incomplete and incomplete_reason: the account was created but never linked, and cannot send until it is."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_subscribe_webhook",
+      "description": "Subscribe an app to a WhatsApp Business Account's webhooks so it receives message and status events. Identify the account with waba_id or phone_number_id; or omit both and pass business_id (or rely on the selected business) \u2014 the tool uses the business's WhatsApp account if it has exactly one, otherwise it returns the list to choose from. The app is the event receiver: pass app_id, or omit it to have the tool list the business's apps and ask which app should receive events. Subscribing is ADDITIVE \u2014 it does not replace apps already subscribed to that WhatsApp account, and a WhatsApp account may have several subscribed apps, all of which receive every event. So if the user wants two or more apps receiving events, simply call this once per app; do NOT tell them it is one-app-only or that they must fan out events themselves. Webhook delivery needs THREE things, and this tool provides one: (1) WHICH WhatsApp account sends events -- set here; (2) WHERE they go -- the app's HTTPS callback URL and verify token, via whatsapp_biz_configure_webhooks; (3) the app PUBLISHED -- an app in development mode may not be sent real webhooks. Missing (1) or (2) delivers nothing, so never report webhooks as working off this call alone. To CHECK the current webhook state without changing it, call whatsapp_biz_onboarding_status -- this tool SUBSCRIBES, it is not an inspection tool, and calling it to look would silently create a subscription. Requires user confirmation. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\". This server has no undo: nothing here can unregister a number, remove a subscription, delete an account or reverse a write. Never offer to undo one, and never imply a call can be taken back. ONLY when the user explicitly asks to undo, reverse, remove or delete something, tell them to do it themselves: webhook changes (callback URL, verify token, subscribed fields, per-account subscriptions) on the app's WhatsApp configuration page in the App Dashboard, and WhatsApp accounts, apps and phone numbers in Business Settings. Use the exact links returned by whatsapp_biz_onboarding_status in manage_links -- do not write those URLs from memory. Do not raise any of this unless asked.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id to subscribe to. This is the WhatsApp account that owns templates and billing (called a Messaging Account under WAME, but the same numeric id). Provide this or phone_number_id."
+          },
+          "phone_number_id": {
+            "type": "string",
+            "description": "A phone number id whose account to subscribe to. Used when waba_id is not given."
+          },
+          "app_id": {
+            "type": "string",
+            "description": "The Facebook app that should receive the webhook events. Omit to pick from the business's apps."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "The business that owns the WhatsApp account. Used for the admin check, and to resolve the account when waba_id and phone_number_id are both omitted (single account is used automatically; multiple returns a list to choose from)."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary (and, if the business has more than one app, the list of apps to choose from) so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true."
+          },
+          "alternative_id": {
+            "type": "string",
+            "description": "Optional: when the confirmation lists apps to choose from, set this to the app id the user picked. Requires confirm=true."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_send_message",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation). Send a WhatsApp message from a registered WhatsApp Business phone number. PREREQUISITE: whatsapp_biz_register_phone_number. Ask the user which kind to send and set message_type: 'text' is a free-form message that is ONLY delivered if the recipient messaged this business within the last 24 hours; to reach anyone else (or start a conversation), use 'template' with an APPROVED template. A number onboarded through this server starts with no templates at all, so if the user wants to send a template, create one first with whatsapp_biz_create_template and wait for it to be APPROVED. The resolved target is confirmed with the user before sending. Actions: send. OPTIMIZED DELIVERY -- ESTABLISH THE GOAL FIRST. Optimized delivery (a maximum delivery price, or a budgeted campaign) is set up on a template, never on an individual message. When the request only names pricing, bidding, a maximum price, a campaign, a budget or \"better delivery\" without saying what to do with it, ASK which of these three the user wants, in ONE question, before calling anything: (1) SET UP a template -- whatsapp_biz_create_template, with optimization_spec only if they want it; (2) OPTIMIZE a template that ALREADY exists, or change or remove the optimization it carries -- whatsapp_biz_update_template, which is also the only way to change what a template bids, never a second template; (3) USE a template that is already optimized and approved -- whatsapp_biz_send_message. Do NOT ask when the goal is already explicit: \"create a template\", \"add a maximum price to template X\", \"send template X to this number\" each name one, so proceed with it. Standard setup and optimization are two steps of one flow, not two different templates: the content is composed and confirmed the same way either way, and optimization is the optional optimization_spec on top. AN ALREADY-OPTIMIZED TEMPLATE SENDS LIKE ANY OTHER: message_type='template' with its name and language. The maximum price or campaign lives on the template, so there is no pricing, budget or campaign argument here and none is needed -- do not create a second template for the send, and do not re-run the optimization edit first. Prerequisites are checked before anything is sent: the template has to exist on the account the sending number belongs to and be APPROVED, and a template in any other state is refused naming that state -- the fix is to wait for review or edit the template, never to retry the send unchanged. The result also says when the account has no payment method or its review state puts delivery at risk; pass that on rather than promising the message will arrive. Never quote the bid or budget on the template as what the send will cost, and never predict a delivery rate, a cost per delivery or a reach figure. To change what the template bids, use whatsapp_biz_update_template. Public test numbers are deliberately left out of every list this server returns, and cannot be used to send. If the user asks about a test number, or about the test WhatsApp account it sits on, tell them it is for testing only: it reaches nobody except the recipients on its own allow-list, and that allow-list can only be managed on the app's WhatsApp API testing page in the Meta App Dashboard. Never offer to add a recipient to it or to send from it -- neither is possible from here.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number_id": {
+            "type": "string",
+            "description": "The sender phone number id."
+          },
+          "to": {
+            "type": "string",
+            "description": "Recipient phone number in E.164 format -- who the message goes to, as opposed to phone_number_id, which is who it is sent from. Must come from the user; never invent or guess a recipient."
+          },
+          "message_type": {
+            "type": "string",
+            "description": "What to send: 'text' or 'template'. 'text' (free-form) is ONLY delivered if the recipient messaged this business in the last 24 hours. That window is a delivery rule, not a pricing one: it applies to free-form text either way, and a payment method does not lift it. 'template' (an approved template) is delivered anytime. Either kind needs a payment method on the WhatsApp account: without one the message is still accepted by the API but the recipient most likely never sees it, so warn the user and point them at whatsapp_biz_configure_payments. Do not volunteer rates, or describe any message kind or template category as free or cheap, and never let cost influence which category a template is created under (see whatsapp_biz_create_template). If the user does ask what messages cost, answer them -- from the published rates at https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing, not from memory, since what is billable changes. Defaults to 'text'."
+          },
+          "message": {
+            "type": "string",
+            "description": "The message text. Required when message_type is 'text'. Reminder: free-form text only reaches recipients who messaged you within the last 24h."
+          },
+          "category": {
+            "type": "string",
+            "description": "Optional, for message_type 'text' only. Omit it unless this tool's description offers a category for this send."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "Approved template name. Required when message_type is 'template'. Take it from the user -- most already know which template they want; only when they do not, use whatsapp_biz_list_templates so they can pick one. Either way, call whatsapp_biz_get_template on the chosen template and read its components before sending: APPROVED means WhatsApp accepted the template, not that this tool can send it. This tool fills body placeholders (body_parameters), a media, location or text header (header_parameter), and URL, quick reply and copy code button values (button_parameters). A template that needs any other value, such as a carousel, a limited time offer or a flow button token, has to go through the business's own Cloud API integration, which takes full components -- tell the user that, and do not offer to send it here."
+          },
+          "language_code": {
+            "type": "string",
+            "description": "Template language code (e.g. en_US). Required when message_type is 'template'."
+          },
+          "body_parameters": {
+            "type": "string",
+            "description": "JSON array of strings filling the template body placeholders {{1}}, {{2}}, ... in order -- e.g. [\"Alice\",\"12345\"], which shows the format, not values to copy. Every value must come from the user or from real business data: never invent one, and never reuse the example values stored on the template, which exist for template review and are not real. Ask the user for any placeholder you cannot source. Omit only if the template body has no variables. Header and button values go in header_parameter and button_parameters; check the template components with whatsapp_biz_get_template first."
+          },
+          "header_parameter": {
+            "type": "string",
+            "description": "JSON object with the header value, for a template whose header is media, location or text with a {{1}}. Image, video or document: {\"type\":\"image\",\"link\":\"https://...\"} with a public link to the file; a document can add \"filename\". Text: {\"type\":\"text\",\"text\":\"...\"}. Location: {\"type\":\"location\",\"latitude\":37.48,\"longitude\":-122.15,\"name\":\"...\",\"address\":\"...\"}. The same rule as body_parameters applies: every value comes from the user or real business data, never from the template examples. Omit it when the header has no value to fill."
+          },
+          "button_parameters": {
+            "type": "string",
+            "description": "JSON array with one object for each button that takes a value: {\"index\":0,\"sub_type\":\"url\",\"text\":\"order/123\"} fills the {{1}} at the end of a URL button, {\"index\":1,\"sub_type\":\"quick_reply\",\"payload\":\"...\"} sets the payload returned when a quick reply is tapped, and {\"index\":2,\"sub_type\":\"copy_code\",\"coupon_code\":\"SAVE10\"} sets the code of a copy code button. index is the button position in the template, from 0. The same sourcing rule as body_parameters applies. Omit it when no button takes a value."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of the message to be sent, including the app it will be sent from (and, if the business has more than one app, the list to choose from) so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to actually send."
+          },
+          "alternative_id": {
+            "type": "string",
+            "description": "Optional: when the confirmation lists apps to choose from, set this to the app id the user picked. The app is who the send is attributed to (webhook delivery, rate limits, message attribution). It does not change which account is billed: every app offered belongs to the same business, so they all resolve to the same messaging account. Requires confirm=true."
+          }
+        },
+        "required": [
+          "phone_number_id",
+          "to"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_delete_template",
+      "description": "Delete WhatsApp message templates (irreversible). Three ways to call it: (1) one template version -- pass template_id and template_name; the name is cross-checked against the id as a safety guard. (2) every language version of a name -- also set all_languages=true (template_id must be one of the name's versions). (3) several versions at once -- pass template_ids (1 to 100 ids, duplicates ignored) instead of template_id and template_name; if any id is not on this waba_id the whole call is refused before anything is deleted, and the result reports each id. PREREQUISITE: a waba_id and the id(s) (use whatsapp_biz_list_templates or whatsapp_biz_get_template to find them); pass the selected business_id so the request can be authorized. If you do not have the waba_id, call whatsapp_biz_accounts first to find or pick one. Actions: delete. Never write \"waba_id\" or \"WABA\" in anything the user reads, including when explaining what a call did or why a result looks wrong. Name the account instead, or call it \"the account filter\".",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "waba_id": {
+            "type": "string",
+            "description": "The WhatsApp business account id the template belongs to (Messaging Account under WAME; same numeric id)."
+          },
+          "template_id": {
+            "type": "string",
+            "description": "The id of the single template version to delete. Required unless template_ids is passed."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "The name of the template to delete; cross-checked against template_id. When all_languages is true, every language version of this name is deleted. Required with template_id."
+          },
+          "template_ids": {
+            "type": "array",
+            "description": "Delete several template versions at once: 1 to 100 id strings, duplicates ignored. Use instead of template_id and template_name, not together with them.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business the WhatsApp account belongs to. Pass the business_id the user selected so the request is authorized against their admin access to that business."
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Confirmation gate. Omit (or false) on the first call: the tool returns a summary of what it will do so you can ask the user to confirm. Only after the user says yes, re-call with the SAME arguments plus confirm=true to delete the template."
+          },
+          "all_languages": {
+            "type": "boolean",
+            "description": "Optional. When true, delete every language version of template_name (template_id is still required and must be one of the name's versions). When false or omitted, only the single version identified by template_id is deleted."
+          }
+        },
+        "required": [
+          "waba_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_verify_business",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation). REPORTS whether a business has passed Business Verification, and returns a deep link to the Security Center. This tool does not start or change anything -- verification is done by the user in Security Center, where the documents are uploaded and reviewed. Use it to answer \"is this business verified\" and to hand over the link. whatsapp_biz_businesses already carries business_verified for every business at once, so prefer that when the question is about more than one. No app_id needed.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "business_id": {
+            "type": "string",
+            "description": "The business id to verify."
+          }
+        },
+        "required": [
+          "business_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_template_library",
+      "description": "Browse the WhatsApp Template Library: pre-written UTILITY and AUTHENTICATION templates for common use cases (order updates, delivery notifications, appointment reminders, payment requests, one-time passcodes, and so on). CHECK HERE FIRST whenever the user wants a template for an ordinary business notification, and offer what you find before writing one from scratch with whatsapp_biz_create_template. Two reasons it is the better start: a library template that is used UNCHANGED can skip review and be usable straight away (the pre_approved field says which ones), and its wording and category are already settled, so it cannot be rejected or recategorised for content. Create one with whatsapp_biz_create_template_from_library. Write your own only when nothing in the library fits, or the user asks for something specific to their business. Show the user a few real options with their body text rather than a list of names. When you already know a template by its exact name, pass name to fetch just that one. Pass an optional waba_id to filter the catalogue to templates a specific account can use. Actions: list.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "search": {
+            "type": "string",
+            "description": "Free-text search over the template name and body -- the best single filter for \"find me a template about X\" (e.g. \"delivery\", \"appointment\", \"payment reminder\")."
+          },
+          "name": {
+            "type": "string",
+            "description": "Filter: EXACT template name. Unlike search, which matches a substring of the name or body, this returns only the template whose name equals this value exactly, or an empty page when none matches. Use it when the user gives a precise library template name."
+          },
+          "language": {
+            "type": "string",
+            "description": "Filter: language code the template is written in, e.g. en_US. Library templates are per-language, so pass the language the user's customers read."
+          },
+          "category": {
+            "type": "array",
+            "description": "Filter: categories, any-match. UTILITY, AUTHENTICATION. The library carries no MARKETING templates.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "topic": {
+            "type": "array",
+            "description": "Filter: topics, any-match (e.g. ORDER_MANAGEMENT, PAYMENTS, CUSTOMER_FEEDBACK). Omit unless the user named one -- search is usually the better filter.",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "usecase": {
+            "type": "array",
+            "description": "Filter: use cases, any-match (e.g. DELIVERY_UPDATE, PAYMENT_DUE_REMINDER).",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "industry": {
+            "type": "array",
+            "description": "Filter: industries, any-match (e.g. E_COMMERCE, FINANCIAL_SERVICES).",
+            "items": {
+              "type": "string",
+              "description": ""
+            }
+          },
+          "limit": {
+            "type": "string",
+            "description": "Max library templates to return in this page (optional)."
+          },
+          "after": {
+            "type": "string",
+            "description": "Opaque pagination cursor from a previous page (optional)."
+          },
+          "waba_id": {
+            "type": "string",
+            "description": "Optional: the WhatsApp business account id (same numeric id as the Messaging Account under WAME) to filter the catalogue to. Pass it to return only entries that account can actually use. Omit it to browse before an account is picked: that hides entries gated to specific accounts, but can also surface entries this account cannot use, such as India-only ones."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "whatsapp_biz_register_phone_number",
+      "description": "Register a verified WhatsApp Business phone number on the Cloud API so it can be used as a sender (sets its two-step-verification PIN). Do NOT tell the user this means they can now message people: registering makes WhatsApp ACCEPT sends from the number, while whether a message reaches anyone also depends on a payment method on the account and, for free-form text, the recipient having messaged the business in the last 24 hours. PREREQUISITE: whatsapp_biz_verify_phone_number. CALL THIS WITHOUT pin FIRST. Most accounts no longer use a two-step-verification PIN, and asking for one the account does not want is a dead end the user cannot resolve. If a PIN is required this tool says so and tells you to ask for one -- only then ask the user for a 6-digit PIN and call again with it. When a PIN is used the user needs it later to re-register or manage the number, so they must record it; the tool never generates or stores it. This server has no undo: nothing here can unregister a number, remove a subscription, delete an account or reverse a write. Never offer to undo one, and never imply a call can be taken back. ONLY when the user explicitly asks to undo, reverse, remove or delete something, tell them to do it themselves: webhook changes (callback URL, verify token, subscribed fields, per-account subscriptions) on the app's WhatsApp configuration page in the App Dashboard, and WhatsApp accounts, apps and phone numbers in Business Settings. Use the exact links returned by whatsapp_biz_onboarding_status in manage_links -- do not write those URLs from memory. Do not raise any of this unless asked.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number_id": {
+            "type": "string",
+            "description": "The phone number id to register. Get it from whatsapp_biz_phone_numbers if you do not have it."
+          },
+          "pin": {
+            "type": "string",
+            "description": "The 6-digit two-step-verification PIN. Omit it on the first call: accounts on the current account model do not use a PIN and one passed here is ignored. Supply it only after this tool has asked for one."
+          }
+        },
+        "required": [
+          "phone_number_id"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_verify_phone_number",
+      "description": "Confirm ownership of a WhatsApp Business phone number by submitting the one-time code the user received. Step 2 of verification: first call whatsapp_biz_send_verification_code to send the code. PREREQUISITE: whatsapp_biz_send_verification_code. This server has no undo: nothing here can unregister a number, remove a subscription, delete an account or reverse a write. Never offer to undo one, and never imply a call can be taken back. ONLY when the user explicitly asks to undo, reverse, remove or delete something, tell them to do it themselves: webhook changes (callback URL, verify token, subscribed fields, per-account subscriptions) on the app's WhatsApp configuration page in the App Dashboard, and WhatsApp accounts, apps and phone numbers in Business Settings. Use the exact links returned by whatsapp_biz_onboarding_status in manage_links -- do not write those URLs from memory. Do not raise any of this unless asked.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number_id": {
+            "type": "string",
+            "description": "The phone number id to verify. Get it from whatsapp_biz_phone_numbers if you do not have it."
+          },
+          "verification_code": {
+            "type": "string",
+            "description": "The one-time code the user received."
+          }
+        },
+        "required": [
+          "phone_number_id",
+          "verification_code"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "whatsapp_biz_configure_payments",
+      "description": "BEFORE calling this tool, make sure the user has picked a business (call whatsapp_biz_businesses if not done yet in this conversation). Check the payment status of WhatsApp Business Accounts and return a Billing Hub deep link for each. Pass phone_number_id to check the single account that number belongs to, or business_id (or omit to auto-detect) to see ALL accounts under the business with their payment status. Without a payment method, billable messages are accepted but never delivered \u2014 use this to diagnose silent delivery failures.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone_number_id": {
+            "type": "string",
+            "description": "Optional: the phone number id \u2014 resolves its WhatsApp account for an account-scoped link."
+          },
+          "business_id": {
+            "type": "string",
+            "description": "Optional: the business id \u2014 for a business-scoped link. Ignored when phone_number_id is given."
+          }
+        },
+        "required": []
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "JSON-encoded response."
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

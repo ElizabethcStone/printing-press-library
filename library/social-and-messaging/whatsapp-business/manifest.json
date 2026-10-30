@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "whatsapp-business-pp-mcp",
+  "display_name": "WhatsApp Business Tools",
+  "version": "4.33.9",
+  "description": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/whatsapp-business-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/whatsapp-business-pp-mcp",
+      "args": [],
+      "env": {
+        "WHATSAPP_BUSINESS_MCP_TOKEN": "${user_config.whatsapp_business_mcp_token}"
+      }
+    }
+  },
+  "user_config": {
+    "whatsapp_business_mcp_token": {
+      "type": "string",
+      "title": "WHATSAPP_BUSINESS_MCP_TOKEN",
+      "description": "Sets WHATSAPP_BUSINESS_MCP_TOKEN for the WhatsApp Business Tools MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

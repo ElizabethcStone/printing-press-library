@@ -1,0 +1,7 @@
+{
+  "oauth": "pass",
+  "auth_status": "oAuth",
+  "tools_count": 24,
+  "tools_discovery_error": null,
+  "tool_call": "not_run"
+}

@@ -1,0 +1,113 @@
+{
+  "dir": "<runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli",
+  "spec_path": "<runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/spec.json",
+  "spec_source": "bundled",
+  "verdict": "WARN",
+  "path_check": {
+    "tested": 0,
+    "valid": 0,
+    "valid_pct": 0
+  },
+  "auth_check": {
+    "spec_scheme": "bearer token format (expects \"Bearer \" prefix)",
+    "generated_format": "Bearer ",
+    "match": true,
+    "detail": "spec and generated client both use \"Bearer\""
+  },
+  "browser_session_check": {
+    "required": false,
+    "pass": true,
+    "detail": "browser-session auth not required"
+  },
+  "oauth_scope_coverage_check": {
+    "checked": 0,
+    "covered": 0,
+    "skipped": true,
+    "detail": "no OAuth-scoped endpoints in spec"
+  },
+  "dead_flags": {
+    "total": 23,
+    "dead": 0
+  },
+  "dead_functions": {
+    "total": 151,
+    "dead": 9,
+    "items": [
+      "booleanNoValueFlags",
+      "booleanSpaceFormPositionalErr",
+      "compactFields",
+      "endpointArgsUsageErr",
+      "endpointPositionalArgs",
+      "endpointUsageLine",
+      "paginatedGetWithResponsePath",
+      "retainCLIQueryParams",
+      "retainExplicitQueryParams"
+    ]
+  },
+  "pipeline_check": {
+    "sync_calls_domain": false,
+    "search_calls_domain": false,
+    "domain_tables": 4,
+    "sync_file_emitted": false,
+    "sync_resources_present": false,
+    "detail": "search methods not found; 4 domain tables found"
+  },
+  "example_check": {
+    "tested": 10,
+    "with_examples": 10,
+    "valid_examples": 10,
+    "detail": "10/10 commands have examples"
+  },
+  "wiring_check": {
+    "command_tree": {
+      "defined": 52,
+      "registered": 52
+    },
+    "config_consistency": {
+      "write_fields": [
+        ", token, "
+      ],
+      "consistent": true
+    },
+    "workflow_completeness": {
+      "total_steps": 3,
+      "mapped_steps": 3,
+      "detail": "3/3 workflow steps mapped to commands"
+    }
+  },
+  "novel_features_check": {
+    "planned": 5,
+    "found": 5
+  },
+  "mcp_surface_parity": {
+    "state": "runtime_walking",
+    "pass": true,
+    "detail": "MCP surface mirrors the Cobra tree at runtime"
+  },
+  "reimplementation_check": {
+    "checked": 5,
+    "exempted_via_store": 5
+  },
+  "description_drift_check": {
+    "expected": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks."
+  },
+  "source_client_check": {
+    "checked": 17
+  },
+  "print_json_filtered_check": {
+    "checked": 33
+  },
+  "test_presence": {
+    "checked": 5
+  },
+  "naming_check": {
+    "checked": 33
+  },
+  "sync_param_drop_check": {
+    "checked": 0,
+    "skipped": true
+  },
+  "issues": [
+    "9 dead helper functions found"
+  ]
+}

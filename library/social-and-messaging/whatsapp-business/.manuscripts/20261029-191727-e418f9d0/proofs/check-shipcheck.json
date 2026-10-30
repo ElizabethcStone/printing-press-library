@@ -1,0 +1,72 @@
+{
+  "passed": true,
+  "exit_code": 0,
+  "verdict": "PASS",
+  "started_at": "2026-10-30T03:21:30Z",
+  "elapsed_ms": 16135,
+  "legs": [
+    {
+      "name": "verify",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:30Z",
+      "elapsed_ms": 3400,
+      "command": "<home>/go/bin/cli-printing-press verify --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli --write-manifest <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/.printing-press.json --spec <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/research/whatsapp-business-mcp.openapi.json --env-var WHATSAPP_BUSINESS_MCP_TOKEN"
+    },
+    {
+      "name": "validate-narrative",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:33Z",
+      "elapsed_ms": 182,
+      "command": "<home>/go/bin/cli-printing-press validate-narrative --strict --full-examples --research <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/research.json --binary <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/build/stage/bin/whatsapp-business-pp-cli"
+    },
+    {
+      "name": "dogfood",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:34Z",
+      "elapsed_ms": 2957,
+      "command": "<home>/go/bin/cli-printing-press dogfood --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli --spec <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/research/whatsapp-business-mcp.openapi.json --research-dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0"
+    },
+    {
+      "name": "workflow-verify",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:37Z",
+      "elapsed_ms": 4511,
+      "command": "<home>/go/bin/cli-printing-press workflow-verify --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli"
+    },
+    {
+      "name": "apify-audit",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:41Z",
+      "elapsed_ms": 31,
+      "command": "<home>/go/bin/cli-printing-press apify-audit --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli --research-dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0"
+    },
+    {
+      "name": "verify-skill",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:41Z",
+      "elapsed_ms": 4359,
+      "command": "<home>/go/bin/cli-printing-press verify-skill --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli"
+    },
+    {
+      "name": "scorecard",
+      "exit_code": 0,
+      "passed": true,
+      "verdict": "PASS",
+      "started_at": "2026-10-30T03:21:45Z",
+      "elapsed_ms": 690,
+      "command": "<home>/go/bin/cli-printing-press scorecard --dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli --write-manifest <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/working/whatsapp-business-pp-cli/.printing-press.json --research-dir <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0 --spec <runstate>/printing-press-users-bobe-agents-skills-40c0826d/runs/20261029-191727-e418f9d0/research/whatsapp-business-mcp.openapi.json --live-check"
+    }
+  ]
+}

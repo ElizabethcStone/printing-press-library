@@ -1,0 +1,8 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/whatsapp-business-pp-cli
+/whatsapp-business-pp-cli.exe
+/whatsapp-business-pp-mcp
+/whatsapp-business-pp-mcp.exe
+/bin/
+/build/
+/dist/

@@ -1,0 +1,8 @@
+{
+  "initialize": "pass",
+  "businesses": "pass",
+  "ping": "pass",
+  "business_rows_returned": 6,
+  "business_prerequisites_known": 6,
+  "business_prerequisites_met": 2
+}

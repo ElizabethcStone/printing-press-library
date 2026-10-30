@@ -1,0 +1,412 @@
+--- internal/cli/whatsapp_commands.go
++++ internal/cli/whatsapp_commands.go
+@@ -65,6 +65,8 @@
+ 		}
+ 	}
+ 	if doctor, _, err := root.Find([]string{"doctor"}); err == nil && doctor != root {
++		doctor.Short = "Inspect local credential availability and capture configuration"
++		doctor.Long = "Inspect local authentication and capture configuration without contacting Meta. Use connection ping for a live connectivity check."
+ 		originalDoctor := doctor.RunE
+ 		doctor.RunE = func(cmd *cobra.Command, args []string) error {
+ 			if registeredPlatformSource != nil {
+@@ -177,7 +179,7 @@
+ 		cmd.Flags().IntVar(&limit, "limit", 25, "Maximum rows displayed; the complete returned page remains captured")
+ 	}
+ 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
+-		if limit < 0 || limit > 1000 {
++		if _, upstreamLimit := props["limit"]; !upstreamLimit && (limit < 1 || limit > 1000) {
+ 			return usageErr(fmt.Errorf("--limit must be between 1 and 1000"))
+ 		}
+ 		if len(args) > 0 {
+@@ -304,18 +306,7 @@
+ 	}
+ 	return
+ }
+-func safePreview(input map[string]any) map[string]any {
+-	out := map[string]any{}
+-	for k, v := range input {
+-		low := strings.ToLower(k)
+-		if strings.Contains(low, "token") || strings.Contains(low, "secret") || strings.Contains(low, "verification_code") || k == "pin" {
+-			out[k] = "[REDACTED]"
+-		} else {
+-			out[k] = v
+-		}
+-	}
+-	return out
+-}
++func safePreview(input map[string]any) map[string]any { return metamcp.PreviewArguments(input) }
+ func boundWhatsAppRows(v any, limit int) (any, bool) {
+ 	if a, ok := v.([]any); ok && len(a) > limit {
+ 		return a[:limit], true
+@@ -400,7 +391,7 @@
+ 			return err
+ 		}
+ 		defer db.Close()
+-		s, err := captures.Save(ctx, db, "catalog", map[string]any{"endpoint": metamcp.Endpoint, "protocol": "2025-03-26"}, map[string]any{"tools": tools})
++		s, err := captures.Save(ctx, db, "catalog", map[string]any{"endpoint": c.EndpointURL(), "protocol": c.ProtocolVersion()}, map[string]any{"tools": tools})
+ 		if err != nil {
+ 			return err
+ 		}
+--- internal/inspection/diff.go
++++ internal/inspection/diff.go
+@@ -234,7 +234,68 @@
+ 	if err != nil {
+ 		return nil, err
+ 	}
++	beforeBusiness, err := effectiveBusiness(before, a)
++	if err != nil {
++		return nil, err
++	}
++	afterBusiness, err := effectiveBusiness(after, b)
++	if err != nil {
++		return nil, err
++	}
++	// An omitted request business_id may resolve differently after a login or
++	// asset change. A missing identity on one side cannot prove equal scope.
++	if beforeBusiness != afterBusiness {
++		return nil, fmt.Errorf("captures do not establish the same effective business selection")
++	}
+ 	return map[string]any{"before": evidence(before), "after": evidence(after), "complete": before.Complete && after.Complete, "changes": diffValues(a, b, "", before.Complete && after.Complete)}, nil
++}
++
++// effectiveBusiness reads only a known scoped tool's explicit request and its
++// top-level response selection. Nested account rows can belong to customers of
++// the selected partner business, so their business_id is never a scope source.
++func effectiveBusiness(s captures.Snapshot, payload any) (string, error) {
++	switch s.Tool {
++	case "whatsapp_biz_accounts", "whatsapp_biz_phone_numbers", "whatsapp_biz_onboarding_status",
++		"whatsapp_biz_get_template", "whatsapp_biz_list_templates", "whatsapp_biz_publish_app",
++		"whatsapp_biz_verify_business":
++	default:
++		return "", nil // Includes the global businesses and template-library lists.
++	}
++	requested := strings.TrimSpace(text(s.Scope["business_id"]))
++	response := object(unwrap(payload))
++	// Normalize can preserve a result envelope alongside warnings or metadata.
++	// Follow only that documented envelope, never arbitrary data/row objects.
++	if _, exists := response["business_id"]; !exists {
++		if result, ok := response["result"]; ok {
++			response = object(unwrap(map[string]any{"result": result}))
++		}
++	}
++	resolved := strings.TrimSpace(text(response["business_id"]))
++	if requested != "" && resolved != "" && requested != resolved {
++		return "", fmt.Errorf("captured response business_id conflicts with requested business_id")
++	}
++	if resolved != "" {
++		return resolved, nil
++	}
++	if requested != "" {
++		return requested, nil
++	}
++	// No selected business is established by two empty identities. A known
++	// tool-specific asset selector can still establish an exact stable scope.
++	selectors := map[string][]string{
++		"whatsapp_biz_accounts":          {"phone_number_id"},
++		"whatsapp_biz_phone_numbers":     {"waba_id", "phone_number"},
++		"whatsapp_biz_get_template":      {"waba_id"},
++		"whatsapp_biz_list_templates":    {"waba_id"},
++		"whatsapp_biz_onboarding_status": {"app_id", "phone_number_id"},
++		"whatsapp_biz_publish_app":       {"app_id"},
++	}
++	for _, key := range selectors[s.Tool] {
++		if strings.TrimSpace(text(s.Scope[key])) != "" {
++			return "", nil
++		}
++	}
++	return "", fmt.Errorf("capture does not establish a selected business or stable asset scope")
+ }
+ 
+ func template(s captures.Snapshot) (map[string]any, error) {
+--- internal/inspection/inspection_test.go
++++ internal/inspection/inspection_test.go
+@@ -158,6 +158,85 @@
+ 	}
+ }
+ 
++func TestChangesRequiresEstablishedSelection(t *testing.T) {
++	for _, tool := range []string{"whatsapp_biz_accounts", "whatsapp_biz_phone_numbers", "whatsapp_biz_onboarding_status", "whatsapp_biz_verify_business", "whatsapp_biz_publish_app"} {
++		a := snap("before", tool, map[string]any{}, map[string]any{"needs_selection": true})
++		b := a
++		b.ID = "after"
++		if _, err := Changes(a, b); err == nil {
++			t.Fatalf("unestablished selection accepted for %s", tool)
++		}
++	}
++	for _, tc := range []struct{ tool, key string }{
++		{"whatsapp_biz_accounts", "phone_number_id"}, {"whatsapp_biz_phone_numbers", "waba_id"}, {"whatsapp_biz_phone_numbers", "phone_number"},
++		{"whatsapp_biz_get_template", "waba_id"}, {"whatsapp_biz_list_templates", "waba_id"}, {"whatsapp_biz_onboarding_status", "app_id"}, {"whatsapp_biz_onboarding_status", "phone_number_id"}, {"whatsapp_biz_publish_app", "app_id"},
++	} {
++		a := snap("before", tc.tool, map[string]any{tc.key: "fixture-stable-selector"}, map[string]any{"status": "unknown"})
++		b := a
++		b.ID = "after"
++		if _, err := Changes(a, b); err != nil {
++			t.Fatalf("stable asset rejected %s %s: %v", tc.tool, tc.key, err)
++		}
++	}
++}
++
++func TestChangesEffectiveBusinessSelection(t *testing.T) {
++	payload := func(business string) map[string]any {
++		return map[string]any{"business_id": business, "accounts": []any{map[string]any{"account_id": "account-demo"}}}
++	}
++	base := snap("before", "whatsapp_biz_accounts", map[string]any{}, payload("sensitive-business-a"))
++	for _, tc := range []struct {
++		name          string
++		before, after captures.Snapshot
++		wantError     bool
++	}{
++		{"same implicit business", base, snap("after", base.Tool, map[string]any{}, payload("sensitive-business-a")), false},
++		{"different implicit businesses", base, snap("after", base.Tool, map[string]any{}, payload("sensitive-business-b")), true},
++		{"resolved selection becomes unknown", base, snap("after", base.Tool, map[string]any{}, map[string]any{"accounts": []any{}}), true},
++		{"unknown selection becomes resolved", snap("before", base.Tool, map[string]any{}, map[string]any{"accounts": []any{}}), base, true},
++		{"explicit response conflict", snap("before", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, payload("sensitive-business-a")), snap("after", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, payload("sensitive-business-b")), true},
++		{"explicit conflict on first capture", snap("before", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, payload("sensitive-business-b")), snap("after", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, payload("sensitive-business-a")), true},
++		{"explicit request supplies missing response identity", snap("before", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, map[string]any{"accounts": []any{}}), snap("after", base.Tool, map[string]any{"business_id": "sensitive-business-a"}, payload("sensitive-business-a")), false},
++		{"result envelope", base, snap("after", base.Tool, map[string]any{}, map[string]any{"result": payload("sensitive-business-a")}), false},
++		{"result envelope with metadata", base, snap("after", base.Tool, map[string]any{}, map[string]any{"result": payload("sensitive-business-a"), "warning": "captured warning"}), false},
++		{"changed business in result envelope", base, snap("after", base.Tool, map[string]any{}, map[string]any{"result": payload("sensitive-business-b"), "warning": "captured warning"}), true},
++		{"global businesses listing is not selection", snap("before", "whatsapp_biz_businesses", map[string]any{"action": "list"}, payload("sensitive-business-a")), snap("after", "whatsapp_biz_businesses", map[string]any{"action": "list"}, payload("sensitive-business-b")), false},
++		{"shared account row owner is not selection", snap("before", base.Tool, map[string]any{"business_id": "partner"}, map[string]any{"shared_accounts": []any{map[string]any{"account_id": "shared", "business_id": "client-a"}}}), snap("after", base.Tool, map[string]any{"business_id": "partner"}, map[string]any{"shared_accounts": []any{map[string]any{"account_id": "shared", "business_id": "client-b"}}}), false},
++		{"nested account IDs alone are not selection", snap("before", base.Tool, map[string]any{}, map[string]any{"accounts": []any{map[string]any{"account_id": "owned", "business_id": "client-a"}}}), snap("after", base.Tool, map[string]any{}, map[string]any{"accounts": []any{map[string]any{"account_id": "owned", "business_id": "client-b"}}}), true},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			view, err := Changes(tc.before, tc.after)
++			if tc.wantError {
++				if err == nil || view != nil {
++					t.Fatalf("incompatible effective selections must fail: %s", jsonText(t, view))
++				}
++				if strings.Contains(err.Error(), "sensitive-business") {
++					t.Fatal("scope error exposed a captured business identifier")
++				}
++				return
++			}
++			view = must(t, view, err)
++			if tc.name == "same implicit business" && len(maps(t, view, "changes")) != 0 {
++				t.Fatal("unchanged implicit selection fabricated changes")
++			}
++			if tc.name == "shared account row owner is not selection" && len(maps(t, view, "changes")) != 1 {
++				t.Fatal("actual shared-owner field change was lost")
++			}
++		})
++	}
++	// Every known scoped read must enforce the same boundary. Global list tools
++	// are deliberately absent: their row IDs do not identify a chosen business.
++	for _, tool := range []string{"whatsapp_biz_accounts", "whatsapp_biz_phone_numbers", "whatsapp_biz_onboarding_status", "whatsapp_biz_get_template", "whatsapp_biz_list_templates", "whatsapp_biz_publish_app", "whatsapp_biz_verify_business"} {
++		t.Run(tool, func(t *testing.T) {
++			before := snap("before", tool, map[string]any{}, payload("sensitive-business-a"))
++			after := snap("after", tool, map[string]any{}, payload("sensitive-business-b"))
++			if _, err := Changes(before, after); err == nil {
++				t.Fatalf("%s accepted distinct effective selections", tool)
++			}
++		})
++	}
++}
++
+ func TestTemplateCompareExplicitDetailsAcrossAccounts(t *testing.T) {
+ 	left := snap("left", "whatsapp_biz_get_template", map[string]any{"waba_id": "account-left", "template_id": "template-left"}, map[string]any{"id": "template-left", "name": "order_update", "components": []any{map[string]any{"type": "BODY", "text": "Order {{1}}"}}})
+ 	right := snap("right", "whatsapp_biz_get_template", map[string]any{"waba_id": "account-right", "template_id": "template-right"}, map[string]any{"result": `{"id":"template-right","name":"order_update","components":[{"type":"BODY","text":"Shipment {{1}}"}]}`})
+--- internal/metamcp/client.go
++++ internal/metamcp/client.go
+@@ -57,7 +57,7 @@
+ 	return &Client{HTTP: &http.Client{Timeout: timeout, CheckRedirect: func(req *http.Request, via []*http.Request) error { return http.ErrUseLastResponse }}, endpoint: endpoint, auth: auth, protocol: "2025-03-26", limiter: cliutil.NewAdaptiveLimiter(rate)}, nil
+ }
+ func (c *Client) Initialize(ctx context.Context) error {
+-	raw, err := c.request(ctx, "initialize", map[string]any{"protocolVersion": c.protocol, "capabilities": map[string]any{}, "clientInfo": map[string]any{"name": "whatsapp-business-pp-cli", "version": "0.1.0"}}, true, false)
++	raw, err := c.request(ctx, "initialize", map[string]any{"protocolVersion": c.ProtocolVersion(), "capabilities": map[string]any{}, "clientInfo": map[string]any{"name": "whatsapp-business-pp-cli", "version": "0.1.0"}}, true, false)
+ 	if err != nil {
+ 		return err
+ 	}
+@@ -67,9 +67,21 @@
+ 	if err = json.Unmarshal(raw, &v); err != nil || v.Protocol == "" {
+ 		return fmt.Errorf("MCP initialize did not return protocolVersion")
+ 	}
++	c.mu.Lock()
+ 	c.protocol = v.Protocol
++	c.mu.Unlock()
+ 	_, err = c.request(ctx, "notifications/initialized", nil, true, true)
+ 	return err
++}
++
++// EndpointURL identifies the actual resource used for capture provenance.
++func (c *Client) EndpointURL() string { return c.endpoint }
++
++// ProtocolVersion returns the version actually negotiated for this session.
++func (c *Client) ProtocolVersion() string {
++	c.mu.Lock()
++	defer c.mu.Unlock()
++	return c.protocol
+ }
+ func (c *Client) Tools(ctx context.Context) ([]Tool, error) {
+ 	all := make([]Tool, 0)
+@@ -107,7 +119,8 @@
+ 	if err := Validate(tool, args); err != nil {
+ 		return nil, err
+ 	}
+-	raw, err := c.request(ctx, "tools/call", map[string]any{"name": tool.Name, "arguments": args}, tool.Annotations.ReadOnly, false)
++	secrets := sensitiveValues(args)
++	raw, err := c.request(ctx, "tools/call", map[string]any{"name": tool.Name, "arguments": args}, tool.Annotations.ReadOnly, false, secrets...)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+@@ -128,7 +141,7 @@
+ 		msg := "tool returned an error"
+ 		for _, x := range v.Content {
+ 			if x.Type == "text" {
+-				msg = c.safe(x.Text)
++				msg = c.safe(x.Text, secrets...)
+ 				break
+ 			}
+ 		}
+@@ -175,16 +188,19 @@
+ 	}
+ 	return v
+ }
+-func (c *Client) safe(s string) string {
++func (c *Client) safe(s string, secrets ...string) string {
+ 	if c.auth != "" {
+ 		s = strings.ReplaceAll(s, strings.TrimPrefix(c.auth, "Bearer "), "[REDACTED]")
+ 	}
++	for _, value := range secrets {
++		s = strings.ReplaceAll(s, value, "[REDACTED]")
++	}
+ 	if len(s) > 600 {
+ 		s = s[:600] + "…"
+ 	}
+ 	return s
+ }
+-func (c *Client) request(ctx context.Context, method string, params any, read, notification bool) (json.RawMessage, error) {
++func (c *Client) request(ctx context.Context, method string, params any, read, notification bool, secrets ...string) (json.RawMessage, error) {
+ 	c.mu.Lock()
+ 	defer c.mu.Unlock()
+ 	c.sequence++
+@@ -287,7 +303,7 @@
+ 			return nil, fmt.Errorf("MCP returned invalid JSON")
+ 		}
+ 		if envelope.Error != nil {
+-			return nil, &RPCError{Code: envelope.Error.Code, Message: c.safe(envelope.Error.Message)}
++			return nil, &RPCError{Code: envelope.Error.Code, Message: c.safe(envelope.Error.Message, secrets...)}
+ 		}
+ 		if string(envelope.ID) != strconv.Itoa(id) || envelope.JSONRPC != "2.0" || len(envelope.Result) == 0 {
+ 			return nil, fmt.Errorf("MCP response has mismatched id or missing result")
+--- internal/metamcp/client_test.go
++++ internal/metamcp/client_test.go
+@@ -239,3 +239,44 @@
+ 		t.Fatalf("catalog lost future metadata: %s", saved)
+ 	}
+ }
++
++func TestSensitiveInputsRedactedFromBothErrorForms(t *testing.T) {
++	for _, rpc := range []bool{false, true} {
++		t.Run(fmt.Sprint(rpc), func(t *testing.T) {
++			message := "verification=fixture-code-918273 pin=fixture-pin-5286 token=fixture-webhook-abcdef auth=fixture-only"
++			c := fixtureClient(t, func(w http.ResponseWriter, r *http.Request) {
++				var body map[string]any
++				json.NewDecoder(r.Body).Decode(&body)
++				reply := map[string]any{"jsonrpc": "2.0", "id": body["id"]}
++				if rpc {
++					reply["error"] = map[string]any{"code": -32000, "message": message}
++				} else {
++					reply["result"] = map[string]any{"isError": true, "content": []any{map[string]any{"type": "text", "text": message}}}
++				}
++				json.NewEncoder(w).Encode(reply)
++			})
++			tool := Tool{Name: "fixture-secrets", InputSchema: map[string]any{"type": "object", "properties": map[string]any{"verification_code": map[string]any{"type": "string"}, "pin": map[string]any{"type": "string"}, "verify_token": map[string]any{"type": "string"}}}}
++			args := map[string]any{"verification_code": "fixture-code-918273", "pin": "fixture-pin-5286", "verify_token": "fixture-webhook-abcdef"}
++			_, err := c.Call(context.Background(), tool, args)
++			if err == nil {
++				t.Fatal("expected server error")
++			}
++			for _, secret := range []string{"fixture-code-918273", "fixture-pin-5286", "fixture-webhook-abcdef", "fixture-only"} {
++				if strings.Contains(err.Error(), secret) {
++					t.Fatalf("sensitive input leaked: %s", err)
++				}
++			}
++			if !strings.Contains(err.Error(), "[REDACTED]") {
++				t.Fatal("missing redaction marker")
++			}
++		})
++	}
++	nested := map[string]any{"public": "kept", "nested": map[string]any{"verify_token": "fixture-nested"}, "list": []any{map[string]any{"pin": "fixture-nested-pin"}}}
++	raw, _ := json.Marshal(PreviewArguments(nested))
++	if strings.Contains(string(raw), "fixture-nested") {
++		t.Fatal("nested preview leak")
++	}
++	if nested["nested"].(map[string]any)["verify_token"] != "fixture-nested" {
++		t.Fatal("preview mutated original")
++	}
++}
+--- internal/metamcp/privacy.go
++++ internal/metamcp/privacy.go
+@@ -0,0 +1,71 @@
++package metamcp
++
++import (
++	"fmt"
++	"sort"
++	"strings"
++)
++
++// SensitiveKey covers the official schemas' secrets, including webhook tokens.
++func SensitiveKey(key string) bool {
++	k := strings.ToLower(key)
++	return strings.Contains(k, "token") || strings.Contains(k, "secret") || strings.Contains(k, "verification_code") || k == "pin" || strings.Contains(k, "password")
++}
++
++// PreviewArguments recursively redacts sensitive fields without changing input.
++func PreviewArguments(input map[string]any) map[string]any {
++	out := make(map[string]any, len(input))
++	for k, v := range input {
++		if SensitiveKey(k) {
++			out[k] = "[REDACTED]"
++		} else {
++			out[k] = previewValue(v)
++		}
++	}
++	return out
++}
++func previewValue(v any) any {
++	switch x := v.(type) {
++	case map[string]any:
++		return PreviewArguments(x)
++	case []any:
++		out := make([]any, len(x))
++		for i, item := range x {
++			out[i] = previewValue(item)
++		}
++		return out
++	default:
++		return v
++	}
++}
++func sensitiveValues(input map[string]any) []string {
++	set := map[string]bool{}
++	var visit func(any, bool)
++	visit = func(v any, secret bool) {
++		switch x := v.(type) {
++		case map[string]any:
++			for k, item := range x {
++				visit(item, secret || SensitiveKey(k))
++			}
++		case []any:
++			for _, item := range x {
++				visit(item, secret)
++			}
++		default:
++			if secret && v != nil {
++				s := fmt.Sprint(v)
++				if s != "" {
++					set[s] = true
++				}
++			}
++		}
++	}
++	visit(input, false)
++	out := make([]string, 0, len(set))
++	for s := range set {
++		out = append(out, s)
++	}
++	// Replace longer overlapping values before their substrings.
++	sort.Slice(out, func(i, j int) bool { return len(out[i]) > len(out[j]) })
++	return out
++}

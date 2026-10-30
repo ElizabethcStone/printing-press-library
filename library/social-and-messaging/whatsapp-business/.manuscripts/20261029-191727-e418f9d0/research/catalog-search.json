@@ -1,0 +1,10 @@
+{
+  "source_url": "https://raw.githubusercontent.com/mvanhorn/printing-press-library/main/registry.json",
+  "source_sha256": "fc0688bb46a765bbe54fb4ab06d5e2d59e61f4573ebc2b7236c816ba45a8af1a",
+  "literal_search_terms": [
+    "whatsapp-business",
+    "whatsapp_business_tools"
+  ],
+  "literal_matches": 0,
+  "scope": "Only same-service research is included; the unrelated full catalog snapshot is retained in local run discovery."
+}

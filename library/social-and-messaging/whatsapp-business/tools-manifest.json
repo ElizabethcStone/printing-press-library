@@ -1,0 +1,90 @@
+{
+  "api_name": "whatsapp-business",
+  "base_url": "https://mcp.facebook.com",
+  "description": "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks.",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "mcp": {
+    "endpoint_tools": "hidden"
+  },
+  "auth": {
+    "type": "bearer_token",
+    "header": "Authorization",
+    "env_vars": [
+      "WHATSAPP_BUSINESS_MCP_TOKEN"
+    ],
+    "env_var_specs": [
+      {
+        "name": "WHATSAPP_BUSINESS_MCP_TOKEN",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ]
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "whatsapp-business-tools_mcp-request",
+      "description": "Send a negotiated MCP JSON-RPC request. Required: jsonrpc, method. Optional: id, params. Returns the new JsonRpcResponse.",
+      "method": "POST",
+      "path": "/whatsapp_business_tools",
+      "params": [
+        {
+          "name": "id",
+          "type": "string",
+          "location": "body",
+          "description": "Id"
+        },
+        {
+          "name": "jsonrpc",
+          "type": "string",
+          "location": "body",
+          "description": "Jsonrpc",
+          "required": true
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "location": "body",
+          "description": "Method",
+          "required": true
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "location": "body",
+          "description": "Params"
+        }
+      ]
+    }
+  ],
+  "novel_features": [
+    {
+      "name": "Local scope map",
+      "command": "ops scope-map",
+      "description": "See the captured business, account and phone relationships for an explicitly selected scope, including gaps and shared-account roles."
+    },
+    {
+      "name": "Template component checklist",
+      "command": "ops template-checklist",
+      "description": "Extract the values a saved template needs and flag components the MCP send tool cannot express, without sending or inventing parameter values."
+    },
+    {
+      "name": "MCP catalog drift",
+      "command": "ops catalog-drift",
+      "description": "Compare saved MCP catalogs and identify removed tools, new required inputs and changed schema paths that could break saved commands."
+    },
+    {
+      "name": "Captured asset changes",
+      "command": "ops changes",
+      "description": "Compare two captures of the same selected scope and see changed fields, additions and evidence gaps without mistaking incomplete pages for deletions."
+    },
+    {
+      "name": "Cross-account template comparison",
+      "command": "ops template-compare",
+      "description": "Compare two explicitly chosen captured templates across accounts, with field and component differences tied to their original account and capture time."
+    }
+  ]
+}

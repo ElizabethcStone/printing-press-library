@@ -1,0 +1,118 @@
+[
+  {
+    "path": "businesses list",
+    "passed": true
+  },
+  {
+    "path": "connection ping",
+    "passed": true
+  },
+  {
+    "path": "phones add",
+    "passed": true
+  },
+  {
+    "path": "templates get",
+    "passed": true
+  },
+  {
+    "path": "templates archival",
+    "passed": true
+  },
+  {
+    "path": "apps publish",
+    "passed": true
+  },
+  {
+    "path": "templates list",
+    "passed": true
+  },
+  {
+    "path": "phones send-code",
+    "passed": true
+  },
+  {
+    "path": "onboarding status",
+    "passed": true
+  },
+  {
+    "path": "auth system-user-link",
+    "passed": true
+  },
+  {
+    "path": "templates update",
+    "passed": true
+  },
+  {
+    "path": "webhooks configure",
+    "passed": true
+  },
+  {
+    "path": "accounts list",
+    "passed": true
+  },
+  {
+    "path": "templates create",
+    "passed": true
+  },
+  {
+    "path": "templates from-library",
+    "passed": true
+  },
+  {
+    "path": "phones list",
+    "passed": true
+  },
+  {
+    "path": "webhooks subscribe",
+    "passed": true
+  },
+  {
+    "path": "messages send",
+    "passed": true
+  },
+  {
+    "path": "templates delete",
+    "passed": true
+  },
+  {
+    "path": "businesses verify",
+    "passed": true
+  },
+  {
+    "path": "templates library",
+    "passed": true
+  },
+  {
+    "path": "phones register",
+    "passed": true
+  },
+  {
+    "path": "phones verify",
+    "passed": true
+  },
+  {
+    "path": "payments configure",
+    "passed": true
+  },
+  {
+    "path": "ops scope-map",
+    "passed": true
+  },
+  {
+    "path": "ops template-checklist",
+    "passed": true
+  },
+  {
+    "path": "ops catalog-drift",
+    "passed": true
+  },
+  {
+    "path": "ops changes",
+    "passed": true
+  },
+  {
+    "path": "ops template-compare",
+    "passed": true
+  }
+]

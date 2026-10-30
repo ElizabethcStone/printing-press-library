@@ -1,0 +1,1 @@
+{"exact_native_secret_scan":"PASS","private_capture_identity_scan":"PASS","matching_files":[],"method":"Exact native secret values and known capture identity strings compared in memory; values never persisted."}

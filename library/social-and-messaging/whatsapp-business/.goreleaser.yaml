@@ -1,0 +1,55 @@
+version: 2
+project_name: whatsapp-business-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: whatsapp-business-pp-cli
+    main: ./cmd/whatsapp-business-pp-cli
+    binary: whatsapp-business-pp-cli
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/mvanhorn/printing-press-library/library/social-and-messaging/whatsapp-business/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: whatsapp-business-pp-mcp
+    main: ./cmd/whatsapp-business-pp-mcp
+    binary: whatsapp-business-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: whatsapp-business-pp-cli
+    repository:
+      owner: bobeglz
+      name: homebrew-tap
+    homepage: "https://github.com/mvanhorn/printing-press-library"
+    description: "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks."
+    install: |
+      bin.install "whatsapp-business-pp-cli"
+      bin.install "whatsapp-business-pp-mcp"

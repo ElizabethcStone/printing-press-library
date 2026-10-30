@@ -1,0 +1,3 @@
+# Publish scan review
+
+Mandatory vendor-prefix package scan: PASS. User explicitly authorized preserving the reviewed non-mandatory false positives and proceeding. Gitleaks flagged nine acceptance source-hash values and a synthetic JWT header fixture; no live credential was found. Generic PII name detection flagged technical headings, required license attribution and explicit test fixtures; two non-allowlisted email fixtures test the PII detector itself. Source or acceptance hashes were not altered to silence these scanners. The unrelated full library-catalog snapshot was retained locally and replaced in published research with its SHA256 and exact same-service search result.

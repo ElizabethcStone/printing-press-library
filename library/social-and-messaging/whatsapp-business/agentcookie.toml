@@ -1,0 +1,16 @@
+# agentcookie.toml: secrets-bus adoption manifest v2
+# See docs/spec-agentcookie-secrets-bus-v2-adoption.md
+schema_version = 2
+name = "whatsapp-business-pp-cli"
+display_name = "WhatsApp Business Tools"
+description = "Operate the official WhatsApp Business MCP with reviewable writes and captured evidence for integration checks."
+project_kind = "cli"
+
+[secrets.file]
+path = "~/.config/whatsapp-business-pp-cli/config.toml"
+
+[sync]
+default = false
+
+[sync.keys]
+WHATSAPP_BUSINESS_MCP_TOKEN = true

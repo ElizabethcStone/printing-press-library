@@ -1,0 +1,22 @@
+workflows:
+  - name: Authenticate and discover authorized WhatsApp Business assets
+    primary: true
+    steps:
+      - command: "doctor"
+        args:
+          codex-auth: "true"
+        mode: live
+        auth_required: true
+        expect_fields: ["auth_available", "endpoint"]
+      - command: "connection ping"
+        args:
+          codex-auth: "true"
+        mode: live
+        auth_required: true
+        expect_fields: ["data", "tool"]
+      - command: "businesses list"
+        args:
+          codex-auth: "true"
+        mode: live
+        auth_required: true
+        expect_fields: ["data", "capture_id"]

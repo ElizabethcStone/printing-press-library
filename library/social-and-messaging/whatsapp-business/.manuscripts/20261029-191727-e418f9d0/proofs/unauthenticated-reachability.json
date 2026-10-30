@@ -1,0 +1,11 @@
+{
+  "tested_at": "2026-10-30T01:19:57.299523+00:00",
+  "endpoint": "https://mcp.facebook.com/whatsapp_business_tools",
+  "get_status": 405,
+  "post_initialize_status": 401,
+  "oauth_metadata_status": 200,
+  "registration_status": 400,
+  "registration_error": "invalid_client_metadata",
+  "registration_error_description": "Dynamic registration is not available for this client.",
+  "native_codex_oauth": "pass"
+}
