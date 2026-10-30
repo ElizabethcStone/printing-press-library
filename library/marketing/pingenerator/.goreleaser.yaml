@@ -1,0 +1,55 @@
+version: 2
+project_name: pingenerator-pp-cli
+changelog:
+  disable: true
+builds:
+  - id: pingenerator-pp-cli
+    main: ./cmd/pingenerator-pp-cli
+    binary: pingenerator-pp-cli
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/cli.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+  - id: pingenerator-pp-mcp
+    main: ./cmd/pingenerator-pp-mcp
+    binary: pingenerator-pp-mcp
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - linux_amd64
+      - linux_arm64
+      - windows_amd64
+      - windows_arm64
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+checksum:
+  name_template: checksums.txt
+brews:
+  - name: pingenerator-pp-cli
+    repository:
+      owner: elizabethcstone
+      name: homebrew-tap
+    homepage: "https://github.com/mvanhorn/printing-press-library"
+    description: "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger."
+    install: |
+      bin.install "pingenerator-pp-cli"
+      bin.install "pingenerator-pp-mcp"

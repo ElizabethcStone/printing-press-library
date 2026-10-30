@@ -1,0 +1,230 @@
+{
+  "api_name": "pingenerator",
+  "novelty_score": 0,
+  "alternatives": [],
+  "gaps": [
+    "Live response fields confirmed for get_account_status, list_scheduled_pins, list_pinterest_profiles, list_connected_stores and list_store_products; list_automations item fields, get_post_content and list_templates field names remain unverified"
+  ],
+  "patterns": [],
+  "recommendation": "proceed",
+  "researched_at": "2026-10-29T19:40:00Z",
+  "novel_features": [
+    {
+      "name": "Post to pin",
+      "command": "pin-post",
+      "description": "Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent.",
+      "rationale": "Chains post extraction into pin generation with a credit guard and a local spend ledger that the vendor's MCP tools do not provide.",
+      "example": "pingenerator-pp-cli pin-post https://example.com/best-beaches --pinterest-profile myprofile --board-id 992269799088633298 --agent",
+      "why_it_matters": "Reach for this when an agent must pin a specific post; it previews cost and skips posts this CLI already pinned (spend ledger). Use unpinned-posts to check the account's queue first.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Plan preflight",
+      "command": "preflight",
+      "description": "Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything.",
+      "rationale": "Combines a credit cost table with live account, profile, board and design-profile reads; no single tool answers whether a plan will succeed.",
+      "example": "pingenerator-pp-cli preflight --pinterest-profile myprofile --board-id 992269799088633298 --tool generate-and-schedule-ai-pin --count 5 --agent",
+      "why_it_matters": "Run this before any --execute batch so a bad board ID or low balance fails free.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Products to pins",
+      "command": "pin-products",
+      "description": "Turn a connected store's products into a batch of scheduled pins, skipping products this CLI already pinned (spend ledger).",
+      "rationale": "Pages through store products and plans one pin per product against a local ledger, which the vendor tools leave to manual repetition.",
+      "example": "pingenerator-pp-cli pin-products --store-id store_123 --search linen --pinterest-profile myprofile --board-id 992269799088633298 --agent",
+      "why_it_matters": "Use this for e-commerce pinning in bulk; the dry run shows the total credit cost first.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Unpinned posts",
+      "command": "unpinned-posts",
+      "description": "List sitemap posts that have no scheduled pin and no ledgered spend.",
+      "rationale": "Joins sitemap posts with the scheduled-pin queue and the local ledger; no single tool can answer it.",
+      "example": "pingenerator-pp-cli unpinned-posts --website-url https://example.com --limit 50 --agent",
+      "why_it_matters": "Start a blog-to-pins run here so only new posts get pinned.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Spend ledger",
+      "command": "ledger",
+      "description": "See every credit-spending call this CLI executed, including unconfirmed ones that may have spent, with totals by tool and time window.",
+      "rationale": "The MCP surface exposes no spend history; the ledger is local state written by --execute paths.",
+      "example": "pingenerator-pp-cli ledger --since 7d --agent",
+      "why_it_matters": "Check this after an agent run, or before a retry; an unconfirmed entry means check list-scheduled-pins before trying again.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Queue gaps",
+      "command": "queue-gaps",
+      "description": "Find empty and overloaded days in the scheduled-pin queue, per board.",
+      "rationale": "Aggregates the scheduled-pin list by day and board, which the raw list does not show.",
+      "example": "pingenerator-pp-cli queue-gaps --days 14 --per-day 5 --agent",
+      "why_it_matters": "Use this to keep a steady posting cadence across client accounts.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Credit runway",
+      "command": "credit-runway",
+      "description": "Estimate weekly credit burn from active automations and how many days of credit remain.",
+      "rationale": "Joins automation cadence with the account balance; Pin Generator shows neither forecast.",
+      "example": "pingenerator-pp-cli credit-runway --agent",
+      "why_it_matters": "Run weekly for accounts with automations so batches do not fail on an empty balance.",
+      "group": "Queue and coverage insight"
+    }
+  ],
+  "novel_features_built": [
+    {
+      "name": "Post to pin",
+      "command": "pin-post",
+      "description": "Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent.",
+      "rationale": "Chains post extraction into pin generation with a credit guard and a local spend ledger that the vendor's MCP tools do not provide.",
+      "example": "pingenerator-pp-cli pin-post https://example.com/best-beaches --pinterest-profile myprofile --board-id 992269799088633298 --agent",
+      "why_it_matters": "Reach for this when an agent must pin a specific post; it previews cost and skips posts already pinned.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Plan preflight",
+      "command": "preflight",
+      "description": "Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything.",
+      "rationale": "Combines a credit cost table with live account, profile, board and design-profile reads; no single tool answers whether a plan will succeed.",
+      "example": "pingenerator-pp-cli preflight --pinterest-profile myprofile --board-id 992269799088633298 --tool generate-and-schedule-ai-pin --count 5 --agent",
+      "why_it_matters": "Run this before any --execute batch so a bad board ID or low balance fails free.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Products to pins",
+      "command": "pin-products",
+      "description": "Turn a connected store's products into a batch of scheduled pins, skipping products already pinned.",
+      "rationale": "Pages through store products and plans one pin per product against a local ledger, which the vendor tools leave to manual repetition.",
+      "example": "pingenerator-pp-cli pin-products --store-id store_123 --search linen --pinterest-profile myprofile --board-id 992269799088633298 --agent",
+      "why_it_matters": "Use this for e-commerce pinning in bulk; the dry run shows the total credit cost first.",
+      "group": "Credit-safe pin pipelines"
+    },
+    {
+      "name": "Unpinned posts",
+      "command": "unpinned-posts",
+      "description": "List sitemap posts that have no scheduled pin and no ledgered spend.",
+      "rationale": "Joins sitemap posts with the scheduled-pin queue and the local ledger; no single tool can answer it.",
+      "example": "pingenerator-pp-cli unpinned-posts --website-url https://example.com --limit 50 --agent",
+      "why_it_matters": "Start a blog-to-pins run here so only new posts get pinned.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Spend ledger",
+      "command": "ledger",
+      "description": "See every credit-spending call this CLI executed, with totals by tool and time window.",
+      "rationale": "The MCP surface exposes no spend history; the ledger is local state written by --execute paths.",
+      "example": "pingenerator-pp-cli ledger --since 7d --agent",
+      "why_it_matters": "Check this after an agent run, or before a retry, to avoid double-spending credits.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Queue gaps",
+      "command": "queue-gaps",
+      "description": "Find empty and overloaded days in the scheduled-pin queue, per board.",
+      "rationale": "Aggregates the scheduled-pin list by day and board, which the raw list does not show.",
+      "example": "pingenerator-pp-cli queue-gaps --days 14 --per-day 5 --agent",
+      "why_it_matters": "Use this to keep a steady posting cadence across client accounts.",
+      "group": "Queue and coverage insight"
+    },
+    {
+      "name": "Credit runway",
+      "command": "credit-runway",
+      "description": "Estimate weekly credit burn from active automations and how many days of credit remain.",
+      "rationale": "Joins automation cadence with the account balance; Pin Generator shows neither forecast.",
+      "example": "pingenerator-pp-cli credit-runway --agent",
+      "why_it_matters": "Run weekly for accounts with automations so batches do not fail on an empty balance.",
+      "group": "Queue and coverage insight"
+    }
+  ],
+  "auth": {
+    "canonical_env_var": "PINGENERATOR_ACCESS_KEY"
+  },
+  "narrative": {
+    "display_name": "Pin Generator",
+    "headline": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+    "value_prop": "Drive Pin Generator from scripts and agents: discover profiles and boards, turn posts or store products into pins with pin-post and pin-products, and check plans with preflight before spending. Anything that costs credits previews for free until you pass --execute.",
+    "auth_narrative": "Pin Generator's account access key (pingenerator.com/profile, API access key) authorizes the MCP endpoint as a Bearer token. Set PINGENERATOR_ACCESS_KEY. The web app's richer REST API needs a Firebase login session and is not used.",
+    "quickstart": [
+      {
+        "command": "pingenerator-pp-cli doctor --dry-run",
+        "comment": "Confirms the CLI runs offline; then run get-account-status to check your key"
+      },
+      {
+        "command": "pingenerator-pp-cli get-account-status --agent",
+        "comment": "Credits remaining and connected profiles"
+      },
+      {
+        "command": "pingenerator-pp-cli list-boards --pinterest-profile myprofile --agent --select boards.id,boards.name",
+        "comment": "Board IDs you will schedule into"
+      },
+      {
+        "command": "pingenerator-pp-cli unpinned-posts --website-url https://example.com --agent",
+        "comment": "Posts that still need a pin"
+      },
+      {
+        "command": "pingenerator-pp-cli pin-post https://example.com/best-beaches --pinterest-profile myprofile --board-id 992269799088633298",
+        "comment": "Free preview; add --execute to spend 1 credit and schedule"
+      }
+    ],
+    "troubleshoots": [
+      {
+        "symptom": "Exit code 4: no access key, or user not found",
+        "fix": "Set PINGENERATOR_ACCESS_KEY to the API access key from pingenerator.com/profile, or run pingenerator-pp-cli auth set-token"
+      },
+      {
+        "symptom": "Exit code 5 with 'no credits remaining'",
+        "fix": "Run pingenerator-pp-cli credit-runway, then top up credits in the Pin Generator app"
+      },
+      {
+        "symptom": "Exit code 7: rate limited",
+        "fix": "Space out batch loops; the prior CLI observed a limit of about 60 requests per minute per key"
+      },
+      {
+        "symptom": "A generate, schedule or create-automation command printed a request but nothing happened",
+        "fix": "That was the free preview; re-run with --execute to spend credits"
+      },
+      {
+        "symptom": "The ledger shows an unconfirmed spend",
+        "fix": "Run pingenerator-pp-cli list-scheduled-pins to see whether the pin exists before retrying"
+      }
+    ],
+    "when_to_use": "Use this CLI when an agent or script needs to create, schedule or automate Pinterest pins through a Pin Generator account: blog posts to pins, store products to pins, design profiles, recurring automations, and queue or credit checks. Every credit-spending command, including create-automation and run-automation-batch, prints a free preview until --execute is passed; a preview has \"dry_run\": true (typed tools) or \"executed\": false (pin-post), so check those fields before reporting that anything was scheduled. Design-profile setup and updates change account state immediately but spend no credits; use --dry-run to preview them. get_account_status, list_scheduled_pins and list_pinterest_profiles response fields were confirmed live; other tools' response fields are parsed tolerantly.",
+    "anti_triggers": [
+      "Reading Pinterest analytics, impressions or saves; use a Pinterest API CLI instead",
+      "Editing or deleting a pin that is already scheduled; Pin Generator exposes no tool for it",
+      "Managing Pinterest boards directly; Pin Generator only lists and AI-creates boards during scheduling"
+    ],
+    "recipes": [
+      {
+        "title": "Pin every new post",
+        "command": "pingenerator-pp-cli unpinned-posts --website-url https://example.com --agent --select unpinned.url,unpinned.title",
+        "explanation": "List posts with no scheduled, queued or ledgered pin, then pass each URL to pin-post."
+      },
+      {
+        "title": "Price before you spend",
+        "command": "pingenerator-pp-cli preflight --pinterest-profile myprofile --board-id 992269799088633298 --tool generate-and-schedule-ai-pin --count 5",
+        "explanation": "Shows the credit range and checks the board exists, spending nothing."
+      },
+      {
+        "title": "Trim template output",
+        "command": "pingenerator-pp-cli list-templates --agent --select templates.name,templates.style",
+        "explanation": "Keeps only template names and styles from a large response."
+      },
+      {
+        "title": "Audit agent spending",
+        "command": "pingenerator-pp-cli ledger --since 7d --agent",
+        "explanation": "Every executed spend this week with credit totals; unconfirmed rows may have spent and should be checked in list-scheduled-pins before a retry."
+      }
+    ],
+    "trigger_phrases": [
+      "pin my latest blog post",
+      "schedule pins with Pin Generator",
+      "how many Pin Generator credits do I have",
+      "pin products from my Etsy store",
+      "use pingenerator",
+      "run pingenerator"
+    ]
+  }
+}

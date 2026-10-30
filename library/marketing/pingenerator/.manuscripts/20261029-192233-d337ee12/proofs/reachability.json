@@ -1,0 +1,1 @@
+{"checked_at":"2026-10-29T19:31:41Z","url":"https://europe-west3-pingenerator-43a15.cloudfunctions.net/highMemLimitApi/mcp","status":"000","cause":"session egress policy denied CONNECT (agent proxy connect_rejected); not evidence of API outage","verdict":"WARN","decision":"proceed (user pre-authorized credential-free degraded print; live proof deferred)"}

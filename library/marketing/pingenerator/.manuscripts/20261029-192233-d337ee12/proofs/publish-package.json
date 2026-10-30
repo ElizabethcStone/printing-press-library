@@ -1,0 +1,59 @@
+{
+  "passed": false,
+  "cli_name": "pingenerator-pp-cli",
+  "api_name": "pingenerator",
+  "help_output": "Pingenerator CLI \u2014 Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.\n\nHighlights (not in the official API docs):\n  \u2022 pin-post   Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent.\n  \u2022 preflight   Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything.\n  \u2022 pin-products   Turn a connected store's products into a batch of scheduled pins, skipping products already pinned.\n  \u2022 unpinned-posts   List sitemap posts that have no scheduled pin and no ledgered spend.\n  \u2022 ledger   See every credit-spending call this CLI executed, with totals by tool and time window.\n  \u2022 queue-gaps   Find empty and overloaded days in the scheduled-pin queue, per board.\n  \u2022 credit-runway   Estimate weekly credit burn from active automations and how many days of credit remain.\n\nAgent mode: add --agent to any command for JSON output + non-interactive mode.\nHealth check: run 'pingenerator-pp-cli doctor' to verify auth and connectivity.\nSee README.md or the bundled SKILL.md for recipes.\n\nUsage:\n  pingenerator-pp-cli [command]\n\nAvailable Commands:\n  agent-context                Emit structured JSON describing this CLI for agents\n  auth                         Manage authentication for Pin Generator\n  completion                   Generate the autocompletion script for the specified shell\n  create-automation            Create a recurring automation that pins from posts or a topic.\n  credit-runway                Estimate weekly credit burn from active automations and how many days of credit remain.\n  doctor                       Check CLI health\n  feedback                     Record feedback about this CLI (local by default; upstream opt-in)\n  find-website-posts           Read a site's sitemap to find real blog posts/pages, newest first.\n  generate-ai-pin-image        Generate a fully AI, on-brand pin image (unique every time). (12-24 credits; dry run unless --execute)\n  generate-and-schedule-ai-pin Generate a fully AI pin and schedule it to Pinterest. (13-25 credits; dry run unless --execute)\n  generate-and-schedule-pin    Render a template pin and schedule it to Pinterest. (1 credit; dry run unless --execute)\n  generate-pin-image           Render a template pin image and return its hosted URL. (1 credit; dry run unless --execute)\n  get-account-status           Account email, credit usage and connected-profile count. Call first to confirm the connection.\n  get-automation-batch-status  Follow a running batch: phase, progress and pin count.\n  get-post-content             Pull the title, description and images from a post URL.\n  help                         Help about any command\n  import                       Import data from JSONL file via API create/upsert calls\n  learnings                    Inspect or forget the local search_learnings table\n  ledger                       See every credit-spending call this CLI executed, with totals by tool and time window.\n  list-automations             List automations, their cadence, status and next batch.\n  list-boards                  List a connected profile's boards, with IDs for scheduling.\n  list-connected-stores        List connected Shopify, Etsy and WooCommerce stores.\n  list-design-profiles         List saved AI design profiles.\n  list-pinterest-profiles      List Pinterest profiles connected to this account (use username as --pinterest-profile).\n  list-scheduled-pins          Review everything queued or scheduled: titles, boards and times.\n  list-store-products          Browse a store's products: titles, prices, links and photos.\n  list-templates               Browse the built-in pin templates and their styles (free).\n  local-data                   Erase the API data this CLI keeps on disk\n  mcp                          Send a raw JSON-RPC request to the Pin Generator MCP endpoint.\n  pin-post                     Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent.\n  pin-products                 Turn a connected store's products into a batch of scheduled pins, skipping products already pinned.\n  playbook                     Inspect or amend stored CLI playbooks\n  preflight                    Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything.\n  profile                      Named sets of flags saved for reuse\n  queue-gaps                   Find empty and overloaded days in the scheduled-pin queue, per board.\n  recall                       Check prior learnings for a query before running discovery (LLM-fired, pre-discovery)\n  run-automation-batch         Kick off a fresh batch of pins for an automation. (credits per pin; dry run unless --execute)\n  schedule-pin                 Schedule an already-hosted image to Pinterest. (1 credit; dry run unless --execute)\n  setup-design-profile         Build a reusable brand design profile from a site, images or description.\n  teach                        Record a query -> resource mapping for future recall (LLM-fired, silent)\n  teach-lookup                 Install a manual entity-lookup row (kind, canonical, value)\n  teach-pattern                Install a manual generalization pattern (query_template, resource_template, entity_kind)\n  teach-playbook               Record a CLI playbook + free-text notes for a query family\n  tools                        List every Pin Generator MCP tool this CLI exposes, with credit costs (offline, free).\n  unpinned-posts               List sitemap posts that have no scheduled pin and no ledgered spend.\n  update-design-profile        Refine a design profile's colors, mood, style or description.\n  version                      Print version\n  which                        Find the command that implements a capability\n\nFlags:\n      --agent                    Set agent-friendly output defaults (--json --compact --no-input --no-color)\n      --audit-dir string         Aggregate the receipt and index under this audit directory\n      --ca-cert string           PEM CA bundle added to the system trust roots\n      --client-profile string    Select the tenant-gated client profile (env: PRINTING_PRESS_CLIENT_PROFILE)\n      --compact                  Return only key fields (id, name, status, timestamps) for minimal token usage\n      --config string            Config file path\n      --csv                      Output as CSV (table and array responses)\n      --deliver string           Route output to a sink: stdout (default), file:<path>, webhook:<url>\n      --dry-run                  Show request without sending\n  -h, --help                     help for pingenerator-pp-cli\n      --home string              Root directory for config, data, state, and cache files\n      --human-friendly           Enable colored output and rich formatting\n      --idempotent               Treat already-existing create results as a successful no-op\n      --json                     Output as JSON\n      --no-cache                 Bypass response cache\n      --no-color                 Disable colored output\n      --no-input                 Disable all interactive prompts (for CI/agents)\n      --no-learn                 Disable the teach/recall learning loop for this invocation\n      --plain                    Output as plain tab-separated text\n      --profile string           Apply values from a saved run profile; this does not select a client (see 'pingenerator-pp-cli profile list')\n      --quiet                    Bare output, one value per line\n      --rate-limit float         Max requests per second (0 to disable; default auto \u2014 pace to server rate-limit headers) (default auto)\n      --receipt                  Write an atomic private run receipt\n      --receipt-file string      Override the run receipt destination\n      --select string            Comma-separated fields to include in output\n      --timeout duration         Request timeout (default 1m0s)\n      --tls-server-name string   DNS name to verify when the dialed host does not match the certificate\n  -v, --version                  version for pingenerator-pp-cli\n      --yes                      Skip confirmation prompts (explicit confirmation for scripts)\n\nUse \"pingenerator-pp-cli [command] --help\" for more information about a command.\n",
+  "checks": [
+    {
+      "name": "manifest",
+      "passed": false,
+      "error": "could not verify printer \"ElizabethcStone\" with gh: {\"message\":\"This GitHub API path is not available: sessions are bound to their configured repositories. Use repository-scoped endpoints (repos/{owner}/{repo}/...).\",\"documentation_url\":\"https://docs.anthropic.com/en/docs/claude-code/github-actions\"}gh: This GitHub API path is not available: sessions are bound to their configured repositories. Use repository-scoped endpoints (repos/{owner}/{repo}/...). (HTTP 403)"
+    },
+    {
+      "name": "transcendence",
+      "passed": true
+    },
+    {
+      "name": "phase5",
+      "passed": false,
+      "error": "missing phase5-acceptance.json or phase5-skip.json in <press-manuscripts>/pingenerator/20261029-192233-d337ee12/proofs"
+    },
+    {
+      "name": "go mod tidy",
+      "passed": true
+    },
+    {
+      "name": "govulncheck",
+      "passed": false,
+      "error": "govulncheck: fetching vulnerabilities: Get \"https://vuln.go.dev/index/modules.json.gz\": Forbidden\nexit status 1"
+    },
+    {
+      "name": "go vet",
+      "passed": true
+    },
+    {
+      "name": "go build",
+      "passed": true
+    },
+    {
+      "name": "--help",
+      "passed": true
+    },
+    {
+      "name": "--version",
+      "passed": true
+    },
+    {
+      "name": "verify-skill",
+      "passed": true
+    },
+    {
+      "name": "patches",
+      "passed": true
+    },
+    {
+      "name": "manuscripts",
+      "passed": true
+    }
+  ]
+}

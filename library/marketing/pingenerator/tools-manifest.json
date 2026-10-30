@@ -1,0 +1,103 @@
+{
+  "api_name": "pingenerator",
+  "base_url": "https://europe-west3-pingenerator-43a15.cloudfunctions.net/highMemLimitApi",
+  "description": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+  "mcp_ready": "full",
+  "http_transport": "standard",
+  "mcp": {
+    "endpoint_tools": "hidden"
+  },
+  "auth": {
+    "type": "bearer_token",
+    "header": "Authorization",
+    "format": "Bearer {PINGENERATOR_ACCESS_KEY}",
+    "in": "header",
+    "env_vars": [
+      "PINGENERATOR_ACCESS_KEY"
+    ],
+    "env_var_specs": [
+      {
+        "name": "PINGENERATOR_ACCESS_KEY",
+        "kind": "per_call",
+        "required": true,
+        "sensitive": true,
+        "inferred": true
+      }
+    ]
+  },
+  "required_headers": [],
+  "tools": [
+    {
+      "name": "mcp_rpc",
+      "description": "Send a raw JSON-RPC request to the Pin Generator MCP endpoint. tools/call can spend credits; prefer the typed commands, which dry-run by default. Required: jsonrpc (default: 2.0), id (default: 1), method (default: tools/list). Optional: params.",
+      "method": "POST",
+      "path": "/mcp",
+      "params": [
+        {
+          "name": "jsonrpc",
+          "type": "string",
+          "location": "body",
+          "description": "JSON-RPC version; always 2.0",
+          "required": true
+        },
+        {
+          "name": "id",
+          "type": "int",
+          "location": "body",
+          "description": "Request id echoed in the response",
+          "required": true
+        },
+        {
+          "name": "method",
+          "type": "string",
+          "location": "body",
+          "description": "MCP method",
+          "required": true
+        },
+        {
+          "name": "params",
+          "type": "object",
+          "location": "body",
+          "description": "Method params as JSON, e.g. {'name':'get_account_status','arguments':{}}"
+        }
+      ]
+    }
+  ],
+  "novel_features": [
+    {
+      "name": "Post to pin",
+      "command": "pin-post",
+      "description": "Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent."
+    },
+    {
+      "name": "Plan preflight",
+      "command": "preflight",
+      "description": "Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything."
+    },
+    {
+      "name": "Products to pins",
+      "command": "pin-products",
+      "description": "Turn a connected store's products into a batch of scheduled pins, skipping products already pinned."
+    },
+    {
+      "name": "Unpinned posts",
+      "command": "unpinned-posts",
+      "description": "List sitemap posts that have no scheduled pin and no ledgered spend."
+    },
+    {
+      "name": "Spend ledger",
+      "command": "ledger",
+      "description": "See every credit-spending call this CLI executed, with totals by tool and time window."
+    },
+    {
+      "name": "Queue gaps",
+      "command": "queue-gaps",
+      "description": "Find empty and overloaded days in the scheduled-pin queue, per board."
+    },
+    {
+      "name": "Credit runway",
+      "command": "credit-runway",
+      "description": "Estimate weekly credit burn from active automations and how many days of credit remain."
+    }
+  ]
+}

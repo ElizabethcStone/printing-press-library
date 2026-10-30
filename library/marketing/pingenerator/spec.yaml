@@ -1,0 +1,59 @@
+# Pin Generator internal spec (Printing Press reprint, run 20261029-192233-d337ee12).
+# The vendor's full surface is 21 MCP tools behind one JSON-RPC endpoint
+# (POST /mcp, method tools/call). The generator's REST client cannot express
+# tools/call, so this spec declares only the raw JSON-RPC passthrough; the 21
+# typed tool commands and novel commands are hand-authored in internal/pgmcp
+# and internal/cli (regen-mergeable). Documented REST (2 endpoints, access_key
+# header) and Firebase-gated web REST are intentionally not modeled.
+# learn no-entities escape: account-scoped IDs (boards, profiles, automations) have no stable aliasable vocabulary across users
+name: pingenerator
+display_name: Pin Generator
+description: "Pin Generator MCP CLI: create, schedule and automate Pinterest pins with credit-safe dry runs"
+version: "0.1.0"
+category: marketing
+base_url: "https://europe-west3-pingenerator-43a15.cloudfunctions.net/highMemLimitApi"
+# The raw passthrough can reach credit-spending tools, so it is not exposed as
+# a direct MCP tool; agents reach it through the Cobra mirror, where the
+# hand-authored credit guard applies (internal/cli/pingenerator_tools.go).
+mcp:
+  endpoint_tools: hidden
+auth:
+  type: bearer_token
+  header: Authorization
+  format: "Bearer {token}"
+  in: header
+  env_vars:
+    - PINGENERATOR_ACCESS_KEY
+resources:
+  mcp:
+    description: "Raw Pin Generator MCP JSON-RPC access (escape hatch for tools not yet typed)"
+    endpoints:
+      rpc:
+        method: POST
+        path: "/mcp"
+        mutation: true
+        description: "Send a raw JSON-RPC request to the Pin Generator MCP endpoint. tools/call can spend credits; prefer the typed commands, which dry-run by default."
+        example: "  pingenerator-pp-cli mcp rpc --jsonrpc 2.0 --id 1 --method tools/list --dry-run"
+        happy_args: "--jsonrpc=2.0;--id=1;--method=tools/list"
+        body:
+          - name: jsonrpc
+            type: string
+            required: true
+            default: "2.0"
+            description: "JSON-RPC version; always 2.0"
+          - name: id
+            type: int
+            required: true
+            default: 1
+            description: "Request id echoed in the response"
+          - name: method
+            type: string
+            required: true
+            default: "tools/list"
+            enum: ["tools/list", "tools/call", "initialize"]
+            description: "MCP method"
+          - name: params
+            type: object
+            description: "Method params as JSON, e.g. {\"name\":\"get_account_status\",\"arguments\":{}}"
+        response:
+          type: object

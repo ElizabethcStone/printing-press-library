@@ -1,0 +1,8 @@
+# Root-anchored so cmd/<binary>/ source stays tracked.
+/pingenerator-pp-cli
+/pingenerator-pp-cli.exe
+/pingenerator-pp-mcp
+/pingenerator-pp-mcp.exe
+/bin/
+/build/
+/dist/

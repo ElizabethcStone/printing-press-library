@@ -1,0 +1,9 @@
+{
+  "dir": "\u003ccli-dir\u003e/pingenerator-pp-cli",
+  "research_dir": "\u003ccli-dir\u003e/20261029-192233-d337ee12",
+  "verdict": "pass",
+  "actors": null,
+  "issues": [
+    "no Apify actor references found, skipping"
+  ]
+}
