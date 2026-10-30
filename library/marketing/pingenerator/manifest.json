@@ -1,0 +1,39 @@
+{
+  "manifest_version": "0.3",
+  "name": "pingenerator-pp-mcp",
+  "display_name": "Pin Generator",
+  "version": "0.1.0",
+  "description": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+  "author": {
+    "name": "CLI Printing Press"
+  },
+  "license": "Apache-2.0",
+  "server": {
+    "type": "binary",
+    "entry_point": "bin/pingenerator-pp-mcp",
+    "mcp_config": {
+      "command": "${__dirname}/bin/pingenerator-pp-mcp",
+      "args": [],
+      "env": {
+        "PINGENERATOR_ACCESS_KEY": "${user_config.pingenerator_access_key}"
+      }
+    }
+  },
+  "user_config": {
+    "pingenerator_access_key": {
+      "type": "string",
+      "title": "PINGENERATOR_ACCESS_KEY",
+      "description": "Sets PINGENERATOR_ACCESS_KEY for the Pin Generator MCP server.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": [
+      "darwin",
+      "linux",
+      "win32"
+    ]
+  }
+}

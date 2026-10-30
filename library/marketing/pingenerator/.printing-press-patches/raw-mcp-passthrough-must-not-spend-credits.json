@@ -1,0 +1,14 @@
+{
+  "schema_version": 2,
+  "id": "raw-mcp-passthrough-must-not-spend-credits",
+  "applied_at": "2026-10-30",
+  "base_run_id": "20261029-192233-d337ee12",
+  "base_printing_press_version": "4.34.2",
+  "summary": "The generated raw mcp JSON-RPC passthrough must refuse tools/call for credit-spending or unknown tools; spends go through typed commands behind --execute and the ledger.",
+  "reason": "Pin Generator multiplexes paid and free tools on one tools/call endpoint, so a raw passthrough would bypass the credit guard; the spec also hides the raw endpoint from the MCP server (mcp.endpoint_tools: hidden).",
+  "files": [
+    "internal/cli/pingenerator_tools.go",
+    "spec.yaml"
+  ],
+  "validated_outcome": "TestPassthroughCannotSpendCredits and TestPassthroughRejectsCaseVariantName: zero server calls for spending or case-variant names."
+}

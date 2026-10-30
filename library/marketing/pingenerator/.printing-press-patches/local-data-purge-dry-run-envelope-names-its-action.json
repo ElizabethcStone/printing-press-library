@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "local-data-purge-dry-run-envelope-names-its-action",
+  "applied_at": "2026-10-30",
+  "base_run_id": "20261029-192233-d337ee12",
+  "base_printing_press_version": "4.34.2",
+  "summary": "local-data purge --dry-run --json must carry a non-empty action alongside dry_run:true.",
+  "reason": "The live-dogfood dry-run JSON contract fails any envelope without an action (\"empty dry-run action\"); the generator's local-data template omits it.",
+  "files": [
+    "internal/cli/local_data.go"
+  ],
+  "validated_outcome": "TestLocalDataPurgeDryRunEnvelope; live gate no longer flags local-data purge json_fidelity."
+}

@@ -1,0 +1,66 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-29T21:39:07.24844987Z",
+  "printing_press_version": "4.34.2",
+  "api_name": "pingenerator",
+  "display_name": "Pin Generator",
+  "cli_name": "pingenerator-pp-cli",
+  "creator": {
+    "handle": "ElizabethcStone",
+    "name": "Elizabeth Stone"
+  },
+  "owner": "elizabethcstone",
+  "printer": "ElizabethcStone",
+  "printer_name": "Elizabeth Stone",
+  "spec_path": "spec.yaml",
+  "spec_format": "internal",
+  "spec_checksum": "sha256:4d7c5cdc31ca8f05e198f12c78158b95fe075b79e8c4c87f19e8abcc48a52a71",
+  "run_id": "20261029-192233-d337ee12",
+  "category": "marketing",
+  "description": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger.",
+  "mcp_binary": "pingenerator-pp-mcp",
+  "mcp_tool_count": 1,
+  "mcp_ready": "full",
+  "api_version": "0.1.0",
+  "auth_type": "bearer_token",
+  "auth_env_vars": [
+    "PINGENERATOR_ACCESS_KEY"
+  ],
+  "novel_features": [
+    {
+      "name": "Post to pin",
+      "command": "pin-post",
+      "description": "Turn a blog post URL into a scheduled Pinterest pin in one command, previewed for free before any credit is spent."
+    },
+    {
+      "name": "Plan preflight",
+      "command": "preflight",
+      "description": "Price a planned batch in credits and confirm the profile, board and design profile exist before spending anything."
+    },
+    {
+      "name": "Products to pins",
+      "command": "pin-products",
+      "description": "Turn a connected store's products into a batch of scheduled pins, skipping products already pinned."
+    },
+    {
+      "name": "Unpinned posts",
+      "command": "unpinned-posts",
+      "description": "List sitemap posts that have no scheduled pin and no ledgered spend."
+    },
+    {
+      "name": "Spend ledger",
+      "command": "ledger",
+      "description": "See every credit-spending call this CLI executed, with totals by tool and time window."
+    },
+    {
+      "name": "Queue gaps",
+      "command": "queue-gaps",
+      "description": "Find empty and overloaded days in the scheduled-pin queue, per board."
+    },
+    {
+      "name": "Credit runway",
+      "command": "credit-runway",
+      "description": "Estimate weekly credit burn from active automations and how many days of credit remain."
+    }
+  ]
+}

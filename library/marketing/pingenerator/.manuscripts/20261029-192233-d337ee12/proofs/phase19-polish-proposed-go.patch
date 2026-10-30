@@ -1,0 +1,78 @@
+# Phase 19 polish: proposed Go hardening NOT applied to the frozen source (5ae04c7).
+# gosec G304 (filepath.Clean on user paths) and G104 (explicit close errors), plus one unused generated helper.
+# Apply after the local live gate if wanted: patch -p1 -d pingenerator-pp-cli < this file
+diff -ru '--exclude=build' '--exclude=pingenerator-pp-cli' '--exclude=*.mcpb' '--exclude=dogfood-results.json' a/internal/cli/helpers.go b/internal/cli/helpers.go
+--- a/internal/cli/helpers.go	2026-10-29 21:39:19.984613572 +0000
++++ b/internal/cli/helpers.go	2026-10-29 21:50:42.034016999 +0000
+@@ -446,18 +446,6 @@
+ 	return context.WithTimeout(parent, flags.timeout)
+ }
+ 
+-// hasChangedLocalFlags checks Flag.Changed because Cobra's derived local flag
+-// set does not populate the internal bookkeeping used by FlagSet.NFlag.
+-func hasChangedLocalFlags(cmd *cobra.Command) bool {
+-	changed := false
+-	cmd.LocalNonPersistentFlags().VisitAll(func(flag *pflag.Flag) {
+-		if flag.Changed {
+-			changed = true
+-		}
+-	})
+-	return changed
+-}
+-
+ // parentNoSubcommandRunE returns a RunE that handles parents invoked without a
+ // subcommand. A leftover positional means the user typed a token where a
+ // subcommand was expected (a typo, an underscore instead of a hyphen, or a
+diff -ru '--exclude=build' '--exclude=pingenerator-pp-cli' '--exclude=*.mcpb' '--exclude=dogfood-results.json' a/internal/cli/preflight.go b/internal/cli/preflight.go
+--- a/internal/cli/preflight.go	2026-10-29 21:43:33.068628616 +0000
++++ b/internal/cli/preflight.go	2026-10-29 21:51:04.256655436 +0000
+@@ -9,6 +9,7 @@
+ 	"errors"
+ 	"fmt"
+ 	"os"
++	"path/filepath"
+ 	"sort"
+ 	"strings"
+ 
+@@ -95,7 +96,7 @@
+ }
+ 
+ func readPlan(path string) ([]preflightStep, error) {
+-	f, err := os.Open(path)
++	f, err := os.Open(filepath.Clean(path))
+ 	if err != nil {
+ 		return nil, err
+ 	}
+diff -ru '--exclude=build' '--exclude=pingenerator-pp-cli' '--exclude=*.mcpb' '--exclude=dogfood-results.json' a/internal/pgmcp/ledger.go b/internal/pgmcp/ledger.go
+--- a/internal/pgmcp/ledger.go	2026-10-29 21:43:33.068628616 +0000
++++ b/internal/pgmcp/ledger.go	2026-10-29 21:50:42.032012796 +0000
+@@ -72,17 +72,17 @@
+ 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+ 		return err
+ 	}
+-	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
++	f, err := os.OpenFile(filepath.Clean(path), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
+ 	if err != nil {
+ 		return err
+ 	}
+ 	line, err := json.Marshal(e)
+ 	if err != nil {
+-		f.Close()
++		_ = f.Close()
+ 		return err
+ 	}
+ 	if _, err := f.Write(append(line, '\n')); err != nil {
+-		f.Close()
++		_ = f.Close()
+ 		return err
+ 	}
+ 	return f.Close()
+@@ -91,7 +91,7 @@
+ // ReadLedger loads every entry. A missing file is an empty ledger. Malformed
+ // lines are counted and skipped so one bad write cannot hide the rest.
+ func ReadLedger(path string) ([]LedgerEntry, int, error) {
+-	f, err := os.Open(path)
++	f, err := os.Open(filepath.Clean(path))
+ 	if errors.Is(err, os.ErrNotExist) {
+ 		return []LedgerEntry{}, 0, nil
+ 	}

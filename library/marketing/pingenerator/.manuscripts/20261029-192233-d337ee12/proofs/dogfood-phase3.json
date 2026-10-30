@@ -1,0 +1,320 @@
+{
+  "dir": "<cli-dir>",
+  "spec_path": "<cli-dir>/spec.yaml",
+  "spec_source": "bundled",
+  "verdict": "FAIL",
+  "path_check": {
+    "tested": 0,
+    "valid": 0,
+    "valid_pct": 0,
+    "skipped": true,
+    "detail": "internal-yaml spec: paths validated at parse time"
+  },
+  "auth_check": {
+    "spec_scheme": "bearer token format (expects \"Bearer \" prefix)",
+    "generated_format": "Bearer ",
+    "match": true,
+    "detail": "spec and generated client both use \"Bearer\""
+  },
+  "browser_session_check": {
+    "required": false,
+    "pass": true,
+    "detail": "browser-session auth not required"
+  },
+  "oauth_scope_coverage_check": {
+    "checked": 0,
+    "covered": 0,
+    "skipped": true,
+    "detail": "no OAuth-scoped endpoints in spec"
+  },
+  "dead_flags": {
+    "total": 25,
+    "dead": 0
+  },
+  "dead_functions": {
+    "total": 155,
+    "dead": 9,
+    "items": [
+      "booleanNoValueFlags",
+      "booleanSpaceFormPositionalErr",
+      "compactFields",
+      "endpointArgsUsageErr",
+      "endpointPositionalArgs",
+      "endpointUsageLine",
+      "paginatedGetWithResponsePath",
+      "retainCLIQueryParams",
+      "retainExplicitQueryParams"
+    ]
+  },
+  "pipeline_check": {
+    "sync_calls_domain": false,
+    "search_calls_domain": false,
+    "domain_tables": 4,
+    "sync_file_emitted": false,
+    "sync_resources_present": false,
+    "detail": "search methods not found; 4 domain tables found"
+  },
+  "example_check": {
+    "tested": 10,
+    "with_examples": 10,
+    "valid_examples": 10,
+    "detail": "10/10 commands have examples"
+  },
+  "wiring_check": {
+    "command_tree": {
+      "defined": 57,
+      "registered": 57
+    },
+    "config_consistency": {
+      "consistent": true
+    },
+    "workflow_completeness": {
+      "skipped": true,
+      "total_steps": 0,
+      "mapped_steps": 0,
+      "detail": "no workflow_verify.yaml found"
+    }
+  },
+  "novel_features_check": {
+    "planned": 7,
+    "found": 7
+  },
+  "mcp_surface_parity": {
+    "state": "runtime_walking",
+    "pass": true,
+    "detail": "MCP surface mirrors the Cobra tree at runtime"
+  },
+  "reimplementation_check": {
+    "checked": 7,
+    "exempted_via_store": 0,
+    "exempted_via_local_data_source": 1,
+    "unverified_hosts": [
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 146,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 146,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 146,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 146,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 151,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 151,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 151,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 151,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 167,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 167,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 167,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 167,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 175,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 175,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 175,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 175,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 187,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 187,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 187,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 187,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 208,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 208,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 208,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 208,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 222,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-products",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 222,
+        "host": "example.com"
+      },
+      {
+        "command": "credit-runway",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 222,
+        "host": "example.com"
+      },
+      {
+        "command": "preflight",
+        "file": "internal/pgmcp/catalog.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 222,
+        "host": "example.com"
+      },
+      {
+        "command": "pin-post",
+        "file": "pin_post.go",
+        "reason": "unverified host \"example.com\" does not resolve in DNS",
+        "line": 43,
+        "host": "example.com"
+      }
+    ]
+  },
+  "description_drift_check": {
+    "expected": "Every Pin Generator MCP tool as a typed command, with credit-safe dry runs, preflight pricing and a local spend ledger."
+  },
+  "source_client_check": {
+    "checked": 13
+  },
+  "print_json_filtered_check": {
+    "checked": 35
+  },
+  "test_presence": {
+    "checked": 3
+  },
+  "naming_check": {
+    "checked": 35
+  },
+  "sync_param_drop_check": {
+    "checked": 0,
+    "skipped": true
+  },
+  "issues": [
+    "9 dead helper functions found",
+    "29 novel feature host(s) are not in research artifacts: pin-post (internal/pgmcp/catalog.go:146) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:146) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:146) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:146) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:151) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:151) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:151) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:151) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:167) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:167) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:167) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:167) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:175) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:175) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:175) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:175) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:187) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:187) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:187) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:187) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:208) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:208) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:208) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:208) — unverified host \"example.com\" does not resolve in DNS; pin-post (internal/pgmcp/catalog.go:222) — unverified host \"example.com\" does not resolve in DNS; pin-products (internal/pgmcp/catalog.go:222) — unverified host \"example.com\" does not resolve in DNS; credit-runway (internal/pgmcp/catalog.go:222) — unverified host \"example.com\" does not resolve in DNS; preflight (internal/pgmcp/catalog.go:222) — unverified host \"example.com\" does not resolve in DNS; pin-post (pin_post.go:43) — unverified host \"example.com\" does not resolve in DNS"
+  ]
+}

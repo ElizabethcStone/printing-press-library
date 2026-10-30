@@ -1,0 +1,11 @@
+{
+  "sources": [
+    {
+      "source_name": "pingenerator",
+      "decision": "skip-silent",
+      "reason": "login-required-no-session",
+      "detail": "Extra surface sits behind Firebase web login; no browser session or credential upload authorized; pingenerator.com and the Cloud Function host are denied by this session network policy; browser-use/agent-browser not installed",
+      "asked_at": "2026-10-29T19:27:12Z"
+    }
+  ]
+}
