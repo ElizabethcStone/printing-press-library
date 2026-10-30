@@ -2,6 +2,10 @@
 
 This file is maintained by printing-press-library release automation. Do not hand-edit release sections in normal PRs.
 
+## 2026.10.3 - 2026-10-30
+
+- fix(apify): key the Hacker News and article normalize profiles to live Actors (#2407).
+
 ## 2026.10.2 - 2026-10-27
 
 - fix(apify): key the YouTube normalize profile to a live Actor (#2378).
