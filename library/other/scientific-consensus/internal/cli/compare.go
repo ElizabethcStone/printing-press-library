@@ -35,7 +35,7 @@ func computeConsensus(ctx context.Context, c apiGetter, claim string, limit, yea
 	// Detect retractions and twins first: a twin dropped by the relevance
 	// gate must still mark its relevant copy.
 	works = markRetractions(works)
-	works = filterRelevant(claim, works)
+	works, gate := filterRelevant(ctx, claim, works)
 	// Same retraction gate the consensus command applies. computeConsensus is
 	// the scoring path for BOTH compare and batch, so leaving it out here
 	// would let a retracted work set the evidence tier of one side of a
@@ -53,6 +53,7 @@ func computeConsensus(ctx context.Context, c apiGetter, claim string, limit, yea
 		TotalCitations: r.TotalCitations, NearUnanimous: r.NearUnanimous,
 		RetractedExcluded: len(retracted),
 		Method:            stanceMethodLabel(stances),
+		RelevanceGate:     gate,
 		TopSupporting:     topByStance(stances, scengine.StanceSupporting, 2),
 		TopRefuting:       topByStance(stances, scengine.StanceRefuting, 2),
 		AllStudies:        append(allStudyBriefs(stances), retractedBriefs(retracted)...),
@@ -155,6 +156,15 @@ func emptyDueToRetraction(o consensusOutput) bool {
 	return o.RetractedExcluded > 0 || len(o.AllStudies) > 0
 }
 
+// gateLabel renders a relevance gate for text output; it is empty when no
+// works were fetched, so no gate ran.
+func gateLabel(gate string) string {
+	if gate == "" {
+		return "-"
+	}
+	return gate
+}
+
 func renderCompare(w io.Writer, o compareOutput) {
 	row := func(label, av, bv string) { fmt.Fprintf(w, "  %-18s %-32s %-32s\n", label, av, bv) }
 	fmt.Fprintln(w, "Claim comparison:")
@@ -164,6 +174,7 @@ func renderCompare(w io.Writer, o compareOutput) {
 	row("confidence", fmt.Sprintf("%.0f%%", o.ClaimA.Confidence*100), fmt.Sprintf("%.0f%%", o.ClaimB.Confidence*100))
 	row("evidence strength", string(o.ClaimA.EvidenceStrength), string(o.ClaimB.EvidenceStrength))
 	row("studies", fmt.Sprintf("%d", o.ClaimA.StudyCount), fmt.Sprintf("%d", o.ClaimB.StudyCount))
+	row("relevance gate", gateLabel(o.ClaimA.RelevanceGate), gateLabel(o.ClaimB.RelevanceGate))
 	fmt.Fprintf(w, "\n  Stronger support: %s\n", o.Stronger)
 	if o.Note != "" {
 		fmt.Fprintf(w, "  Note: %s\n", o.Note)
