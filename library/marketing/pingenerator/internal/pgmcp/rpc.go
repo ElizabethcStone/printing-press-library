@@ -18,6 +18,11 @@ const Path = "/mcp"
 // frame the reply as a single SSE event.
 const AcceptHeader = "application/json, text/event-stream"
 
+// ReplaySafeHeader mirrors client.ReplaySafeHeader: an internal per-request
+// marker (never sent) that tells the generated client whether an ambiguous
+// failure may be retried. Paid or unknown tools send "false".
+const ReplaySafeHeader = "X-Printing-Press-Replay-Safe"
+
 // Poster is the slice of the generated internal/client the MCP layer needs.
 // The generated client applies the Bearer access key, base URL overrides,
 // timeouts, retries and rate limiting.
@@ -75,7 +80,13 @@ func (e *Error) Error() string {
 
 // Call invokes one tool and returns its unwrapped JSON payload.
 func Call(ctx context.Context, p Poster, name string, args map[string]any) (json.RawMessage, error) {
-	raw, _, err := p.PostWithHeaders(ctx, Path, BuildRequest(name, args), map[string]string{"Accept": AcceptHeader})
+	headers := map[string]string{"Accept": AcceptHeader}
+	// Only known read tools may be retried after an ambiguous failure; a
+	// resent tools/call to a paid or unknown tool could charge twice.
+	if t, ok := Lookup(name); !ok || t.Mutating {
+		headers[ReplaySafeHeader] = "false"
+	}
+	raw, _, err := p.PostWithHeaders(ctx, Path, BuildRequest(name, args), headers)
 	if err != nil {
 		return nil, err
 	}

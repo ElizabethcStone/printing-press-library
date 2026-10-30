@@ -2093,18 +2093,17 @@ func (c *Client) doInternal(ctx context.Context, method, path string, params map
 	// Retry only operations that are safe to replay after an ambiguous
 	// transport failure or server error; a write may already have committed
 	// remotely even when its wire method is GET.
-	canRetryAmbiguousFailure := readOnlyIntent || (!mutationIntent && platform.CanRetryRequest(method, requestIdempotencyKey(c.Config, headerOverrides)))
+	// PATCH(replay-opt-out-wins): only a per-request Idempotency-Key makes a
+	// POST/PATCH replayable. A static key from config repeats across distinct
+	// requests, so it is no idempotency guarantee, and this API does not
+	// honour one; counting it let paid calls be resubmitted after a 5xx.
+	canRetryAmbiguousFailure := readOnlyIntent || (!mutationIntent && platform.CanRetryRequest(method, requestIdempotencyKey(nil, headerOverrides)))
 	// The spec can declare replay safety per endpoint. Free uploads opt in
 	// so a stalled socket does not lose the file; requests that start
 	// billable work opt out so an ambiguous failure is never resubmitted.
-	// An explicit opt-out wins over read intent; an idempotency key still
-	// makes an opted-out request safe to replay.
+	// An explicit opt-out wins over read intent and over any idempotency key.
 	if replaySafe, declared := replaySafeHeaderValue(headerOverrides); declared {
-		if replaySafe {
-			canRetryAmbiguousFailure = true
-		} else {
-			canRetryAmbiguousFailure = requestIdempotencyKey(c.Config, headerOverrides) != ""
-		}
+		canRetryAmbiguousFailure = replaySafe
 	}
 	endpointClass := safeEndpointClass(method, path)
 	retryPolicy, err := c.platformRetryPolicy(endpointClass)

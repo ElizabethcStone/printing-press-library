@@ -1,0 +1,13 @@
+{
+  "schema_version": 2,
+  "id": "saved-profiles-never-arm-credit-spends",
+  "applied_at": "2026-10-30",
+  "base_run_id": "20261029-192233-d337ee12",
+  "base_printing_press_version": "4.34.2",
+  "summary": "Run profiles must never apply or store --execute or --allow-unknown-tool; a credit spend is confirmed only on the current command line.",
+  "reason": "ApplyProfileToFlags overlaid any saved flag, so a profile with execute=true turned a free preview into a paid Pin Generator call without the user typing --execute.",
+  "files": [
+    "internal/cli/profile.go"
+  ],
+  "validated_outcome": "TestSavedProfileCannotArmSpend (zero paid calls; explicit --execute still spends once) and TestProfileApplyNeverSuppliesSpendConfirmations."
+}

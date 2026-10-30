@@ -53,9 +53,11 @@ Generator-template warnings, sent to the retro:
    - AI detection matches whole tokens only;
    - `pgVarName`/`pgCtorName` are fed only by the fixed catalog, so no change was made there.
 
-Out of scope (generated code, sent to the retro):
-- `profile.go` lets a saved run profile set `execute=true`;
-- a static `Idempotency-Key` config header makes credit-spending POSTs retryable.
+Initially classed as generated-code (retro) findings, then **fixed in this CLI** because both are credit-safety defects:
+- `profile.go` let a saved run profile set `execute=true` (or `allow-unknown-tool=true`). Both are now reserved from profile apply and save.
+- A static `Idempotency-Key` config header made credit-spending POSTs retryable, overriding an explicit replay-safe `false`. Now an explicit opt-out always wins, only a per-request key makes a POST/PATCH replayable, and `pgmcp` marks every paid or unknown `tools/call` replay-unsafe.
+
+Both are recorded under `.printing-press-patches/` and remain retro items for the generator templates.
 
 ## Live-gate support fixes (`5ae04c7`)
 
@@ -102,3 +104,13 @@ The author refused a live-test skip and provisioned a disposable test store. To 
 - `pin-products` preview passed live (planned 1, executed 0). `pin-post` passed live (`executed:false`). `unpinned-posts` passed live (exit 0). Nothing was spent.
 - The final source-bound live gate is running locally on `6ec66eb` with the env fixtures. The author records the verdict. No skip waiver is used.
 - Public evidence carries only synthetic fixtures and counts. No account names, emails, IDs, store URLs, login URLs or credentials appear in this repository.
+
+## Credit-safety closure (final source)
+
+Publication review raised the two findings above as in-scope blockers, and both are now fixed with regression tests that fail on the original code:
+- **Replay:** before the fix, a paid call with a static config key reached the server 4 times after a 503. Now it reaches it exactly once. The tests are `TestReplayOptOutAndStaticKeyNeverResendPaidCalls`, `TestPaidCallNotResentWithStaticIdempotencyKey` and `TestMCPCallsMarkPaidAndUnknownToolsReplayUnsafe`. Read GETs and per-request-keyed POSTs still retry (`TestGenuineRetriesStillWork`).
+- **Profiles:** before the fix, a saved profile armed a spend (1 paid call without `--execute`). Now it makes zero paid calls, and an explicit `--execute` still spends once. The tests are `TestSavedProfileCannotArmSpend` and `TestProfileApplyNeverSuppliesSpendConfirmations`.
+
+`go test ./...`: 15/15 packages. verify-skill and validate-narrative both pass. **No unresolved in-scope review findings remain.** The deferred items are non-safety: the generator-template boilerplate in the docs, and the `meta.source` label.
+
+Local live gate on the previous source `6ec66eb`: PASS. 301 tests, of which 162 passed and 139 were skipped or unverified, with no hollow coverage, using a real synthetic store and no execution. It will be rerun against the final source.

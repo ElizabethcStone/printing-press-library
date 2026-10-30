@@ -130,4 +130,3 @@ Pass 3 answers for each survivor (1 Weekly use, 2 Wrapper vs leverage, 3 Transce
 | C13 Pin performance (`pin-stats`) | It needs an external service (Pinterest v5 API) that is not in the spec and is covered by the separate `pinterest` CLI. | queue-gaps |
 | C14 Client key switcher (`clients`) | It means handling credentials locally and duplicates the framework `auth`/`profile` commands. | preflight |
 | C15 Design profile diff (`design-diff`) | Weekly use is niche, and the brief has no evidence for it (score below 5/10). | preflight |
-

@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/client"
+	"github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/cliutil"
 	"github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/cliutil/testenv"
 	"github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/pgmcp"
 	"github.com/mvanhorn/printing-press-library/library/marketing/pingenerator/internal/platform"
@@ -37,6 +38,7 @@ type mockMCP struct {
 
 type mockCall struct {
 	Path, Auth, Accept string
+	Idempotency        string
 	Req                pgmcp.Request
 }
 
@@ -60,7 +62,7 @@ func (m *mockMCP) serve(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m.mu.Lock()
-	m.calls = append(m.calls, mockCall{Path: r.URL.Path, Auth: r.Header.Get("Authorization"), Accept: r.Header.Get("Accept"), Req: req})
+	m.calls = append(m.calls, mockCall{Path: r.URL.Path, Auth: r.Header.Get("Authorization"), Accept: r.Header.Get("Accept"), Idempotency: r.Header.Get("Idempotency-Key"), Req: req})
 	reply, ok := m.replies[req.Params.Name]
 	if req.Method != "tools/call" {
 		reply, ok = m.replies[""]
@@ -731,5 +733,95 @@ func TestPreflightReturnsAuthError(t *testing.T) {
 	newMockMCP(t, map[string]string{"get_account_status": "!Unauthorized: invalid access key"})
 	if _, _, code := runPG(t, "preflight", "--json"); code != 4 {
 		t.Fatalf("bad key exit %d, want 4", code)
+	}
+}
+
+// TestPaidCallNotResentWithStaticIdempotencyKey: a static Idempotency-Key in
+// config (which Pin Generator does not honour) must not make a paid
+// tools/call retryable after a 5xx.
+func TestPaidCallNotResentWithStaticIdempotencyKey(t *testing.T) {
+	m := newMockMCP(t, map[string]string{"generate_pin_image": "HTTP 503", "list_templates": `{"templates":[]}`})
+	t.Setenv(cliutil.DogfoodEnvVar, "")
+	t.Setenv(cliutil.VerifyEnvVar, "")
+	cfgPath := filepath.Join(t.TempDir(), "config.toml")
+	if err := os.WriteFile(cfgPath, []byte("[headers]\n\"Idempotency-Key\" = \"static-config-key\"\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PINGENERATOR_CONFIG", cfgPath)
+	if _, _, code := runPG(t, "generate-pin-image", "--template", "S", "--title", "T", "--execute"); code == 0 {
+		t.Fatal("503 should fail the paid call")
+	}
+	calls := m.toolCalls("generate_pin_image")
+	if len(calls) != 1 {
+		t.Fatalf("paid call reached the server %d times, want exactly 1", len(calls))
+	}
+	if calls[0].Idempotency != "static-config-key" {
+		t.Fatalf("test is vacuous: static key not sent (got %q)", calls[0].Idempotency)
+	}
+}
+
+func TestMCPCallsMarkPaidAndUnknownToolsReplayUnsafe(t *testing.T) {
+	if pgmcp.ReplaySafeHeader != client.ReplaySafeHeader {
+		t.Fatalf("pgmcp marker %q drifted from client %q", pgmcp.ReplaySafeHeader, client.ReplaySafeHeader)
+	}
+	for name, want := range map[string]string{"generate_and_schedule_ai_pin": "false", "create_automation": "false", "setup_design_profile": "false", "brand_new_tool": "false", "list_boards": ""} {
+		p := &recordingPoster{}
+		_, _ = pgmcp.Call(context.Background(), p, name, nil)
+		if got := p.headers[pgmcp.ReplaySafeHeader]; got != want {
+			t.Errorf("%s replay marker = %q, want %q", name, got, want)
+		}
+	}
+}
+
+type recordingPoster struct{ headers map[string]string }
+
+func (p *recordingPoster) PostWithHeaders(_ context.Context, _ string, _ any, h map[string]string) (json.RawMessage, int, error) {
+	p.headers = h
+	return json.RawMessage(`{"result":{"content":[{"type":"text","text":"{}"}]}}`), 200, nil
+}
+
+func TestSavedProfileCannotArmSpend(t *testing.T) {
+	m := newMockMCP(t, map[string]string{"generate_pin_image": `{"imageUrl":"https://example.com/cdn/x.png"}`})
+	t.Setenv(cliutil.DogfoodEnvVar, "")
+	t.Setenv(cliutil.VerifyEnvVar, "")
+	// A hand-edited profile store that tries to arm --execute.
+	if err := saveProfileStore(&profileStore{Profiles: map[string]Profile{"armed": {Name: "armed", Values: map[string]string{"execute": "true", "allow-unknown-tool": "true", "title": "From Profile"}}}}); err != nil {
+		t.Fatal(err)
+	}
+	out, stderr, code := runPG(t, "generate-pin-image", "--template", "S", "--profile", "armed", "--json")
+	if code != 0 {
+		t.Fatalf("exit %d: %s", code, stderr)
+	}
+	if n := len(m.toolCalls("generate_pin_image")); n != 0 || !strings.Contains(out, `"dry_run": true`) {
+		t.Fatalf("profile armed a spend: calls=%d out=%s", n, out)
+	}
+	if !strings.Contains(out, "From Profile") {
+		t.Fatalf("ordinary profile values should still apply: %s", out)
+	}
+	// An explicit --execute typed on the command line still spends.
+	if _, stderr, code := runPG(t, "generate-pin-image", "--template", "S", "--profile", "armed", "--execute", "--json"); code != 0 || len(m.toolCalls("generate_pin_image")) != 1 {
+		t.Fatalf("explicit --execute: exit %d calls %d %s", code, len(m.toolCalls("generate_pin_image")), stderr)
+	}
+}
+
+func TestProfileApplyNeverSuppliesSpendConfirmations(t *testing.T) {
+	newMockMCP(t, map[string]string{})
+	root := RootCmd()
+	gen, _, _ := root.Find([]string{"generate-pin-image"})
+	if err := gen.Flags().Set("execute", "true"); err != nil {
+		t.Fatal(err)
+	}
+	if err := ApplyProfileToFlags(gen, &Profile{Values: map[string]string{"execute": "false"}}); err != nil {
+		t.Fatal(err)
+	}
+	if v, _ := gen.Flags().GetBool("execute"); !v {
+		t.Fatal("explicit --execute must not be overridden")
+	}
+	gen2, _, _ := RootCmd().Find([]string{"generate-pin-image"})
+	if err := ApplyProfileToFlags(gen2, &Profile{Values: map[string]string{"execute": "true"}}); err != nil {
+		t.Fatal(err)
+	}
+	if gen2.Flags().Changed("execute") {
+		t.Fatal("profile applied execute")
 	}
 }

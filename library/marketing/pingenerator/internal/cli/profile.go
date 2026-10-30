@@ -134,8 +134,12 @@ func ApplyProfileToFlags(cmd *cobra.Command, profile *Profile) error {
 	// resolution itself or are dangerous to overlay. profile save's skip
 	// map must remain a superset of this set so saved profiles never carry
 	// values that apply would silently refuse.
+	// PATCH(profile-never-arms-spend): execute and allow-unknown-tool confirm
+	// a credit spend for the current command only; a saved profile must never
+	// supply them.
 	reserved := map[string]bool{
 		"profile": true, "client-profile": true, "config": true, "home": true, "help": true,
+		"execute": true, "allow-unknown-tool": true,
 	}
 	for name, value := range profile.Values {
 		if reserved[name] || credentialLikeRunProfileFlag(name) {
@@ -267,7 +271,7 @@ captured: they control profile/config resolution and would never apply).`,
 			// Must stay a superset of ApplyProfileToFlags' reserved map for
 			// root flags: capturing a flag that apply refuses to overlay
 			// would store values that never take effect.
-			skip := map[string]bool{"profile": true, "client-profile": true, "config": true, "home": true, "help": true, "description": true}
+			skip := map[string]bool{"profile": true, "client-profile": true, "config": true, "home": true, "help": true, "description": true, "execute": true, "allow-unknown-tool": true}
 			credentialFlags := []string{}
 			visit := func(fl *pflag.Flag) {
 				if fl.Changed && credentialLikeRunProfileFlag(fl.Name) {
